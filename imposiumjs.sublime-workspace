@@ -1,0 +1,1168 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"impos",
+				"imposiumInstances"
+			],
+			[
+				"dynamic",
+				"dynamic_clips"
+			],
+			[
+				"upd",
+				"updateDymamicAsset"
+			],
+			[
+				"subtitles",
+				"subtitlesTrack"
+			],
+			[
+				"font",
+				"font-style"
+			],
+			[
+				"btn",
+				"btnCreateStory"
+			],
+			[
+				"template",
+				"templateSelect"
+			],
+			[
+				"lang",
+				"langSelect"
+			],
+			[
+				"region",
+				"regionSelect"
+			],
+			[
+				"text",
+				"text-align"
+			],
+			[
+				"bac",
+				"background-color"
+			],
+			[
+				"targ",
+				"targ"
+			],
+			[
+				"female",
+				"femaleStoryId"
+			],
+			[
+				"load",
+				"[priv] ● loadSequence (property) Nickel.NikeView.loadSequence: LoadSequence"
+			],
+			[
+				"Image",
+				"landingImage"
+			],
+			[
+				"v",
+				"[priv] ● videoDiv (property) Nickel.NikeView.videoDiv: any"
+			],
+			[
+				"width",
+				"width"
+			],
+			[
+				"el",
+				"el"
+			],
+			[
+				"position",
+				"position"
+			],
+			[
+				"true",
+				"true"
+			],
+			[
+				"swapImage",
+				"swapImageMesh"
+			],
+			[
+				"changed",
+				"changedTouches"
+			],
+			[
+				"tet",
+				"text-align"
+			],
+			[
+				"initial",
+				"initialOpacity"
+			],
+			[
+				"card",
+				"cardZPos"
+			],
+			[
+				"ini",
+				"initialScale"
+			],
+			[
+				"y",
+				"y"
+			],
+			[
+				"x",
+				"x"
+			],
+			[
+				"rotation",
+				"rotationOffset"
+			],
+			[
+				"vd",
+				"vd"
+			],
+			[
+				"velocity",
+				"velocityMultiplier"
+			],
+			[
+				"fon",
+				"font-size"
+			],
+			[
+				"CardPos",
+				"CardPos"
+			],
+			[
+				"point",
+				"point"
+			],
+			[
+				"genre",
+				"genreSequence"
+			],
+			[
+				"e",
+				"e"
+			],
+			[
+				"virtual",
+				"virtualScroller"
+			],
+			[
+				"pages",
+				"totalPages"
+			],
+			[
+				"add",
+				"addWheelListener"
+			],
+			[
+				"Vi",
+				"VirtualScroller"
+			],
+			[
+				"graveyard",
+				"graveyard"
+			],
+			[
+				"connec",
+				"connectedToSocket"
+			],
+			[
+				"Seances",
+				"SeancesInstallationScene"
+			],
+			[
+				"count",
+				"countdownRunning"
+			],
+			[
+				"countdown",
+				"countdownOver"
+			],
+			[
+				"camera",
+				"cameraTravel"
+			],
+			[
+				"line",
+				"lineTheta"
+			],
+			[
+				"progres",
+				"progressCircle"
+			],
+			[
+				"clickP",
+				"clickPlaneZ"
+			],
+			[
+				"clickPla",
+				"clickPlaneGeometry"
+			],
+			[
+				"prog",
+				"progressPerc"
+			],
+			[
+				"update",
+				"updateCountdown"
+			],
+			[
+				"cou",
+				"countdownEnabled"
+			],
+			[
+				"init",
+				"[priv] ○ initPostProcessing (method) SeancesIntroScene.initPostProcessing(): void"
+			],
+			[
+				"num",
+				"num"
+			],
+			[
+				"active",
+				"activeTemplate"
+			],
+			[
+				"word",
+				"word"
+			],
+			[
+				"activeTempate",
+				"activeTemplateIndex"
+			],
+			[
+				"random",
+				"randomFromInterval"
+			],
+			[
+				"templates",
+				"templates"
+			],
+			[
+				"title",
+				"titleSequence"
+			],
+			[
+				"l",
+				"l"
+			],
+			[
+				"hori",
+				"horizontalValue"
+			],
+			[
+				"horizontalTiltS",
+				"horizontalTiltShiftShader"
+			],
+			[
+				"verticalTi",
+				"verticalTiltShiftShader"
+			],
+			[
+				"verti",
+				"verticalTiltShiftShader"
+			],
+			[
+				"HorizontalTiltS",
+				"horizontalTiltShiftShader"
+			],
+			[
+				"film",
+				"filmNoiseIntensity"
+			],
+			[
+				"glitchA",
+				"glitchAmount"
+			],
+			[
+				"col",
+				"colorifyShader"
+			],
+			[
+				"color",
+				"colorifyColor"
+			],
+			[
+				"render",
+				"renderToScreen"
+			],
+			[
+				"colori",
+				"colorifyColor"
+			],
+			[
+				"colo",
+				"color"
+			],
+			[
+				"Col",
+				"color"
+			],
+			[
+				"brightness",
+				"brightnessContrastShader"
+			],
+			[
+				"b",
+				"brightnessContrastShader"
+			],
+			[
+				"patrick",
+				"patrick@2x.jpg	w:600 h:600"
+			],
+			[
+				"back",
+				"background-image"
+			],
+			[
+				"te",
+				"text-align"
+			],
+			[
+				"tex",
+				"text-transform"
+			],
+			[
+				"mar",
+				"margin-bottom"
+			],
+			[
+				"marg",
+				"margin"
+			],
+			[
+				"video",
+				"videoRetriever"
+			],
+			[
+				"story",
+				"storyObject"
+			],
+			[
+				"id",
+				"act_id"
+			],
+			[
+				"data",
+				"data"
+			],
+			[
+				"margin",
+				"margin-top"
+			],
+			[
+				"playHead",
+				"playHeadWidth"
+			],
+			[
+				"CutP",
+				"CutPickerVO"
+			],
+			[
+				"set",
+				"setInFrame"
+			],
+			[
+				"vide",
+				"videoFile"
+			],
+			[
+				"tie",
+				"timelineWidth"
+			],
+			[
+				"timeline",
+				"timelineWidth"
+			],
+			[
+				"cure",
+				"currentFrame"
+			],
+			[
+				"padding",
+				"padding-top"
+			],
+			[
+				"btnPrev",
+				"btnPrevPage"
+			],
+			[
+				"ba",
+				"background-color"
+			],
+			[
+				"co",
+				"color"
+			],
+			[
+				"bg",
+				"background-size"
+			],
+			[
+				"transform",
+				"transform-origin"
+			],
+			[
+				"li",
+				"list-style"
+			],
+			[
+				"d",
+				"d"
+			],
+			[
+				"paddi",
+				"padding-bottom"
+			],
+			[
+				"phan",
+				"phantomButton"
+			],
+			[
+				"save",
+				"saveData"
+			],
+			[
+				"str",
+				"stripos"
+			],
+			[
+				"bacn",
+				"background"
+			],
+			[
+				"inline",
+				"inline-block"
+			],
+			[
+				"paddin",
+				"padding-left"
+			],
+			[
+				"over",
+				"overflow"
+			],
+			[
+				"pad",
+				"padding"
+			],
+			[
+				"Data",
+				"data"
+			],
+			[
+				"changeA",
+				"changeActListItem"
+			],
+			[
+				"change",
+				"changeActListItem"
+			],
+			[
+				"actOrder",
+				"actOrderListItem"
+			],
+			[
+				"i",
+				"i"
+			],
+			[
+				"show",
+				"showChild"
+			],
+			[
+				"high",
+				"highlightText"
+			],
+			[
+				"decision",
+				"decision"
+			],
+			[
+				"get",
+				"getDecisionOptions"
+			],
+			[
+				"inven",
+				"inventory_items"
+			],
+			[
+				"bor",
+				"border-left"
+			],
+			[
+				"border",
+				"border-bottom"
+			],
+			[
+				"r",
+				"r"
+			],
+			[
+				"A",
+				"ActVO"
+			],
+			[
+				"exp",
+				"experience"
+			],
+			[
+				"display",
+				"displayText"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "src/ts/VideoRetriever.ts",
+			"settings":
+			{
+				"buffer_size": 2775,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/ts/ImposiumClient.ts",
+			"settings":
+			{
+				"buffer_size": 5942,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/ts/scaffolding/Ajax.ts",
+			"settings":
+			{
+				"buffer_size": 3518,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 313.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ins",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: install",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: instal",
+				"Package Control: Install Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 561.0
+	},
+	"console":
+	{
+		"height": 125.0,
+		"history":
+		[
+			"import urllib.request,os; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), 'wb').write(urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ','%20')).read())"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/webbergreg/Documents/Projects/ImposiumJS",
+		"/Users/webbergreg/Documents/Projects/ImposiumJS/example",
+		"/Users/webbergreg/Documents/Projects/ImposiumJS/src",
+		"/Users/webbergreg/Documents/Projects/ImposiumJS/src/js",
+		"/Users/webbergreg/Documents/Projects/ImposiumJS/src/ts",
+		"/Users/webbergreg/Documents/Projects/ImposiumJS/src/ts/scaffolding"
+	],
+	"file_history":
+	[
+		"/Users/webbergreg/Desktop/netflix_av_flow.txt",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/scaffolding/Component.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/BatchEditor.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/less/spot.less",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/Version.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/FilePicker.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/config/config.php",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/Spot.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/php/Entities/Version.php",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/php/Repositories/SpotRepository.php",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/NetflixAPI.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/php/Repositories/VersionRepository.php",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/php/routes.php",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/php/Entities/Spot.php",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/application.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/less/rules.less",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/less/styles.less",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/scaffolding/Main.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/SpotListItem.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/ts/scaffolding/BandWidthDetector.ts",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/less/mixins.less",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/less/info_panel.less",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/less/list.less",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/bower.json",
+		"/Users/webbergreg/Documents/Projects/NetflixEditor/src/less/vandam_core.less",
+		"/Users/webbergreg/Documents/Projects/Prototypes/nike/src/less/styles.less",
+		"/Users/webbergreg/Documents/Projects/ClipTagger/.gitignore",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/overlay.json",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/migration.json",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/current_structure.json",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/layers/source_inputs/inventory_input.json",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/layers/source_inputs/custom_template_input.json",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/layers/video_layer.json",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/layers/image_layer.json",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/layers/source_inputs/text_input.json",
+		"/Users/webbergreg/Desktop/imposium_overlay_restructure/overlay_structure/layers/audio_layer.json",
+		"/Users/webbergreg/Documents/Projects/Prototypes/glasses/www/imposium.min.js",
+		"/Users/webbergreg/Documents/Projects/Prototypes/glasses/www/index.html",
+		"/Users/webbergreg/Documents/Projects/Imposium-Frontend-v2/imposium_v2.sublime-project",
+		"/Users/webbergreg/Desktop/template.json",
+		"/Users/webbergreg/Desktop/imposium_build.txt",
+		"/Users/webbergreg/Downloads/Template Engine Tester (4).json",
+		"/Users/webbergreg/Documents/Projects/Imposium-Resources/s3/Nike/test_script.js",
+		"/Users/webbergreg/Documents/Projects/Prototypes/nike/src/php/config/global.php",
+		"/Users/webbergreg/Documents/Projects/Prototypes/nike/src/php/config/local.php",
+		"/Users/webbergreg/Documents/Projects/Imposium-Resources/s3/Nike/card_flip/gulpfile.js",
+		"/Users/webbergreg/Documents/Projects/Imposium-Resources/s3/LetGo/perfume/PerfumeBottleEndCard.php",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/scenes/SeancesIntroScene.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/scenes/MultiTouchInterfaceScene.ts",
+		"/Users/webbergreg/Documents/Projects/seances/www/html/index.html",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/stages/InstallationInterfaceStage.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/seances/play_overlay.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/InstallationVideoPlayer.ts",
+		"/Users/webbergreg/Documents/Projects/seances/mysql/schema/seances_db.sql",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/stages/SeancesStage.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/BandwidthDetector.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/VideoPlayer.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/scenes/SeancesScene.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/InstallationGraveyardTitle.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/seances/installation_graveyard.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/application.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/InstallationGraveyard.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/Component.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/scenes/InstallationGraveyardScene.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/seances.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/graveyard/GraveText.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/InstallationControls.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/stages/InstallationGraveyardStage.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/PhotoCard.ts",
+		"/Users/webbergreg/Documents/Projects/seances/package.json",
+		"/Users/webbergreg/Documents/Projects/seances/www/js/analytics.js",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/SeancesApi.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/title/TitleSequence.ts",
+		"/Users/webbergreg/Desktop/req.json",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/stages/InstallationStage.ts",
+		"/Users/webbergreg/Documents/Projects/seances/www/test.html",
+		"/Users/webbergreg/Desktop/dana.js",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/scenes/GraveyardScene.ts",
+		"/Users/webbergreg/Documents/Projects/seances/www/js/analytics_new.js",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/graveyard/GraveyardLine.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/stages/InstallationPlayerStage.ts",
+		"/Users/webbergreg/Documents/Projects/seances/gulpfile.js",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/InstallationTitleSequence.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/Main.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/custom.d.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/Utils.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/CardLayer.ts",
+		"/Users/webbergreg/Documents/Projects/seances/node/lib/socket.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/PlayOverlay.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/seances/controls.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/InstallationProgressCircle.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/ProgressCircle.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/scenes/IntroSceneNoThree.ts",
+		"/Users/webbergreg/Documents/Projects/seances/www/index.php",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/fonts.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/seances/mobile_interface.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/stages/MobileStage.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/Footer.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/Header.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/Share.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/SeancesMobileView.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/shared/header.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/shared/footer.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/shared/mixins.less",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/Footer.ts",
+		"/Users/webbergreg/Documents/Projects/seances/www/js/header.js",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/three/Stage.ts",
+		"/Users/webbergreg/Documents/Projects/seances/typings/browser/ambient/videojs/index.d.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/less/seances/video_player.less",
+		"/Users/webbergreg/Documents/Projects/seances/bower.json",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/InstallationVideoBackground.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/three/VideoBackground.ts",
+		"/Users/webbergreg/Documents/Projects/seances/bower_components/video.js/dist/video.min.js",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/shaders/RGBGlitchShader.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/shaders/MPEGArtifactShader.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/InstallationGenreSequence.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/text/Word.ts",
+		"/Users/webbergreg/Documents/Projects/seances/typings/browser/ambient/three/index.d.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/VirtualScroller.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/scaffolding/ScrollPolyfill.ts",
+		"/Users/webbergreg/Documents/Projects/seances/typings/browser.d.ts",
+		"/Users/webbergreg/Documents/Projects/seances/typings/main.d.ts",
+		"/Users/webbergreg/Documents/Projects/seances/typings/browser/ambient/socket.io/index.d.ts",
+		"/Users/webbergreg/Documents/Projects/seances/typings.json",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/shaders/ProgressCircleShader.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/installation/SeancesInstallationScene.ts",
+		"/Users/webbergreg/Documents/Projects/seances/src/ts/seances/SeancesInstallationStage.ts",
+		"/Users/webbergreg/Desktop/slideshow.txt"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			"/Users/webbergreg/Documents/Projects/NetflixEditor/src",
+			"/Users/webbergreg/Documents/Projects/Imposium-Resources/s3/Nike",
+			"/Users/webbergreg/Documents/Projects/Imposium-Resources/s3/FantasyFootball",
+			"/Users/webbergreg/Documents/Projects/seances/src/ts",
+			"/Users/webbergreg/Documents/Projects/seances/src",
+			"/Users/webbergreg/Documents/Projects/seances/",
+			"/Users/webbergreg/Documents/Projects/seances/src",
+			"/Users/webbergreg/Documents/Projects/seances",
+			"/Users/webbergreg/Documents/Projects/seances/src",
+			"/Users/webbergreg/Documents/Projects/JuicyFruit/site/src/src",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/juicyfruit",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/src",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/src",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/src/",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/src/php_lib",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/src/",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/src/story",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/src",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/cms",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/src",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/",
+			"/Users/webbergreg/Documents/Projects/Imposium/",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/src",
+			"/Users/webbergreg/Documents/Projects/Imposium/site/cms/",
+			"/Users/webbergreg/Documents/Projects/Lab/FFmpeg_Editor/site/cms/",
+			"/Users/webbergreg/Documents/Projects/Lab/FFmpeg_Editor/site/cms/src",
+			"/Users/webbergreg/Documents/Projects/Lab/FFmpeg_Editor/site/cms/",
+			"/Users/webbergreg/Documents/Projects/Lab/FFmpeg_Editor/site/cms/src",
+			"/Users/webbergreg/Documents/Projects/Lab/FFmpeg_Editor/site/cms",
+			"/Users/webbergreg/Documents/Projects/RCT/mobile/snippets",
+			"/Users/webbergreg/Documents/Projects/RCT/mobile/nsippets",
+			"/Users/webbergreg/Documents/Projects/RCT/mobile/src",
+			"/Users/webbergreg/Documents/Projects/RCT/mobile/snippets",
+			"/Users/webbergreg/Documents/Projects/RCT/mobile/src",
+			"/Users/webbergreg/Documents/Projects/RCT/mobile/",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/mobile/",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/mobile/src",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/public/",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/mobile/",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/mobile/src",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/mobile/",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/mobile",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/public",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Subaru/site/less",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/public/less",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/public/src",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/public/",
+			"/Users/webbergreg/Documents/Sublime Text Projects/RCT/public/lib",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/lib",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/src",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/src",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/cssORIG",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/src",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/cssORIG",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/src",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/views",
+			"/Users/webbergreg/Documents/Sublime Text Projects/Yankees v1/site/src",
+			"/Users",
+			"/Users/jeff/Sites/pinnacle/microsite/",
+			"/Users/jeff/Sites/pinnacle/microsite/scss",
+			"/Users/jeff/Sites/pinnacle/microsite/src",
+			"/Users/jeff/Sites/pinnacle/Admin/src/views",
+			"/Users/jeff/Sites/pinnacle/Admin/templates",
+			"/Users/jeff/Sites/pinnacle/Admin/src/views",
+			"/Users/jeff/Sites/pinnacle/Admin/src",
+			"/Users/jeff/Sites/pinnacle/Admin/php",
+			"/Users/jeff/Sites/pinnacle/Website/scss",
+			"/Users/jeff/Sites/pinnacle/Website/js/ts-source"
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": false,
+		"find_history":
+		[
+			"stringify",
+			"key",
+			"this.key",
+			"getSignature",
+			".key = ",
+			"x",
+			"gotScene",
+			"gotscene",
+			"swaps",
+			"{\n    \"story\": {\n        \"id\": \"29e77d08-add4-433d-b534-3d941209c78e\",\n        \"name\": \"another story\",\n        \"description\": \"This is the description\",\n        \"image\": null\n    },\n    \"from\": \"c0268f96-c148-4d12-a546-9fa5cf5d78bd\"\n}",
+			"swaps",
+			"clips",
+			"story",
+			"s3",
+			"inventory",
+			"\",\"",
+			"versionsaved",
+			"versiondaved",
+			"save",
+			"this.save",
+			"this.saved",
+			"getDynamicFile",
+			"spotDeleted",
+			"spotremoved",
+			"spotremoved\nspotremoved\nspotremoved",
+			"spotremoved\nspotremoved",
+			"saved",
+			"savespot",
+			"firstsave",
+			"first",
+			"firstsave",
+			"first",
+			"spotDeleted",
+			"delete",
+			")\n",
+			"nameinput",
+			"new spot",
+			"saveNewVersion",
+			"addVersion",
+			"newversion",
+			"firstsave",
+			"// 'host'     => 'cliptagger.cirbbfzvsxo1.us-east-1.rds.amazonaws.com',",
+			"firstsave",
+			"delefate",
+			"deletespot",
+			"btnSavespot",
+			"strong",
+			"subtitles",
+			"addspotclicked",
+			"addspot",
+			"console.log",
+			");\n",
+			"status",
+			"statis",
+			".events.status",
+			"onStatusUpdate",
+			"sta",
+			"this.imposiuminstances",
+			"onStatusUpdate",
+			"statusupdate",
+			"createExperience",
+			"versions",
+			"statusupdate",
+			"experiencecreated",
+			"statusupdate",
+			"loadvideo",
+			"loadVideo",
+			"onStatusUpdate",
+			"onstatusupdate",
+			"experiencecreated",
+			"status",
+			"loadvideo",
+			"uuid",
+			"loadVideo",
+			"experiencecreated",
+			"console.log",
+			"experiencecreated",
+			"createexperience",
+			"act_id",
+			"actid",
+			"();\n",
+			"this.status",
+			"gotscene",
+			"getVideos",
+			"1080",
+			"getVideos",
+			"setVideos",
+			"mp4_1080",
+			"createexperience",
+			"renderable",
+			"checkRender",
+			"renderable = ",
+			"render",
+			"renderAll",
+			"btnrenderall",
+			"findAssets",
+			"findassets",
+			"find_assets",
+			"checkrender",
+			"save",
+			"console.log(this.data",
+			"console.log",
+			"inventory",
+			"loadVideo",
+			"experienceCreated",
+			"console.log",
+			"renderExp",
+			"createexperience",
+			"checkrender",
+			"dymamic_cuts",
+			"dynamic_clips",
+			"this.data.dynamic_cuts",
+			"dynamic_clips",
+			"data-val",
+			"findassets",
+			"find_assets",
+			"subtitlestrack",
+			"swaps",
+			"audio",
+			"audoi",
+			"aud",
+			"updateName",
+			"findAssets",
+			"setFileNames",
+			"dymamic_",
+			"checkrender",
+			"dymamic_",
+			"fileinfo"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			".PrivaThreePro",
+			".PrivaOnePro",
+			".PrivaTwoPro",
+			"boolean",
+			"\"",
+			"PINNACLE.Templates",
+			"enp0s3"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/ts/VideoRetriever.ts",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2775,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								477,
+								483
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/ArcticTypescript/theme/Typescript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/ts/ImposiumClient.ts",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 5942,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								337,
+								337
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/ArcticTypescript/theme/Typescript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/ts/scaffolding/Ajax.ts",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 3518,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3409,
+								3418
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/ArcticTypescript/theme/Typescript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 460.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 25.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 277.0
+	},
+	"pinned_build_system": "",
+	"project": "imposiumjs.sublime-project",
+	"replace":
+	{
+		"height": 46.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"bowe",
+				"bower.json"
+			],
+			[
+				"",
+				"src/ts/seances/scenes/GraveyardScene.ts"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"last_filter": "",
+		"selected_items":
+		[
+			[
+				"",
+				"/Users/jeff/Sites/pinnacle/Website/sublime-text-files/microsite.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 304.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

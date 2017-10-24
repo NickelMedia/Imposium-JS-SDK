@@ -1,0 +1,123 @@
+import Scaffold from './Scaffold';
+import axios from 'axios';
+
+export class RequestTemplate extends Scaffold {
+	public files:any = {};
+	public url:string = null;
+	public data:any = {};
+	public successCallback:any = null;
+	public errorCallback:any = null;
+	public progressCallback:any = null;
+	public loader:any = null;
+
+	public constructor (
+		data:any={},
+		success:any=null,
+		error:any=null,
+		loader:any=null
+	) {
+		super();
+
+		this.data = data;
+		this.successCallback = success;
+		this.errorCallback = error;
+		this.loader = loader;
+	}
+
+	public onUploadProgress(handler) {
+		this.progressCallback = handler;
+	}
+
+	public addFile(key,fileData) {
+		this.files[key] = fileData;
+	}
+}
+
+export class Request extends RequestTemplate {
+	public route:string;
+	public jwt:string;
+
+	public constructor (
+		route:string, 
+		url:string, 
+		jwt:string, 
+		data:any=null, 
+		success:any=null, 
+		error:any=null, 
+		loader:any=null
+	) {
+		super(data, success, error, loader);
+
+		this.route = route;
+		this.url = `${url+this.route}`;
+		this.jwt = jwt;
+	}
+}
+
+export class RequestFactory extends Scaffold {
+	static nestedValues(key,value) {
+		let nested = {};
+
+		for (let k in value) {
+			nested[`${key}[${k}]`] = value[k];
+		}
+
+		return nested;
+	}
+
+	static get(request:Request) {
+		this.makeRequest(request, 'GET');
+	}
+
+	static post(request:Request) {
+		this.makeRequest(request, 'POST');
+	}
+
+	static makeRequest(request:Request, method) {
+		let headers = {'Authorization': request.jwt}, 
+			progress = undefined,
+			data = {};
+
+		if (Object.keys(request.files).length > 0) {
+			const formData = new FormData();
+
+			for (let key in request.data) {
+				if (request.data[key] instanceof Object) {
+					let nestedValues = this.nestedValues(key, request.data[key]);
+
+					for (let nestedKey in nestedValues) {
+						formData.append(nestedKey, nestedValues[nestedKey]);
+					}
+				} else {
+					formData.append(key, request.data[key]);
+				}
+			}
+
+			for (let key in request.files) {
+				formData.append(key, request.files[key]);
+			}
+
+			data = formData;
+			progress = (request.progressCallback) ? request.progressCallback : undefined;
+		} else {
+			data = JSON.stringify(request.data);
+			headers['Content-Type'] = 'application/json';
+		}
+
+		const config:any = {
+			method: method,
+			url: request.url,
+			headers: headers,
+			data: data,
+			onUploadProgress: progress
+		};
+
+		axios(config)
+		.then(res => {
+			if (request.successCallback) request.successCallback(res);
+		})
+		.catch(err => {
+			if (request.errorCallback) request.errorCallback(err);
+		});
+	}
+}
