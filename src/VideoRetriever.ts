@@ -1,6 +1,7 @@
 import { events } from './ImposiumClient';
 import * as io from 'socket.io-client';
 import * as webstomp from 'webstomp-client';
+import * as sockJS from 'sockjs-client';
 
 export default class VideoRetriever {
 	// Class level params
@@ -10,8 +11,8 @@ export default class VideoRetriever {
 	// Stomp/MQ related config & properties
 	private stompClient:webstomp.Client;
 	private stompConfig:any = {
-		url: 'ws://127.0.0.1:15674/ws',
-		subscription: '',
+		url: 'ws://127.0.0.1:15674/stomp/websocket',
+		subscription: '/imposium/',
 		username: 'guest',
 		password: 'guest'
 	};
@@ -39,8 +40,9 @@ export default class VideoRetriever {
 		this.data = data;
 		this.delegate = delegate;
 
-		this.stompConfig.subscription = this.data.exp;
-		this.stompClient = webstomp.client(this.stompConfig.url);
+		this.stompConfig.subscription += `<${data.exp}>[/<pattern>]`;
+		const ws = new WebSocket(this.stompConfig.url);
+		this.stompClient = webstomp.over(ws);
 
 		clearTimeout(this.connectionTimeout);
 		this.connectionTimeout = setTimeout(this.onSocketError = (e) => this.socketError(e), 5000);
@@ -49,18 +51,19 @@ export default class VideoRetriever {
 	}
 
 	/**
-	 * Subscribes to stomp client relevant job queue
+	 * Subscribes to relevant job queue
 	 */
 	stompConnectionHandler() {
-		this.stompClient.subscribe
-		(
-			this.stompConfig.subscription,
-			this.stompOnMessage = (msg) => this.stompMessageHandler(msg)
-		);
+		console.log('Connecting to rabbitMQ via STOMP')
+		// this.stompClient.subscribe
+		// (
+		// 	this.stompConfig.subscription,
+		// 	this.stompOnMessage = (msg) => this.stompMessageHandler(msg)
+		// );
 	}
 
 	/**
-	 * Route incoming stomp message payload 
+	 * Route incoming payloads
 	 * @param {Obj} msg rabbitMQ/stomp message object
 	 */
 	stompMessageHandler(msg:any) {
@@ -102,9 +105,9 @@ export default class VideoRetriever {
 			this.socket.on('connect', this.onConnected = () => this.connected());
 		}
 
-		this.socket.on('error', this.onSocketError = (e) => this.socketError(e));
-		this.socket.on('gotScene', this.onScene = (e) => this.gotScene(e));
-		this.socket.on('gotMessage', this.onMessage = (e) => this.updateMessage(e));
+		// this.socket.on('error', this.onSocketError = (e) => this.socketError(e));
+		// this.socket.on('gotScene', this.onScene = (e) => this.gotScene(e));
+		// this.socket.on('gotMessage', this.onMessage = (e) => this.updateMessage(e));
 	}
 
 	/**
@@ -113,6 +116,15 @@ export default class VideoRetriever {
 	private connected() {
 		clearTimeout(this.connectionTimeout);
 		this.socket.removeListener('connect', this.onConnected = () => this.connected());
+
+		// Start waiting for messages & render data
+		this.stompClient.connect
+		(
+			this.stompConfig.username,
+			this.stompConfig.password,
+			this.stompOnConnect = () => this.stompConnectionHandler(),
+			this.stompOnError = (e) => this.stompErrorHandler(e)
+		);
 
 		if (this.initialConnect) {
 			this.startEventProcessor();	
@@ -131,15 +143,6 @@ export default class VideoRetriever {
 		};
 
 		clearTimeout(this.renderTimeout);
-
-		// Start waiting for messages & render data
-		this.stompClient.connect
-		(
-			this.stompConfig.username,
-			this.stompConfig.password,
-			this.stompOnConnect = () => this.stompConnectionHandler(),
-			this.stompOnError = (e) => this.stompErrorHandler(e)
-		);
 
 		// Start the event chain via Socket.io
 		this.socket.emit('sendSocket', data);
