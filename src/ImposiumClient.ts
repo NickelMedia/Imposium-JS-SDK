@@ -99,7 +99,7 @@ export class ImposiumClient{
 				if(response.ok){
 					success(response.data);
 				}else{
-					error(response.data);
+					error(response);
 				}
 			})
 	}
@@ -112,7 +112,7 @@ export class ImposiumClient{
 				if(response.ok){
 					success(response.data);
 				}else{
-					error(response.data);
+					error(response);
 				}
 			})
 	}
@@ -128,7 +128,7 @@ export class ImposiumClient{
 				if(response.ok){
 					success(response.data);
 				}else{
-					error(response.data);
+					error(response);
 				}
 			});
 	}

@@ -8,19 +8,25 @@
 	<body>
 		
 		<div>
+
 			<h2>Enter a caption, upload an image, and hit Generate Video</h2>
+
 			<label for = "caption">Caption</label>
 			<input id = "caption" name = "caption" type = "text" placeholder = "Caption"/>
 			<br/>
+
 			<label for = "image">Image</label>
 			<input id = "image" name = "image" type = "file"/>
 			<br/>
 			<br/>
+
 			<button id = "btnGenerate">Generate Video</button>
 			<br/>
 			<br/>
+
 			<span id = "status"></span>
 			<br/>
+
 			<video id = "dynamicVideo" controls autoplay></video>
 		</div>
 		
@@ -28,6 +34,7 @@
 		
 		<script type = "text/javascript">
 
+			//Define the global vars
 			var storyId = "295a80d0-871c-4def-a579-8a375d6942fc",
 			 	actId = "11a8e3b8-d3c4-4232-80a7-e757fb18fa57",
 				accessKey = 'zooch5ja8fiejoojoo6AeQuahmex1wes',
@@ -38,20 +45,25 @@
 				vid = document.getElementById('dynamicVideo'),
 				experienceId;
 
+			//Create an instance of the ImposiumClient
 			var imposium = new Imposium.ImposiumClient(accessKey);
+			imposium.on(Imposium.events.STATUS, onStatusUpdate, this);
 
+			//If there is a deeplink to an experience, connect to that experience
 			if (window.location.hash!="") {
 				var expId = window.location.hash.replace("#","");
 				if (expId) {
 					imposium.startEventProcessor({
 						'expId' : expId, 
 						'actId' : actId
-					}, gotScene, existingError);
+					}, onGotScene, onExistingError);
 				}					
 			}
 
+			//Bind the click event to the generate button
 			document.getElementById('btnGenerate').addEventListener('click', createExperience);
 
+			//Creates an experience on Imposiun, passing in the caption and image 
 			function createExperience(){
 
 				var inventory = {
@@ -60,54 +72,60 @@
 		    		'callback_url':'' //here you can specify a callback URL to hit once the video has rendered
 		    	};
 		    	
-				imposium.createExperience(storyId, inventory, false, experienceCreated, experienceError, onUploadProgress);
+				imposium.createExperience(storyId, inventory, false, onExperienceCreated, onExperienceError, onUploadProgress);
+
+				setStatus('Creating Experience');
 			}
 
-			function experienceCreated(data){		
+			//Callback once all media is uploaded and the experience has been created
+			function onExperienceCreated(data){		
 
-				console.log(data);
-
+				//put the experience in the URL for deeplinking
 				experienceId = data.id;
 				window.location.hash = "#" +experienceId;
-
-				imposium.on(Imposium.events.STATUS, onStatusUpdate, this);
 
 				imposium.startEventProcessor({
 					'expId' : experienceId, 
 					'actId' : actId,
-				}, gotScene, eventProcessorError);
+				}, onGotScene, onEventProcessorError);
 			}
 
-			function gotScene(data){
+			//Called once the experience has rendered and is ready to view
+			function onGotScene(data){
 
-				console.log(data);
-
-				statusField.innerHTML = "Got Scene";
-				vid.src = data.videoUrls.mp4_1080;
+				setStatus("Got Scene");
+				vid.src = data.videoUrls.mp4_720;
+				vid.style.display = 'block';
 			}
 
+			//Called through each step of the rendering process
 			function onStatusUpdate(data){
+
 				if(data.id == experienceId){
-					statusField.innerHTML = data.msg;
+					setStatus(data.msg);
 				}
+			}
+
+			function setStatus(status){
+
+				this.statusField.innerHTML = status;
 			}
 
 			function onUploadProgress(e){
 
-				console.log(e);
 			}
 
-			function experienceError(e){
+			function onExperienceError(e){
 				console.error("Error creating new experience");
 				console.log(e);
 			}
 
-			function existingError(e){
+			function onExistingError(e){
 				console.error("Error creating new experience");
 				console.log(e);
 			}
 
-			function eventProcessorError(e){
+			function onEventProcessorError(e){
 				console.error("Error starting the event procesor");
 				console.log(e);
 			}
