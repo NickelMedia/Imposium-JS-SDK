@@ -52,7 +52,7 @@ export class ImposiumClient{
 				}else{
 					error(response.data);
 				}
-			})
+			});
 	}
 
 	public getExperience(expId, success, error) {
@@ -64,7 +64,7 @@ export class ImposiumClient{
 				}else{
 					error(response.data);
 				}
-			})
+			});
 	}
 
 	public createExperience(storyId, inventory, render, success, error, progress=null) {
