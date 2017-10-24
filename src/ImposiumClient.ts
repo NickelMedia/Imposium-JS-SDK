@@ -2,20 +2,23 @@ import VideoRetriever from './VideoRetriever';
 import {create} from 'apisauce';
 import * as EventEmitter from 'event-emitter';
 
-export class events {
-	public static STATUS:string = "imposium_status_update";
-}
-
 export class ImposiumClient{
 
+	//Default config options
 	static config:any = 
 	{
 		'requestUrl':'https://api.imposium.com/',
-		'socket':'https://cms.imposium.com'
+		'socket':'https://cms.imposium.com',
+		'auth':'accessKey'
 	};
 
+	//accessToken or JWT
 	private token:string;
+
+	//API Sauce instance
 	private api:any;
+
+	//Socket connection handler
 	public videoRetriever:VideoRetriever;
 
 	constructor(token, config = null) {
@@ -37,12 +40,58 @@ export class ImposiumClient{
 		//create the api instance
 		this.api = create({
 			baseURL:ImposiumClient.config.requestUrl,
-			headers:{
-				'X-Imposium-Access-Key':this.token
-			}
+			headers:this.getHeaders()
 		});
 	}
 
+	//set the proper headers, for both accessToken, and JWT authentication
+	private getHeaders(){
+
+		if(ImposiumClient.config.auth.toLowerCase() == 'jwt'){
+			return {
+				'Authorization':`Bearer ${this.token}`
+			}
+		}else{
+			return {
+				'X-Imposium-Access-Key':this.token
+			};
+		}
+	}
+
+	//Parse the inventory object and create a formData to pass into Imposium
+	private formatData(storyId, inventory, error){
+
+		var formData = new FormData();
+
+		//add the storyID
+		formData.append('story_id', storyId);
+
+		//pull any files from the inventory, add them to the top level
+		var files = {};
+		for(var inventoryId in inventory){
+			var fileInput = inventory[inventoryId];
+			if(fileInput instanceof HTMLInputElement && fileInput.type && fileInput.type === "file"){
+				if(fileInput.files && fileInput.files[0]){
+					inventory[inventoryId] = '';
+					formData.append(inventoryId, fileInput.files[0]);
+				} else {
+					if(error){
+						error('[NO_FILE_DATA] A file input was specified for inventory item '+inventoryId+', but no file data was found.');
+						return;
+					}
+				}
+			}
+		}
+
+		//add the inventory
+		for(var invKey in inventory){
+			formData.append(`inventory[${invKey}]`, inventory[invKey]);
+		}
+
+		return formData;
+	}
+
+	//Get a story based on the storyId
 	public getStory(storyId, success, error) {
 
 		this.api.get(`/story/${storyId}`)
@@ -55,6 +104,7 @@ export class ImposiumClient{
 			})
 	}
 
+	//Get a specific user experience
 	public getExperience(expId, success, error) {
 
 		this.api.get(`/experience/${expId}`)
@@ -67,35 +117,13 @@ export class ImposiumClient{
 			})
 	}
 
+	//Create a new user experience
 	public createExperience(storyId, inventory, render, success, error, progress=null) {
 
-		const data:any = {'story_id':storyId, 'inventory':inventory};
+		const data = this.formatData(storyId, inventory, error);
+		const config = (progress) ? { onUploadProgress: (e)=>progress(e)} : {};
 
-		// if (data['inventory']) {
-		// 	for (let inventoryId in data['inventory']) {
-		// 		let fileInput = data['inventory'][inventoryId];
-
-		// 		if (fileInput instanceof HTMLInputElement && fileInput.type) {
-		// 			const errorMessage = `
-		// 				[NO_FILE_DATA] A file input was specified for inventory
-		// 				item ${inventoryId}, but no file data was found.`;
-
-		// 			if (fileInput.type === "file") {
-		// 				if (fileInput.files && fileInput.files[0]) {
-		// 					data['inventory'][inventoryId] = '';
-		// 					files[inventoryId] = fileInput.files[0];
-		// 				} else {
-		// 					if (error) {
-		// 						error(errorMessage);
-		// 						return;
-		// 					}
-		// 				}
-		// 			}	
-		// 		}
-		// 	}
-		// }
-		
-		this.api.post('/experience', data)
+		this.api.post('/experience', data, config)
 			.then((response)=>{
 				if(response.ok){
 					success(response.data);
@@ -103,28 +131,9 @@ export class ImposiumClient{
 					error(response.data);
 				}
 			});
-
-		// const request:Request = new Request
-		// (
-		// 	route, 
-		// 	ImposiumClient.config.requestUrl, 
-		// 	this.jwt, 
-		// 	data, 
-		// 	success, 
-		// 	error
-		// );
-
-		// if (Object.keys(files).length > 0) {
-		// 	for (let fileKey in files) {
-		// 		request.addFile(fileKey, files[fileKey]);
-		// 	}
-
-		// 	if (progress) request.onUploadProgress(progress);
-		// }
-
-		// RequestFactory.post(request);
 	}
 
+	//Start the event processor, to generate or get a video
 	public startEventProcessor(data:any, success:any, error:any) {
 		if (!this.videoRetriever) {
 			const config:any = {
@@ -144,4 +153,8 @@ export class ImposiumClient{
 			this.videoRetriever.startEventProcessor();	
 		}
 	}
+}
+
+export class events {
+	public static STATUS:string = "imposium_status_update";
 }

@@ -145,7 +145,7 @@ export default class VideoRetriever {
 		}
 
 		if (sceneData != null) {
-			if (this.data.onSuccess) {
+			if (this.data.onSuccess && sceneData.type == 'video') {
 				this.delegate = () => this.data.onSuccess(sceneData);
 				this.delegate();
 			}

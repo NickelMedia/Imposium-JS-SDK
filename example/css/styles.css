@@ -35,8 +35,8 @@ body{
 }
 
 #dynamicVideo{
-    width:1280px;
-    height:720px;
+    width:640px;
+    height:360px;
     /*display: none;*/
     background-color: #ddd;
     margin-top:10px;
