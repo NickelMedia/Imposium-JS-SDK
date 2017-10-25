@@ -1,23 +1,27 @@
 import {create} from 'apisauce';
 import * as EventEmitter from 'event-emitter';
 
-import VideoRetriever from './VideoRetriever';
+import { MessageConsumer, Job } from './MessageConsumer';
+import { StompConfig } from './StompClient';
 
 export class events {
 	public static STATUS:string = "imposium_status_update";
 }
 
 export class ImposiumClient {
-	public videoRetriever:VideoRetriever;
+	public messageConsumer:MessageConsumer;
 
-	private stompConfig:any = {
-		'stompEndpoint':'ws://127.0.0.1:15674/stomp/websocket',
+	private stompConfig:StompConfig = {
+		'stompEndpoint':'ws://127.0.0.1:15674/ws',
 		'stompUser': 'guest',
 		'stompPass': 'guest',
-		'exchangeRoute': '/exchange/imposium/'
+		'exchangeRoute': '/exchange/imposium/',
+		'onMessage': undefined,
+		'onError': undefined
 	};
+
+	private xhrBaseURL:string = 'http://api/';
 	private api:any;
-	private xhrBaseURL:string = 'https://api.imposium.com/';
 	private token:string;
 
 	constructor(token, config = null) {
@@ -82,18 +86,20 @@ export class ImposiumClient {
 	}
 
 	public startEventProcessor(data:any, success:any, error:any) {
-		const jobSpec:any = {
+		const jobSpec:Job = {
 			'expId': data.expId, 
 			'actId': data.actId, 
 			'onSuccess': success, 
 			'onError': error
 		};
 
-		if (!this.videoRetriever) {
-			this.videoRetriever = new VideoRetriever(jobSpec, this, this.stompConfig);		
+		if (!this.messageConsumer) {
+			this.messageConsumer = new MessageConsumer(jobSpec, this, this.api, this.stompConfig);		
 		} else {
-			this.videoRetriever.setJob(jobSpec)
-			this.videoRetriever.init(this.stompConfig);	
+			this.messageConsumer.setJob(jobSpec)
+			this.messageConsumer.setContext(this);
+			
+			this.messageConsumer.reconnect(this.stompConfig);	
 		}
 	}
 }

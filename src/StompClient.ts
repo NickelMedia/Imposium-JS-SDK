@@ -1,21 +1,68 @@
 import * as WebStomp from 'webstomp-client';
 
-export default class StompClient {
-	public client:WebStomp.Client;
+/**
+ * Encapsulates config required by the WebStomp client
+ * and accepts lexically scoped functions from an invoking
+ * class in onMessage and onError
+ */
+export interface StompConfig {
+	stompEndpoint:string;
+	stompUser:string;
+	stompPass:string;
+	exchangeRoute:string;
+	onMessage:(msg:WebStomp.Message)=>void;
+	onError:(err:any)=>void;
+}
 
-	private config:any;
+/**
+ * Encapsulates WebStomp client handling functionality
+ */
+export class StompClient {
+	private client:WebStomp.Client;
+	private subscription:WebStomp.Subscription;
+	private config:StompConfig;
 	private socket:WebSocket;
-	private subscribe:any;
+	private expId:string;
+	private subscribe:()=>void;
 
-	constructor(config:any) {
+	/**
+	 * Set config and initialize the client
+	 * @param {StompConfig} config WebStomp config
+	 */
+	public constructor(config:StompConfig, expId:string) {
 		this.config = config;
-
+		this.expId = expId;
 		this.init();
 	}
 
-	init() {
+	/**
+	 * Kill current socket and client definitions and 
+	 * reconnect to RabbitMQ
+	 */
+	public reconnect():void {
+		this.socket = null;
+		this.client = null;
+		this.init();
+	}
+
+	/**
+	 * Kill the current socket and clear the class
+	 * level references to the socket and client
+	 */
+	public kill():void {
+		this.client.disconnect();
+		this.socket = null;
+		this.client = null;
+	}
+
+	/**
+	 * Initializes WebSocket and WebStomp client objects and 
+	 * established a connection to the RabbitMQ server
+	 */
+	private init():void {
 		this.socket = new WebSocket(this.config.stompEndpoint);
 		this.client = WebStomp.over(this.socket);
+		this.client.debug = () => {};
 
 		this.client.connect
 		(
@@ -26,17 +73,15 @@ export default class StompClient {
 		);
 	}
 
-	establishSubscription() {
-		this.client.subscribe
+	/**
+	 * Subscribes to a queue on the base imposium exchange
+	 * then invokes message consumption
+	 */
+	private establishSubscription():void {
+		this.subscription = this.client.subscribe
 		(
-			this.config.exchangeRoute,
+			`${this.config.exchangeRoute}${this.expId}`,
 			this.config.onMessage
 		);
-	}
-
-	reconnect() {
-		this.socket = null;
-		this.client = null;
-		this.init();
 	}
 }
