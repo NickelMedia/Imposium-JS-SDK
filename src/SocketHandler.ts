@@ -1,7 +1,7 @@
 import { events } from './ImposiumClient';
 import * as io from 'socket.io-client';
 
-export default class VideoRetriever {
+export default class SocketHandler {
 
 	public waitingForVideo:boolean = false;
 	public socket:any;

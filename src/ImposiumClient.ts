@@ -1,4 +1,4 @@
-import VideoRetriever from './VideoRetriever';
+import SocketHandler from './SocketHandler';
 import {create} from 'apisauce';
 import * as EventEmitter from 'event-emitter';
 
@@ -19,7 +19,7 @@ export class ImposiumClient{
 	private api:any;
 
 	//Socket connection handler
-	public videoRetriever:VideoRetriever;
+	public socketHandler:SocketHandler;
 
 	constructor(token, config = null) {
 
@@ -135,7 +135,7 @@ export class ImposiumClient{
 
 	//Start the event processor, to generate or get a video
 	public startEventProcessor(data:any, success:any, error:any) {
-		if (!this.videoRetriever) {
+		if (!this.socketHandler) {
 			const config:any = {
 				'socket': ImposiumClient.config.socket,
 				'onSuccess':success,
@@ -144,13 +144,13 @@ export class ImposiumClient{
 				"act":data.actId,
 			};
 
-			this.videoRetriever = new VideoRetriever(config, this);		
+			this.socketHandler = new SocketHandler(config, this);		
 		} else {
-			this.videoRetriever.data.exp = data.expId;
-			this.videoRetriever.data.act = data.actId;
-			this.videoRetriever.data.onSuccess = success;
-			this.videoRetriever.data.onError = error;
-			this.videoRetriever.startEventProcessor();	
+			this.socketHandler.data.exp = data.expId;
+			this.socketHandler.data.act = data.actId;
+			this.socketHandler.data.onSuccess = success;
+			this.socketHandler.data.onError = error;
+			this.socketHandler.startEventProcessor();	
 		}
 	}
 }
