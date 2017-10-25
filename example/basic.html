@@ -56,7 +56,7 @@
 					imposium.startEventProcessor({
 						'expId' : expId, 
 						'actId' : actId
-					}, onGotScene, onExistingError);
+					}, onGotScene, onEventProcessorError);
 				}					
 			}
 
@@ -116,11 +116,6 @@
 			}
 
 			function onExperienceError(e){
-				console.error("Error creating new experience");
-				console.log(e);
-			}
-
-			function onExistingError(e){
 				console.error("Error creating new experience");
 				console.log(e);
 			}

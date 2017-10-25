@@ -42,8 +42,7 @@ export default class VideoRetriever {
 		clearTimeout(this.renderTimeout);
 
 		if (this.data.onError) {
-			this.delegate = () => this.data.onError(invId);
-			this.delegate();
+			this.data.onError(invId);
 		}	
 	}
 
@@ -66,8 +65,8 @@ export default class VideoRetriever {
 	 * @param {Obj} data Contains status message and uuid for job
 	 */
 	public updateMessage(data) {
-		const update = data;
 
+		const update = data;
 		if (update) this.delegate.emit(events.STATUS, update);
 	}
 
@@ -100,8 +99,7 @@ export default class VideoRetriever {
 			this.startEventProcessor();
 		} else {
 			if (this.data.onError) {
-				this.delegate = (e) => this.data.onError(e);
-				this.delegate();
+				this.data.onError(id);
 			}
 		}
 	}	
@@ -110,6 +108,7 @@ export default class VideoRetriever {
 	 * Start emitting data via Socket.io
 	 */
 	public startEventProcessor() {
+
 		clearTimeout(this.renderTimeout);
 
 		var data = {
@@ -146,13 +145,11 @@ export default class VideoRetriever {
 
 		if (sceneData != null) {
 			if (this.data.onSuccess && sceneData.type == 'video') {
-				this.delegate = () => this.data.onSuccess(sceneData);
-				this.delegate();
+				this.data.onSuccess(sceneData);
 			}
 		} else {
 			if (this.data.onError) {
-				this.delegate = () => this.data.onError(sceneData);
-				this.delegate();
+				this.data.onError(sceneData);
 			}
 		}
 	}
