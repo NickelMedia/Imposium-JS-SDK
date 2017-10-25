@@ -67,7 +67,12 @@ export default class SocketHandler {
 	public updateMessage(data) {
 
 		const update = data;
-		if (update) this.delegate.emit(events.STATUS, update);
+
+		if(update){
+			if(update.id == this.data.exp){
+				this.delegate.emit(events.STATUS, update);
+			}
+		}
 	}
 
 	/**
@@ -113,7 +118,7 @@ export default class SocketHandler {
 
 		var data = {
 			'expId': this.data.exp, 
-			'actId': this.data.act, 
+			'actId': this.data.act,
 			'trigger': ''
 		};
 
@@ -144,7 +149,7 @@ export default class SocketHandler {
 		}
 
 		if (sceneData != null) {
-			if (this.data.onSuccess && sceneData.type == 'video') {
+			if (this.data.onSuccess && sceneData.type == 'video' && data.id == this.data.exp) {
 				this.data.onSuccess(sceneData);
 			}
 		} else {

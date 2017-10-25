@@ -43,11 +43,11 @@
 				captionInput = document.getElementById('caption'),
 				imageInput = document.getElementById('image'),
 				vid = document.getElementById('dynamicVideo'),
+				statusHandler = onStatusUpdate,
 				experienceId;
 
 			//Create an instance of the ImposiumClient
 			var imposium = new Imposium.ImposiumClient(accessKey);
-			imposium.on(Imposium.events.STATUS, onStatusUpdate, this);
 
 			//If there is a deeplink to an experience, connect to that experience
 			if (window.location.hash!="") {
@@ -84,6 +84,7 @@
 				experienceId = data.id;
 				window.location.hash = "#" +experienceId;
 
+				imposium.on(Imposium.events.STATUS, statusHandler, this);
 				imposium.startEventProcessor({
 					'expId' : experienceId, 
 					'actId' : actId,
@@ -93,6 +94,7 @@
 			//Called once the experience has rendered and is ready to view
 			function onGotScene(data){
 
+				imposium.off(Imposium.events.STATUS, statusHandler, this);
 				setStatus("Got Scene");
 				vid.src = data.videoUrls.mp4_720;
 				vid.style.display = 'block';
@@ -100,10 +102,7 @@
 
 			//Called through each step of the rendering process
 			function onStatusUpdate(data){
-
-				if(data.id == experienceId){
-					setStatus(data.msg);
-				}
+				setStatus(data.msg);
 			}
 
 			function setStatus(status){

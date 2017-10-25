@@ -1,0 +1,130 @@
+<html>
+    
+    <head>
+        <title>Imposium Basic Example</title>
+        <link rel="stylesheet" type="text/css" href="css/styles.css">
+    </head>
+
+    <body>
+        
+        <div>
+
+            <h2>Enter a caption, upload an image, and hit Generate Video</h2>
+
+            <label for = "caption">Caption</label>
+            <input id = "caption" name = "caption" type = "text" placeholder = "Caption"/>
+            <br/>
+
+            <label for = "image">Image</label>
+            <input id = "image" name = "image" type = "file"/>
+            <br/>
+            <br/>
+
+            <button id = "btnGenerate">Generate Video</button>
+            <br/>
+            <br/>
+
+            <span id = "status"></span>
+            <br/>
+
+            <video id = "dynamicVideo" controls autoplay></video>
+        </div>
+        
+        <script type = "text/javascript" src = "../lib/imposium.js"></script>
+        
+        <script type = "text/javascript">
+
+            //Define the global vars
+            var storyId = "[STORY_ID]",
+                actId = "[ACT_ID]",
+                token = '[JWT_TOKEN]',
+
+                statusField = document.getElementById('status'),
+                captionInput = document.getElementById('caption'),
+                imageInput = document.getElementById('image'),
+                vid = document.getElementById('dynamicVideo'),
+                experienceId;
+
+            //Create an instance of the ImposiumClient
+            var imposium = new Imposium.ImposiumClient(token, {
+                auth:'JWT'
+            });
+
+            //If there is a deeplink to an experience, connect to that experience
+            if (window.location.hash!="") {
+                var expId = window.location.hash.replace("#","");
+                if (expId) {
+                    imposium.startEventProcessor({
+                        'expId' : expId, 
+                        'actId' : actId
+                    }, onGotScene, onEventProcessorError);
+                }                   
+            }
+
+            //Bind the click event to the generate button
+            document.getElementById('btnGenerate').addEventListener('click', createExperience);
+
+            //Creates an experience on Imposiun, passing in the caption and image 
+            function createExperience(){
+
+                var inventory = {
+                    'text':captionInput.value,
+                    'image':imageInput,
+                    'callback_url':'' //here you can specify a callback URL to hit once the video has rendered
+                };
+                
+                imposium.createExperience(storyId, inventory, false, onExperienceCreated, onExperienceError, onUploadProgress);
+
+                setStatus('Creating Experience');
+            }
+
+            //Callback once all media is uploaded and the experience has been created
+            function onExperienceCreated(data){     
+
+                //put the experience in the URL for deeplinking
+                experienceId = data.id;
+                window.location.hash = "#" +experienceId;
+
+                imposium.on(Imposium.events.STATUS, onStatusUpdate, this);
+                imposium.startEventProcessor({
+                    'expId' : experienceId, 
+                    'actId' : actId,
+                }, onGotScene, onEventProcessorError);
+            }
+
+            //Called once the experience has rendered and is ready to view
+            function onGotScene(data){
+
+                imposium.off(Imposium.events.STATUS, onStatusUpdate, this);
+                setStatus("Got Scene");
+                vid.src = data.videoUrls.mp4_720;
+                vid.style.display = 'block';
+            }
+
+            //Called through each step of the rendering process
+            function onStatusUpdate(data){
+                setStatus(data.msg);
+            }
+
+            function setStatus(status){
+
+                this.statusField.innerHTML = status;
+            }
+
+            function onUploadProgress(e){
+
+            }
+
+            function onExperienceError(e){
+                console.error("Error creating new experience");
+                console.log(e);
+            }
+
+            function onEventProcessorError(e){
+                console.error("Error starting the event procesor");
+                console.log(e);
+            }
+
+        </script>
+    </body>
+</html>
