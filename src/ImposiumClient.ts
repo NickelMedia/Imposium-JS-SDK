@@ -1,25 +1,26 @@
-import VideoRetriever from './VideoRetriever';
 import {create} from 'apisauce';
 import * as EventEmitter from 'event-emitter';
+
+import VideoRetriever from './VideoRetriever';
 
 export class events {
 	public static STATUS:string = "imposium_status_update";
 }
 
-export class ImposiumClient{
-
-	static config:any = 
-	{
-		'requestUrl':'https://api.imposium.com/',
-		'socket':'https://cms.imposium.com'
-	};
-
-	private token:string;
-	private api:any;
+export class ImposiumClient {
 	public videoRetriever:VideoRetriever;
 
-	constructor(token, config = null) {
+	private stompConfig:any = {
+		'stompEndpoint':'ws://127.0.0.1:15674/stomp/websocket',
+		'stompUser': 'guest',
+		'stompPass': 'guest',
+		'exchangeRoute': '/exchange/imposium/'
+	};
+	private api:any;
+	private xhrBaseURL:string = 'https://api.imposium.com/';
+	private token:string;
 
+	constructor(token, config = null) {
 		EventEmitter(this);
 
 		//set access token
@@ -29,14 +30,14 @@ export class ImposiumClient{
 		if (config) {
 			for (let key in config) {
 				if (config.hasOwnProperty(key)) {
-					ImposiumClient.config[key] = config[key];
+					this.stompConfig[key] = config[key];
 				}
 			}
 		}
 
 		//create the api instance
 		this.api = create({
-			baseURL:ImposiumClient.config.requestUrl,
+			baseURL: this.xhrBaseURL,
 			headers:{
 				'X-Imposium-Access-Key':this.token
 			}
@@ -68,33 +69,8 @@ export class ImposiumClient{
 	}
 
 	public createExperience(storyId, inventory, render, success, error, progress=null) {
-
 		const data:any = {'story_id':storyId, 'inventory':inventory};
 
-		// if (data['inventory']) {
-		// 	for (let inventoryId in data['inventory']) {
-		// 		let fileInput = data['inventory'][inventoryId];
-
-		// 		if (fileInput instanceof HTMLInputElement && fileInput.type) {
-		// 			const errorMessage = `
-		// 				[NO_FILE_DATA] A file input was specified for inventory
-		// 				item ${inventoryId}, but no file data was found.`;
-
-		// 			if (fileInput.type === "file") {
-		// 				if (fileInput.files && fileInput.files[0]) {
-		// 					data['inventory'][inventoryId] = '';
-		// 					files[inventoryId] = fileInput.files[0];
-		// 				} else {
-		// 					if (error) {
-		// 						error(errorMessage);
-		// 						return;
-		// 					}
-		// 				}
-		// 			}	
-		// 		}
-		// 	}
-		// }
-		
 		this.api.post('/experience', data)
 			.then((response)=>{
 				if(response.ok){
@@ -103,45 +79,21 @@ export class ImposiumClient{
 					error(response.data);
 				}
 			});
-
-		// const request:Request = new Request
-		// (
-		// 	route, 
-		// 	ImposiumClient.config.requestUrl, 
-		// 	this.jwt, 
-		// 	data, 
-		// 	success, 
-		// 	error
-		// );
-
-		// if (Object.keys(files).length > 0) {
-		// 	for (let fileKey in files) {
-		// 		request.addFile(fileKey, files[fileKey]);
-		// 	}
-
-		// 	if (progress) request.onUploadProgress(progress);
-		// }
-
-		// RequestFactory.post(request);
 	}
 
 	public startEventProcessor(data:any, success:any, error:any) {
-		if (!this.videoRetriever) {
-			const config:any = {
-				'socket': ImposiumClient.config.socket,
-				'onSuccess':success,
-				'onError':error,
-				"exp":data.expId,
-				"act":data.actId,
-			};
+		const jobSpec:any = {
+			'expId': data.expId, 
+			'actId': data.actId, 
+			'onSuccess': success, 
+			'onError': error
+		};
 
-			this.videoRetriever = new VideoRetriever(config, this);		
+		if (!this.videoRetriever) {
+			this.videoRetriever = new VideoRetriever(jobSpec, this, this.stompConfig);		
 		} else {
-			this.videoRetriever.data.exp = data.expId;
-			this.videoRetriever.data.act = data.actId;
-			this.videoRetriever.data.onSuccess = success;
-			this.videoRetriever.data.onError = error;
-			this.videoRetriever.startEventProcessor();	
+			this.videoRetriever.setJob(jobSpec)
+			this.videoRetriever.init(this.stompConfig);	
 		}
 	}
 }
