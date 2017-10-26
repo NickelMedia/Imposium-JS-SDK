@@ -11,44 +11,51 @@ export class events {
 export class ImposiumClient {
 	public messageConsumer:MessageConsumer;
 
-	private stompConfig:StompConfig = {
-		'stompEndpoint':'ws://127.0.0.1:15674/ws',
-		'stompUser': 'guest',
-		'stompPass': 'guest',
-		'exchangeRoute': '/exchange/imposium/',
-		'onMessage': undefined,
-		'onError': undefined
-	};
 	private xhrBaseURL:string = 'http://api/';
-	private token:string;	
-	private config:any;
+	private token:any;
 	private api:any;
+
+	static config:any = {
+		xhrBaseURL: 'http://api/',
+		auth: '',
+		stompConfig: {
+			'stompEndpoint':'ws://127.0.0.1:15674/ws',
+			'stompUser': 'guest',
+			'stompPass': 'guest',
+			'exchangeRoute': '/exchange/imposium/',
+			'onMessage': undefined,
+			'onError': undefined
+		}
+	}
 
 	constructor(token, config = null) {
 		EventEmitter(this);
 
 		//set access token
 		this.token = token;
-		this.config = config;
+
+		//overwrite default config values
+		if (config) {
+			for (let key in config) {
+				if (config.hasOwnProperty(key)) {
+					ImposiumClient.config[key] = config[key];
+				}
+			}
+		}
 
 		//create the api instance
 		this.api = create({
-			baseURL:this.xhrBaseURL,
+			baseURL:ImposiumClient.config.xhrBaseURL,
 			headers:this.getHeaders()
 		});
 	}
 
 	//set the proper headers, for both accessToken, and JWT authentication
 	private getHeaders() {
-
-		if(this.config.auth.toLowerCase() === 'jwt'){
-			return {
-				'Authorization':`Bearer ${this.token}`
-			}
-		}else{
-			return {
-				'X-Imposium-Access-Key':this.token
-			};
+		if (ImposiumClient.config.auth.toLowerCase() === 'jwt') {
+			return {'Authorization': `Bearer ${this.token}`}
+		} else {
+			return {'X-Imposium-Access-Key': this.token};
 		}
 	}
 
@@ -64,7 +71,10 @@ export class ImposiumClient {
 		for (let inventoryId in inventory) {
 			let fileInput = inventory[inventoryId];
 
-			if (fileInput instanceof HTMLInputElement && fileInput.type && fileInput.type === "file") {
+			if (fileInput instanceof HTMLInputElement 
+				&& fileInput.type 
+				&& fileInput.type === "file") {
+				
 				if (fileInput.files && fileInput.files[0]) {
 					inventory[inventoryId] = '';
 					formData.append(inventoryId, fileInput.files[0]);
@@ -134,15 +144,16 @@ export class ImposiumClient {
 			'actId': data.actId, 
 			'onSuccess': success, 
 			'onError': error
-		};
+		},
+		stompConfig:StompConfig = ImposiumClient.config.stompConfig;
 
 		if (!this.messageConsumer) {
-			this.messageConsumer = new MessageConsumer(jobSpec, this, this.api, this.stompConfig);		
+			this.messageConsumer = new MessageConsumer(jobSpec, this, this.api, stompConfig);		
 		} else {
 			this.messageConsumer.setJob(jobSpec)
 			this.messageConsumer.setContext(this);
 			
-			this.messageConsumer.reconnect(this.stompConfig);	
+			this.messageConsumer.reconnect(stompConfig);	
 		}
 	}
 }
