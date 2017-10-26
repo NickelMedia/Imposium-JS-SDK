@@ -36,7 +36,7 @@ export class MessageConsumer {
 		this.job = job;
 		this.delegate = delegate;
 		this.api = api;
-
+		console.log(job)
 		this.init(config);
 	}
 
