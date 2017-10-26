@@ -71,6 +71,9 @@ imposium.startEventProcessor({
 errorCallback will allow you to handle errors wherever you invoke the client. 
 uploadingCallback will allow you to monitor the experience creation request.
 
+For an example of how this is done, check the examples.
+
+
 
 
 
