@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {create} from 'apisauce';
 import * as EventEmitter from 'event-emitter';
 
@@ -19,34 +20,71 @@ export class ImposiumClient {
 		'onMessage': undefined,
 		'onError': undefined
 	};
+
 	private xhrBaseURL:string = 'http://api/';
-	private token:string;	
-	private config:any;
 	private api:any;
+	private token:string;
+=======
+import SocketHandler from './SocketHandler';
+import {create} from 'apisauce';
+import * as EventEmitter from 'event-emitter';
+
+export class ImposiumClient{
+
+	//Default config options
+	static config:any = 
+	{
+		'requestUrl':'https://api.imposium.com/',
+		'socket':'https://cms.imposium.com',
+		'auth':'accessKey'
+	};
+
+	//accessToken or JWT
+	private token:string;
+
+	//API Sauce instance
+	private api:any;
+
+	//Socket connection handler
+	public socketHandler:SocketHandler;
+>>>>>>> origin/master
 
 	constructor(token, config = null) {
 		EventEmitter(this);
 
 		//set access token
 		this.token = token;
-		this.config = config;
+
+		//overwrite default config values
+		if (config) {
+			for (let key in config) {
+				if (config.hasOwnProperty(key)) {
+					this.stompConfig[key] = config[key];
+				}
+			}
+		}
 
 		//create the api instance
 		this.api = create({
-			baseURL:this.xhrBaseURL,
+<<<<<<< HEAD
+			baseURL: this.xhrBaseURL,
+			headers:{
+=======
+			baseURL:ImposiumClient.config.requestUrl,
 			headers:this.getHeaders()
 		});
 	}
 
 	//set the proper headers, for both accessToken, and JWT authentication
-	private getHeaders() {
+	private getHeaders(){
 
-		if(this.config.auth.toLowerCase() === 'jwt'){
+		if(ImposiumClient.config.auth.toLowerCase() == 'jwt'){
 			return {
 				'Authorization':`Bearer ${this.token}`
 			}
 		}else{
 			return {
+>>>>>>> origin/master
 				'X-Imposium-Access-Key':this.token
 			};
 		}
@@ -54,24 +92,23 @@ export class ImposiumClient {
 
 	//Parse the inventory object and create a formData to pass into Imposium
 	private formatData(storyId, inventory, error){
-		const formData = new FormData();
-		let files = {};
+
+		var formData = new FormData();
 
 		//add the storyID
 		formData.append('story_id', storyId);
 
 		//pull any files from the inventory, add them to the top level
-		for (let inventoryId in inventory) {
-			let fileInput = inventory[inventoryId];
-
-			if (fileInput instanceof HTMLInputElement && fileInput.type && fileInput.type === "file") {
-				if (fileInput.files && fileInput.files[0]) {
+		var files = {};
+		for(var inventoryId in inventory){
+			var fileInput = inventory[inventoryId];
+			if(fileInput instanceof HTMLInputElement && fileInput.type && fileInput.type === "file"){
+				if(fileInput.files && fileInput.files[0]){
 					inventory[inventoryId] = '';
 					formData.append(inventoryId, fileInput.files[0]);
 				} else {
-					if (error) {
-						error(`[NO_FILE_DATA] A file input was specified for inventory 
-							item ${inventoryId}, but no file data was found.`);
+					if(error){
+						error('[NO_FILE_DATA] A file input was specified for inventory item '+inventoryId+', but no file data was found.');
 						return;
 					}
 				}
@@ -79,7 +116,7 @@ export class ImposiumClient {
 		}
 
 		//add the inventory
-		for (let invKey in inventory) {
+		for(var invKey in inventory){
 			formData.append(`inventory[${invKey}]`, inventory[invKey]);
 		}
 
@@ -96,7 +133,7 @@ export class ImposiumClient {
 				}else{
 					error(response);
 				}
-			})
+			});
 	}
 
 	//Get a specific user experience
@@ -114,11 +151,17 @@ export class ImposiumClient {
 
 	//Create a new user experience
 	public createExperience(storyId, inventory, render, success, error, progress=null) {
+<<<<<<< HEAD
+		const data:any = {'story_id':storyId, 'inventory':inventory};
+
+		this.api.post('/experience', data)
+=======
 
 		const data = this.formatData(storyId, inventory, error);
 		const config = (progress) ? { onUploadProgress: (e)=>progress(e)} : {};
 
 		this.api.post('/experience', data, config)
+>>>>>>> origin/master
 			.then((response)=>{
 				if(response.ok){
 					success(response.data);
@@ -128,7 +171,9 @@ export class ImposiumClient {
 			});
 	}
 
+	//Start the event processor, to generate or get a video
 	public startEventProcessor(data:any, success:any, error:any) {
+<<<<<<< HEAD
 		const jobSpec:Job = {
 			'expId': data.expId, 
 			'actId': data.actId, 
@@ -143,6 +188,28 @@ export class ImposiumClient {
 			this.messageConsumer.setContext(this);
 			
 			this.messageConsumer.reconnect(this.stompConfig);	
+=======
+		if (!this.socketHandler) {
+			const config:any = {
+				'socket': ImposiumClient.config.socket,
+				'onSuccess':success,
+				'onError':error,
+				"exp":data.expId,
+				"act":data.actId,
+			};
+
+			this.socketHandler = new SocketHandler(config, this);		
+		} else {
+			this.socketHandler.data.exp = data.expId;
+			this.socketHandler.data.act = data.actId;
+			this.socketHandler.data.onSuccess = success;
+			this.socketHandler.data.onError = error;
+			this.socketHandler.startEventProcessor();	
+>>>>>>> origin/master
 		}
 	}
+}
+
+export class events {
+	public static STATUS:string = "imposium_status_update";
 }

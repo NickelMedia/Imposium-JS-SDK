@@ -4,17 +4,22 @@ body{
     background-color: #f1f1f1;
 }
 
-#caption{
+
+label{
+    display: inline-block;
+    width:60px;
+    text-align: right;
+    margin-top:10px;
+}
+
+input{
     width:400px;
-    padding:10px;
+    padding:6px;
     border-radius: 4px;
     border:1px solid #999;
     font-size: 16px;
     display: inline-block;
-}
-
-#caption.invalid{
-    border:2px solid red;
+    margin-top:10px;
 }
 
 #btnGenerate{
@@ -35,9 +40,9 @@ body{
 }
 
 #dynamicVideo{
-    width:1280px;
-    height:720px;
-    /*display: none;*/
+    width:640px;
+    height:360px;
+    display: none;
     background-color: #ddd;
     margin-top:10px;
 }

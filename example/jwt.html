@@ -1,0 +1,129 @@
+<html>
+    
+    <head>
+        <title>Imposium Basic Example</title>
+        <link rel="stylesheet" type="text/css" href="css/styles.css">
+    </head>
+
+    <body>
+        
+        <div>
+
+            <h2>Enter a caption, upload an image, and hit Generate Video</h2>
+
+            <label for = "caption">Caption</label>
+            <input id = "caption" name = "caption" type = "text" placeholder = "Caption"/>
+            <br/>
+
+            <label for = "image">Image</label>
+            <input id = "image" name = "image" type = "file"/>
+            <br/>
+            <br/>
+
+            <button id = "btnGenerate">Generate Video</button>
+            <br/>
+            <br/>
+
+            <span id = "status"></span>
+            <br/>
+
+            <video id = "dynamicVideo" controls autoplay></video>
+        </div>
+        
+        <script type = "text/javascript" src = "../lib/imposium.js"></script>
+        
+        <script type = "text/javascript">
+
+            //Define the global vars
+            var storyId = "819868af-daeb-408a-eb16-0f8f8a462d96",
+                actId = "819868af-daeb-408a-eb16-0f8f8a462d96",
+                token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik0wTkZNek13TlRRM1JEaEZOMEUwT1RORk4wSTFNREE0TTBZeE1FWTVSVGxET0RBd1JUaEdPQSJ9.eyJodHRwczovL2ltcG9zaXVtLmNvbS9yb2xlcyI6eyJpbXBvc2l1bSI6ImFkbWluIiwidmlkZW9fYnVpbGRlciI6Im5vbmUiLCJmb290YWdlX2FwcCI6Im5vbmUiLCJhZF91cGxvYWRlciI6Im5vbmUifSwiaXNzIjoiaHR0cHM6Ly9pbXBvc2l1bS5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NTkzZWUwZDBhMzYwMmY0MGViNzhlZTlmIiwiYXVkIjoiMm1tZWVhejNUZ3VsMEQ3ME84MjdSVldKTWtrbzNDQmoiLCJpYXQiOjE1MDg5NTU0OTYsImV4cCI6MTUwOTA0MTg5Nn0.qFI9xJZeaveheu-OYe2MBIP6YuH_wShwKyyhHeWoHTL7VAROt8Kq5IPPMKxSJpMofdAzEdkzWIxOanB6nCHTuQK24FR0zJqJrTTXIyn9evaS-37IamuGDLs52cEufHlWmHXHza_g7FQkxap6jzAJYYzohOvi_Jd3ATUO-ic0hZtDCjCrSbeH72JAHH2oghLlGtPNsCP70iWZ-28TXVJc8oKIJYHSjSq8snQAg1WtCa-LQaL42X2ocE9fH_2Las4mL-kFLwb2ArEPduynFWKdb8FLkqvOizL_ozpRuz9y3Lt0m82il8vZDK58XJ7kNW96GHGtAsSKDKhfVGW0dPcEsg',
+
+                statusField = document.getElementById('status'),
+                captionInput = document.getElementById('caption'),
+                imageInput = document.getElementById('image'),
+                vid = document.getElementById('dynamicVideo'),
+                experienceId;
+
+            //Create an instance of the ImposiumClient
+            var imposium = new Imposium.ImposiumClient(token, {
+                auth:'JWT'
+            });
+
+            //If there is a deeplink to an experience, connect to that experience
+            if (window.location.hash!="") {
+                var expId = window.location.hash.replace("#","");
+                if (expId) {
+                    imposium.startEventProcessor({
+                        'expId' : expId, 
+                        'actId' : actId
+                    }, onGotScene, onEventProcessorError);
+                }                   
+            }
+
+            //Bind the click event to the generate button
+            document.getElementById('btnGenerate').addEventListener('click', createExperience);
+
+            //Creates an experience on Imposiun, passing in the caption and image 
+            function createExperience(){
+
+                var inventory = {
+                    'text':captionInput.value,
+                    'image':imageInput,
+                    'callback_url':'' //here you can specify a callback URL to hit once the video has rendered
+                };
+                
+                imposium.createExperience(storyId, inventory, false, onExperienceCreated, onExperienceError, onUploadProgress);
+
+                setStatus('Creating Experience');
+            }
+
+            //Callback once all media is uploaded and the experience has been created
+            function onExperienceCreated(data) {     
+
+                //put the experience in the URL for deeplinking
+                experienceId = data.id;
+                window.location.hash = "#" +experienceId;
+
+                imposium.on(Imposium.events.STATUS, onStatusUpdate, this);
+                imposium.startEventProcessor({
+                    'expId' : experienceId, 
+                    'actId' : actId,
+                }, onGotScene, onEventProcessorError);
+            }
+
+            //Called once the experience has rendered and is ready to view
+            function onGotScene(data) {                 
+                imposium.off(Imposium.events.STATUS, onStatusUpdate, this);
+                setStatus("Got Scene");
+                vid.src = data.videoUrls.mp4_1080 || data.videoUrls.mp4_720;
+                vid.style.display = 'block';
+            }
+
+            //Called through each step of the rendering process
+            function onStatusUpdate(data){
+                setStatus(data.msg);
+            }
+
+            function setStatus(status){
+
+                this.statusField.innerHTML = status;
+            }
+
+            function onUploadProgress(e){
+
+            }
+
+            function onExperienceError(e){
+                console.error("Error creating new experience");
+                console.log(e);
+            }
+
+            function onEventProcessorError(e){
+                console.error("Error starting the event procesor");
+                console.log(e);
+            }
+
+        </script>
+    </body>
+</html>

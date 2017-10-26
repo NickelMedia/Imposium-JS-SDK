@@ -12,7 +12,7 @@ export interface Job {
 }
 
 /**
- * Encapsualtes WebStomp consumption functionality
+ * Encapsulates WebStomp consumption functionality
  */
 export class MessageConsumer {
 	public delegate:any;
@@ -22,7 +22,6 @@ export class MessageConsumer {
 	private stompClient:StompClient;
 	private onMessage:(msg:any)=>void;
 	private onError:(err:any)=>void;
-
 	private retried:number = 0;
 	private maxRetries:number = 3;
 
@@ -36,7 +35,7 @@ export class MessageConsumer {
 		this.job = job;
 		this.delegate = delegate;
 		this.api = api;
-		console.log(job)
+
 		this.init(config);
 	}
 
@@ -73,8 +72,10 @@ export class MessageConsumer {
 	 * @param {StompConfig} config object containing WebStomp config
 	 */
 	public reconnect(config:StompConfig):void {
-		this.stompClient.kill();
-		this.init(config);
+		this.stompClient.kill()
+		.then(() => {
+			this.init(config);	
+		});
 	}
 
 	/**
@@ -140,15 +141,17 @@ export class MessageConsumer {
 			}
 		}
 
-		if (sceneData) {
+		if (sceneData != null) {
 			if (this.job.onSuccess) {
-				this.delegate = (():void => this.job.onSuccess(sceneData))();
+				this.delegate = (() => this.job.onSuccess(sceneData))();
 			}
 		} else {
 			if (this.job.onError) {
-				this.delegate = (():void => this.job.onError(sceneData))();
+				this.delegate = (() => this.job.onError(sceneData))();
 			}
 		}
+
+		this.stompClient.kill();
 	}
 
 	/**
