@@ -150,8 +150,6 @@ export class MessageConsumer {
 				this.delegate = (() => this.job.onError(sceneData))();
 			}
 		}
-
-		this.stompClient.kill();
 	}
 
 	/**

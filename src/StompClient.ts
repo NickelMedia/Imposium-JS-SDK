@@ -54,7 +54,6 @@ export class StompClient {
 			this.subscription.unsubscribe();
 
 			this.client.disconnect(() => {
-				this.socket = null;
 				resolve();
 			});
 		})
