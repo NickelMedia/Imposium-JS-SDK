@@ -16,11 +16,15 @@ export interface Job {
  */
 export class MessageConsumer {
 	public delegate:any;
+
 	private api:any;
 	private job:Job;
 	private stompClient:StompClient;
 	private onMessage:(msg:any)=>void;
 	private onError:(err:any)=>void;
+
+	private retried:number = 0;
+	private maxRetries:number = 3;
 
 	/**
 	 * Set job spec and parent context then initialize WebStomp
@@ -57,12 +61,11 @@ export class MessageConsumer {
 	 * @param {StompConfig} config object containing WebStomp config
 	 */
 	public init(config:StompConfig):void {
-		config.onError = this.onError = (e) => this.errorHandler(e);
-		config.onMessage = this.onMessage = (msg) => this.router(msg);
+		config.onError = this.onError = (e:any) => this.streamError(e);
+		config.onMessage = this.onMessage = (msg:any) => this.router(msg);
 
 		this.stompClient = new StompClient(config, this.job.expId);
-
-		this.startEventProcessor();
+		this.invokeStreaming();
 	}
 
 	/**
@@ -78,14 +81,15 @@ export class MessageConsumer {
 	 * Call the event processor api route to let the server know
 	 * it should begin to publish messages to queue: expId
 	 */
-	private startEventProcessor():void {
-		const body = {
-			'expId': this.job.expId,
-			'actId': this.job.actId
-		};
+	private invokeStreaming():void {
+		// Calling this route with the following params will initiate streaming.
+		// Messages will be sent to RabbitMQ from the backend as processing occurs
+		const endpoint = `/experience/${this.job.expId}/trigger-event`,
+			body = {expId: this.job.expId, actId: this.job.actId};
 
-		this.api.post(`/experience/${this.job.expId}/trigger-event`, body)
+		this.api.post(endpoint, body)
 		.then(res => {
+			// TO DO: propagate an err event here to UI
 			if (!res.ok) console.error(res.data);
 		});
 	}
@@ -109,56 +113,57 @@ export class MessageConsumer {
 	}
 
 	/**
-	 * Handle WebStomp errors, handle reconnection
-	 * @param {any} err WebStomp client error 
-	 */
-	private errorHandler(err:any):void {
-		if (err.wasClean) {
-			console.log('Stomp connection closed normally: ', err);
-		} else {
-			console.error('Stomp connection closed abruptly: ', err);
-			// this.stompClient.reconnect();
-		}
-	}
-
-	/**
 	 * Invoked on 'gotMessage' events, used for capturing job
 	 * status updates
-	 * @param {any} data message body payload
+	 * @param {any} payload message body payload
 	 */
-	private gotMessage(data:any):void {
-		const update = data;
-		if (update) this.delegate.emit(events.STATUS, update);
+	private gotMessage(payload:any):void {
+		if (payload) this.delegate.emit(events.STATUS, payload);
 	}
 
 	/**
 	 * Invoked on 'gotScene' events, used for parsing scene data
 	 * and invoking callbacks to the UI
-	 * @param {any} data message body payload
+	 * @param {any} payload message body payload
 	 */
-	private gotScene(data:any):void {
-		let sceneData = null;
+	private gotScene(payload:any):void {
+		let sceneData;
 
-		if (data.hasOwnProperty('output')) {
-			if (typeof data.output != 'undefined') {
+		if (payload.hasOwnProperty('output')) {
+			if (typeof payload.output != 'undefined') {
 
-				for (let key in data.output) {
-					sceneData = data.output[key];
-					sceneData.experience_id = data.id;
+				for (let key in payload.output) {
+					sceneData = payload.output[key];
+					sceneData.experience_id = payload.id;
 					break;
 				}
 			}
 		}
 
-		if (sceneData != null) {
+		if (sceneData) {
 			if (this.job.onSuccess) {
-				this.delegate = () => this.job.onSuccess(sceneData);
-				this.delegate();
+				this.delegate = (():void => this.job.onSuccess(sceneData))();
 			}
 		} else {
 			if (this.job.onError) {
-				this.delegate = () => this.job.onError(sceneData);
-				this.delegate();
+				this.delegate = (():void => this.job.onError(sceneData))();
+			}
+		}
+	}
+
+	/**
+	 * Handle WebStomp errors, handle reconnection
+	 * @param {any} err WebStomp client error 
+	 */
+	private streamError(err:any):void {
+		if (!err.wasClean) {
+			++this.retried;
+
+			if (this.retried < this.maxRetries) {
+				console.error(`WebStomp error: (retrying: ${this.retried})`, err);
+				this.stompClient.reconnect();
+			} else {
+				console.error('WebStomp failure, please ensure configurations are correct.');
 			}
 		}
 	}
