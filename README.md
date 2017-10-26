@@ -39,7 +39,7 @@ The following options can be passed in to overwrite the default configuration (a
 `
 
 * xhrBaseURL - location of an imposium api
-* auth - options: [jwt] currently the only flag supported here is jwt, you can pass in a relevant idToken here
+* auth - `options: [jwt]` currently the only flag supported here is jwt, you can pass in a relevant idToken here
 * stompConfig
 	* stompEndpoint - location of an imposium rabbitMQ/stomp endpoint
 	* stompUser - stomp username

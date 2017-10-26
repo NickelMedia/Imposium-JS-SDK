@@ -143,13 +143,15 @@ export class MessageConsumer {
 
 		if (sceneData != null) {
 			if (this.job.onSuccess) {
-				this.delegate = (() => this.job.onSuccess(sceneData))();
+				this.delegate = (():void => this.job.onSuccess(sceneData))();
 			}
 		} else {
 			if (this.job.onError) {
-				this.delegate = (() => this.job.onError(sceneData))();
+				this.delegate = (():void => this.job.onError(sceneData))();
 			}
 		}
+
+		this.stompClient.disconnect();
 	}
 
 	/**

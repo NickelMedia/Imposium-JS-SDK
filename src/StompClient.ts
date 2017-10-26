@@ -46,16 +46,28 @@ export class StompClient {
 	}
 
 	/**
+	 * Disconnect the current client
+	 */
+	public disconnect():void {
+		this.subscription.unsubscribe();
+		this.client.disconnect();
+	}
+
+	/**
 	 * Kill the current socket and clear the class
 	 * level references to the socket and client
 	 */
 	public kill():any {
 		return new Promise((resolve, reject) => {
-			this.subscription.unsubscribe();
+			if (this.client.connected) {
+				this.subscription.unsubscribe();
 
-			this.client.disconnect(() => {
+				this.client.disconnect(() => {
+					resolve();
+				});
+			} else {
 				resolve();
-			});
+			}
 		})
 		.catch(e => {});
 	}
