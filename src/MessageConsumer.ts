@@ -91,8 +91,7 @@ export class MessageConsumer {
 
 		this.api.post(endpoint, body)
 		.then(res => {
-			// TO DO: propagate an err event here to UI
-			if (!res.ok) console.error(res.data);
+			if (!res.ok) this.delegate.onError = (():void => this.job.onError(res.data))();
 		});
 	}
 
@@ -174,7 +173,7 @@ export class MessageConsumer {
 				console.error(`WebStomp error: (retrying: ${this.retried})`, err);
 				this.stompClient.reconnect();
 			} else {
-				console.error('WebStomp failure, please ensure configurations are correct.');
+				this.delegate.onError = (():void => this.job.onError(err))();
 			}
 		}
 	}
