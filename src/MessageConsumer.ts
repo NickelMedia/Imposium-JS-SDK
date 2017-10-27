@@ -101,12 +101,8 @@ export class MessageConsumer {
 	 */
 	private router(msg:any):void {
 		const payload = JSON.parse(msg.body);
-		console.log(payload)
 
 		switch(payload.event) {
-			case 'doneProcessing':
-				this.invokeStreaming();
-				break;
 			case 'actComplete':
 				this.stompClient.disconnect();
 				break;
