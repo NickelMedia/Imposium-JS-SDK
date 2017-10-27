@@ -22,6 +22,7 @@ export class MessageConsumer {
 	private stompClient:StompClient;
 	private onMessage:(msg:any)=>void;
 	private onError:(err:any)=>void;
+	private streamErr:(err:any)=>void;
 	private retried:number = 0;
 	private maxRetries:number = 3;
 
@@ -101,8 +102,15 @@ export class MessageConsumer {
 	 */
 	private router(msg:any):void {
 		const payload = JSON.parse(msg.body);
+		console.log(payload)
 
 		switch(payload.event) {
+			case 'doneProcessing':
+				this.invokeStreaming();
+				break;
+			case 'actComplete':
+				this.stompClient.disconnect();
+				break;
 			case 'gotMessage':
 				this.gotMessage(payload);
 				break;
@@ -128,30 +136,30 @@ export class MessageConsumer {
 	 * @param {any} payload message body payload
 	 */
 	private gotScene(payload:any):void {
-		let sceneData;
+		if (payload.output[payload.sceneData.id].mp4Url) {
+			let sceneData;
 
-		if (payload.hasOwnProperty('output')) {
-			if (typeof payload.output != 'undefined') {
+			if (payload.hasOwnProperty('output')) {
+				if (typeof payload.output != 'undefined') {
 
-				for (let key in payload.output) {
-					sceneData = payload.output[key];
-					sceneData.experience_id = payload.id;
-					break;
+					for (let key in payload.output) {
+						sceneData = payload.output[key];
+						sceneData.experience_id = payload.id;
+						break;
+					}
 				}
 			}
-		}
 
-		if (sceneData != null) {
-			if (this.job.onSuccess) {
-				this.delegate = (():void => this.job.onSuccess(sceneData))();
-			}
-		} else {
-			if (this.job.onError) {
-				this.delegate = (():void => this.job.onError(sceneData))();
-			}
+			if (sceneData != null) {
+				if (this.job.onSuccess) {
+					this.delegate.onError = (():void => this.job.onSuccess(sceneData))();
+				}
+			} else {
+				if (this.job.onError) {
+					this.delegate.onSuccess = (():void => this.job.onError(sceneData))();
+				}
+			}			
 		}
-
-		this.stompClient.disconnect();
 	}
 
 	/**

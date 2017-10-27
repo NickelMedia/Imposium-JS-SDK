@@ -12,12 +12,14 @@ export class ImposiumClient {
 	public messageConsumer:MessageConsumer;
 	private token:string;
 	private api:any;
+	private onError:(err)=>void;
+	private onSuccess:(data)=>void;
 
 	// Default configuration options, can be overridden by passing in a 
 	// config object
 	static config:any = {
 		xhrBaseURL: 'http://api/',
-		auth: '',
+		auth: 'basic',
 		stompConfig: {
 			'stompEndpoint':'ws://127.0.0.1:15674/ws',
 			'stompUser': 'guest',

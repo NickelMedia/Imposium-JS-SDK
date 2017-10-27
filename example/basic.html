@@ -44,25 +44,12 @@
 			// storyId - Imposium storyId (relates to an experience template)
 			// actId - What particular act the job is related to
 			// accessKey - access key for public endpoints
-			var storyId = "819868af-daeb-408a-eb16-0f8f8a462d96",
-			 	actId = "cd24347a-bc1d-4d75-cae7-a287872b10fa",
+			var storyId = "295a80d0-871c-4def-a579-8a375d6942fc",
+			 	actId = "11a8e3b8-d3c4-4232-80a7-e757fb18fa57",
 				accessKey = 'hF8EMmRK9kDzCVJSmwBslBDPEzM2FA';
 
-			var config = {
-			    xhrBaseURL: 'http://api/',
-			    auth: 'basic',
-			    stompConfig: {
-			        'stompEndpoint':'ws://127.0.0.1:15674/ws',
-			        'stompUser': 'guest',
-			        'stompPass': 'guest',
-			        'exchangeRoute': '/exchange/imposium/',
-			        'onMessage': undefined,
-			        'onError': undefined
-			    }
-			}
-
 			// Create an instance of the ImposiumClient
-			var imposium = new Imposium.ImposiumClient(accessKey, config);
+			var imposium = new Imposium.ImposiumClient(accessKey);
 
 			// If there is a deeplink to an experience, connect to that experience
 			if (window.location.hash !== "") {
@@ -138,7 +125,7 @@
 			function onGotScene(data) {
 				imposium.off(Imposium.events.STATUS, statusHandler, this);
 
-				vid.src = data.videoUrls.mp4_1080 || data.videoUrls.mp4_720;
+				vid.src = data.mp4Url;
 				vid.style.display = 'block';
 
 				setStatus('Got Scene', 'green');

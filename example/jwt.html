@@ -46,20 +46,9 @@
             // accessKey - access key for public endpoints
             var storyId = "819868af-daeb-408a-eb16-0f8f8a462d96",
                 actId = "cd24347a-bc1d-4d75-cae7-a287872b10fa",
-                token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik0wTkZNek13TlRRM1JEaEZOMEUwT1RORk4wSTFNREE0TTBZeE1FWTVSVGxET0RBd1JUaEdPQSJ9.eyJodHRwczovL2ltcG9zaXVtLmNvbS9yb2xlcyI6eyJpbXBvc2l1bSI6ImFkbWluIiwidmlkZW9fYnVpbGRlciI6Im5vbmUiLCJmb290YWdlX2FwcCI6Im5vbmUiLCJhZF91cGxvYWRlciI6Im5vbmUifSwiaXNzIjoiaHR0cHM6Ly9pbXBvc2l1bS5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NTkzZWUwZDBhMzYwMmY0MGViNzhlZTlmIiwiYXVkIjoiMm1tZWVhejNUZ3VsMEQ3ME84MjdSVldKTWtrbzNDQmoiLCJpYXQiOjE1MDg5NTU0OTYsImV4cCI6MTUwOTA0MTg5Nn0.qFI9xJZeaveheu-OYe2MBIP6YuH_wShwKyyhHeWoHTL7VAROt8Kq5IPPMKxSJpMofdAzEdkzWIxOanB6nCHTuQK24FR0zJqJrTTXIyn9evaS-37IamuGDLs52cEufHlWmHXHza_g7FQkxap6jzAJYYzohOvi_Jd3ATUO-ic0hZtDCjCrSbeH72JAHH2oghLlGtPNsCP70iWZ-28TXVJc8oKIJYHSjSq8snQAg1WtCa-LQaL42X2ocE9fH_2Las4mL-kFLwb2ArEPduynFWKdb8FLkqvOizL_ozpRuz9y3Lt0m82il8vZDK58XJ7kNW96GHGtAsSKDKhfVGW0dPcEsg';
+                token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik0wTkZNek13TlRRM1JEaEZOMEUwT1RORk4wSTFNREE0TTBZeE1FWTVSVGxET0RBd1JUaEdPQSJ9.eyJodHRwczovL2ltcG9zaXVtLmNvbS9yb2xlcyI6eyJpbXBvc2l1bSI6ImFkbWluIiwidmlkZW9fYnVpbGRlciI6Im5vbmUiLCJmb290YWdlX2FwcCI6Im5vbmUiLCJhZF91cGxvYWRlciI6Im5vbmUifSwiaXNzIjoiaHR0cHM6Ly9pbXBvc2l1bS5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NTkzZWUwZDBhMzYwMmY0MGViNzhlZTlmIiwiYXVkIjoiMm1tZWVhejNUZ3VsMEQ3ME84MjdSVldKTWtrbzNDQmoiLCJpYXQiOjE1MDkxMTc5MDAsImV4cCI6MTUwOTIwNDMwMH0.D15IJ4G0BTj9Ydy7tYWUeUcXeRzIfx7WfqLuLufIR5AjLwDTe0b18U-1A471i_MMYGyfHPyjuwbLR6itfiCi_gbsliLaT5zboDCZSdnC67ptAaV--7-4E9FknFYDnoyg3OxrLusJBJae1NkDEjsnSj_9toAB9BxYg4fayNGtJ0YzgVB7kIZPcfIpXxhlcljtME2siraNgro267RS1zOqApwKPpLhET-4GDzUZF_yksUvblpD-psbIzAFlgubDDzaiQ8_J0tKZ7HKkSOgCndZ6_1b-T5IpqCDfi5ccuYzK-cKhJEhgXkddiqTcT-SgfUWI5NVL7O-VDexeEXVhKDxxw';
 
-            var config = {
-                xhrBaseURL: 'http://api/',
-                auth: 'jwt',
-                stompConfig: {
-                    'stompEndpoint':'ws://127.0.0.1:15674/ws',
-                    'stompUser': 'guest',
-                    'stompPass': 'guest',
-                    'exchangeRoute': '/exchange/imposium/',
-                    'onMessage': undefined,
-                    'onError': undefined
-                }
-            }
+            var config = {auth: 'JWT'};
 
             // Create an instance of the ImposiumClient
             var imposium = new Imposium.ImposiumClient(token, config);
@@ -138,7 +127,7 @@
             function onGotScene(data) {
                 imposium.off(Imposium.events.STATUS, statusHandler, this);
 
-                vid.src = data.videoUrls.mp4_1080 || data.videoUrls.mp4_720;
+                vid.src = data.mp4Url;
                 vid.style.display = 'block';
 
                 setStatus('Got Scene', 'green');
