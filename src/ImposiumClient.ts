@@ -1,4 +1,4 @@
-import {create} from 'apisauce';
+import { create } from 'apisauce';
 import * as EventEmitter from 'event-emitter';
 
 import { MessageConsumer, Job } from './MessageConsumer';
@@ -10,11 +10,11 @@ export class events {
 
 export class ImposiumClient {
 	public messageConsumer:MessageConsumer;
-
-	private xhrBaseURL:string = 'http://api/';
-	private token:any;
+	private token:string;
 	private api:any;
 
+	// Default configuration options, can be overridden by passing in a 
+	// config object
 	static config:any = {
 		xhrBaseURL: 'http://api/',
 		auth: '',
@@ -28,13 +28,18 @@ export class ImposiumClient {
 		}
 	}
 
-	constructor(token, config = null) {
+	/**
+	 * Set token, set config, initialize req factory
+	 * @param {string} token access token
+	 * @param {any =     null} config override options
+	 */
+	constructor(token:string, config:any = null) {
 		EventEmitter(this);
 
-		//set access token
+		// set access token
 		this.token = token;
 
-		//overwrite default config values
+		// overwrite default config values
 		if (config) {
 			for (let key in config) {
 				if (config.hasOwnProperty(key)) {
@@ -43,15 +48,18 @@ export class ImposiumClient {
 			}
 		}
 
-		//create the api instance
+		// create the api instance
 		this.api = create({
 			baseURL:ImposiumClient.config.xhrBaseURL,
 			headers:this.getHeaders()
 		});
 	}
 
-	//set the proper headers, for both accessToken, and JWT authentication
-	private getHeaders() {
+	/**
+	 * Return auth headers based on type of access token supplied by the user
+	 * @return {any} formatted header object 
+	 */
+	private getHeaders():any {
 		if (ImposiumClient.config.auth.toLowerCase() === 'jwt') {
 			return {'Authorization': `Bearer ${this.token}`}
 		} else {
@@ -59,36 +67,90 @@ export class ImposiumClient {
 		}
 	}
 
-	//Parse the inventory object and create a formData to pass into Imposium
-	private formatData(storyId, inventory, error){
-		const formData = new FormData();
-		let files = {};
+	/**
+	 * Get a story based on a storyId
+	 * @param {string}     storyId Imposium story id
+	 * @param {any)=>void} success success callback 
+	 * @param {any)=>void} error   error callback
+	 */
+	public getStory(storyId:string, success:(data:any)=>void, error:(res:any)=>void):void {
+		this.api.get(`/story/${storyId}`)
+		.then(res => {
+			if (res.ok) {
+				success(res.data);
+			} else {
+				error(res);
+			}
+		});
+	}
 
-		//add the storyID
+	/**
+	 * Get a specific user experience
+	 * @param {string}     expId   Imposium experience id
+	 * @param {any)=>void} success success callback
+	 * @param {any)=>void} error   error callback
+	 */
+	public getExperience(expId:string, success:(data:any)=>void, error:(res:any)=>void):void {
+		this.api.get(`/experience/${expId}`)
+		.then(res => {
+			if (res.ok) {
+				success(res.data);
+			} else {
+				error(res);
+			}
+		});
+	}
+
+	/**
+	 * Create a new user experience
+	 * @param {string}     storyId   Imposium storyId
+	 * @param {any}        inventory job inputs
+	 * @param {boolean}    render    (TO DO: Greg, clarify this option?)
+	 * @param {any)=>void} success   success callback
+	 * @param {any)=>void} error     error callback
+	 * @param {any=null}   progress  progress callback
+	 */
+	public createExperience(storyId:string, inventory:any, render:boolean, success:(data:any)=>void, error:(res:any)=>void, progress:any=null):void {
+		const data = this.formatData(storyId, inventory, error),
+			config = (progress) ? { onUploadProgress: (e)=>progress(e)} : {};
+
+		this.api.post('/experience', data, config)
+		.then(res => {
+			if (res.ok) {
+				success(res.data);
+			} else {
+				error(res);
+			}
+		});
+	}
+
+	/**
+	 * Parse the inventory object and return a FormData object to handle multipart
+	 * inputs
+	 * @param  {string}      storyId   Imposium story id
+	 * @param  {any}         inventory job inputs
+	 * @param  {(str)=>void} error     error callback
+	 * @return {FormData}              payload object used in createExperience
+	 */
+	private formatData(storyId:string, inventory:any, error:(str)=>void):FormData {
+		const formData:FormData = new FormData();
+		let files:any = {};
+
+		// add the storyID
 		formData.append('story_id', storyId);
-
-		//pull any files from the inventory, add them to the top level
+		// pull any files from the inventory, add them to the top level
 		for (let inventoryId in inventory) {
 			let fileInput = inventory[inventoryId];
 
-			if (fileInput instanceof HTMLInputElement 
-				&& fileInput.type 
-				&& fileInput.type === "file") {
-				
-				if (fileInput.files && fileInput.files[0]) {
+			if (fileInput instanceof HTMLInputElement && fileInput.type === "file") {
+				if (fileInput.files.length > 0) {
 					inventory[inventoryId] = '';
 					formData.append(inventoryId, fileInput.files[0]);
-				} else {
-					if (error) {
-						error(`[NO_FILE_DATA] A file input was specified for inventory 
-							item ${inventoryId}, but no file data was found.`);
-						return;
-					}
 				}
 			}
 		}
 
-		//add the inventory
+		// add the inventory
 		for (let invKey in inventory) {
 			formData.append(`inventory[${invKey}]`, inventory[invKey]);
 		}
@@ -96,63 +158,27 @@ export class ImposiumClient {
 		return formData;
 	}
 
-	//Get a story based on the storyId
-	public getStory(storyId, success, error) {
-
-		this.api.get(`/story/${storyId}`)
-			.then((response)=>{
-				if(response.ok){
-					success(response.data);
-				}else{
-					error(response);
-				}
-			})
-	}
-
-	//Get a specific user experience
-	public getExperience(expId, success, error) {
-
-		this.api.get(`/experience/${expId}`)
-			.then((response)=>{
-				if(response.ok){
-					success(response.data);
-				}else{
-					error(response);
-				}
-			});
-	}
-
-	//Create a new user experience
-	public createExperience(storyId, inventory, render, success, error, progress=null) {
-
-		const data = this.formatData(storyId, inventory, error);
-		const config = (progress) ? { onUploadProgress: (e)=>progress(e)} : {};
-
-		this.api.post('/experience', data, config)
-			.then((response)=>{
-				if(response.ok){
-					success(response.data);
-				}else{
-					error(response);
-				}
-			});
-	}
-
-	public startEventProcessor(data:any, success:any, error:any) {
+	/**
+	 * Invokes a stream for fetching existing videos or for monitoring/fetching
+	 * new renders
+	 * @param {any}        job     object containing job specification details
+	 * @param {any)=>void} success success callback
+	 * @param {any)=>void} error   error callback
+	 */
+	public getVideo(job:any, success:(data:any)=>void, error:(data:any)=>void):void {
 		const jobSpec:Job = {
-			'expId': data.expId, 
-			'actId': data.actId, 
+			'expId': job.expId, 
+			'actId': job.actId, 
 			'onSuccess': success, 
 			'onError': error
 		},
 		stompConfig:StompConfig = ImposiumClient.config.stompConfig;
 
 		if (!this.messageConsumer) {
-			this.messageConsumer = new MessageConsumer(jobSpec, this, this.api, stompConfig);		
+			this.messageConsumer = new MessageConsumer(jobSpec, stompConfig, this, this.api);		
 		} else {
 			this.messageConsumer.setJob(jobSpec)
 			this.messageConsumer.setContext(this);
-			
 			this.messageConsumer.reconnect(stompConfig);	
 		}
 	}

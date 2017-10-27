@@ -31,7 +31,7 @@ export class MessageConsumer {
 	 * @param {any}         delegate parent scope
 	 * @param {StompConfig} config   WebStomp config
 	 */
-	public constructor(job:Job, delegate:any, api:any, config:StompConfig) {
+	public constructor(job:Job, config:StompConfig, delegate:any, api:any) {
 		this.job = job;
 		this.delegate = delegate;
 		this.api = api;
