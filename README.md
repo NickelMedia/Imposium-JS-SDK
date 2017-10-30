@@ -1,16 +1,15 @@
 Imposium JavaScript SDK
 ====================================================
 
-# Getting started
+### Getting started
 
 Run the following for development: 
 
 * `npm i`
 * `webpack --watch`
 
-# How to use the SDK
 
-#### Initializing the client
+### Initializing the client
 
 _Note_: In order for a consumer to communicate with the Imosium API via the client you must have the following credentials: 
 
@@ -50,7 +49,7 @@ _Options_: For dev purposes you can change the default Imposium endpoint, type o
 	* onMessage - possible to pass a delegate message function here for message parsing/handling.
 	* onError - possible to pass a delegate error function here for custom error handling.
 
-#### Invoking new experiences
+### Invoking new experiences
 
 To get started, you need to make a createExperience call: 
 
@@ -72,7 +71,7 @@ The parameters are as follows:
 * render - boolean, tell the API to start rendering immediately **(required)**
 * onSuccess(data), onError(err), onProgress(data) - callback functions **(optional)**
 
-#### Receiving scene data and listening to events
+### Receiving scene data and listening to events
 
 Experiences are identified by an experienceId. You'll need this id to fetch videos and stream messages related to processing. 
 
