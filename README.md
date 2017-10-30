@@ -20,11 +20,13 @@ _Note_: In order for a consumer to communicate with the Imosium API via the clie
 
 To instantiate a client you must supply a valid access token and optionally you can pass endpoint configuration as JSON (this is mainly used in dev, regular consumers won't need to adjust these options). Declare as follows:
 
-`const client = new Imposium.ImposiumClient(<token>, <options>);`
+```javascript
+var client = new Imposium.ImposiumClient(<token>, <options>);
+```
 
 _Options_: For dev purposes you can change the default Imposium endpoint, type of auth and WebStomp configuration.
 
-`
+```javascript
 {
 	xhrBaseURL: 'http://api/',
 	auth: '',
@@ -36,7 +38,7 @@ _Options_: For dev purposes you can change the default Imposium endpoint, type o
 		'onMessage': gotMessage(msg),
 		'onError': errorHandler(err)
 }
-`
+```
 
 * xhrBaseURL - location of an imposium api
 * auth - `options: [jwt], i.e: auth: 'jwt'` currently the only flag supported here is jwt, you can pass in a relevant idToken here
@@ -52,14 +54,16 @@ _Options_: For dev purposes you can change the default Imposium endpoint, type o
 
 To get started, you need to make a createExperience call: 
 
-`client.createExperience(
+```javascript
+client.createExperience(
 	storyId, 
 	data, 
 	render, 
 	onSuccess, 
 	onError, 
 	onProgress
-);`
+);
+```
 
 The parameters are as follows: 
 
@@ -74,7 +78,7 @@ Experiences are identified by an experienceId. You'll need this id to fetch vide
 
 When creating a new experience this id will be returned by `client.createExperience` in the onSuccess callback. The following example demonstrates how you would get the experience id and listen for a finished video URL. 
 
-`
+```javascript
 var accessToken = 'token', 
 	storyId = 'storyId', 
 	actId = 'actId',
@@ -110,11 +114,11 @@ function onProcessed(data) {
 function onError(err) {
 	console.error(err);
 }
-`
+```
 
 _Optional_: If you want to listen to intermediate messages related to processing steps you can pass a callback function to the client event bus. If you check the examples you can see a use case where this is used to update a UI with incoming messages to provide the user with live feedback. 
 
-`
+```javascript
 function experienceCreated(data) {
 	job = {
 		expId: data.id,
@@ -151,4 +155,4 @@ function onError(err) {
 function statusHandler(data) {
 	console.log(data.msg);
 }
-`
+```
