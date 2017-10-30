@@ -22,8 +22,8 @@ export class ImposiumClient {
 		auth: 'basic',
 		stompConfig: {
 			'stompEndpoint':'ws://127.0.0.1:15674/ws',
-			'stompUser': 'guest',
-			'stompPass': 'guest',
+			'user': 'guest',
+			'password': 'guest',
 			'exchangeRoute': '/exchange/imposium/',
 			'onMessage': undefined,
 			'onError': undefined

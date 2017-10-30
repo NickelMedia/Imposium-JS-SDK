@@ -44,16 +44,16 @@
 			// storyId - Imposium storyId (relates to an experience template)
 			// actId - What particular act the job is related to
 			// accessKey - access key for public endpoints
-			var storyId = "295a80d0-871c-4def-a579-8a375d6942fc",
-			 	actId = "11a8e3b8-d3c4-4232-80a7-e757fb18fa57",
-				accessKey = 'hF8EMmRK9kDzCVJSmwBslBDPEzM2FA';
+			var storyId = '[story_id]',
+			    actId = '[act_id]',
+			    token = '[token]';
 
 			// Create an instance of the ImposiumClient
 			var imposium = new Imposium.ImposiumClient(accessKey);
 
 			// If there is a deeplink to an experience, connect to that experience
-			if (window.location.hash !== "") {
-			    var expId = window.location.hash.replace("#", "");
+			if (window.location.hash !== '') {
+			    var expId = window.location.hash.replace('#', '');
 
 			    if (expId) {
 			        var job = {expId: expId, actId: actId};
@@ -160,7 +160,7 @@
 			 * @param  {obj} e request error object
 			 */
 			function onExperienceError(e) {
-				console.error("Error creating new experience: ", e);
+				console.error('Error creating new experience: ', e);
 				setStatus('Something went wrong creating the experience, please try again.', 'red');
 			}
 
@@ -169,7 +169,7 @@
 			 * @param  {Error} e render related error data
 			 */
 			function onEventProcessorError(e) {
-				console.error("Error starting the event procesor: ", e);
+				console.error('Error starting the event procesor: ', e);
 				setStatus('Something went wrong while rendering your experience, please try again.', 'red');
 			}
 

@@ -10,19 +10,19 @@ Run the following for development:
 
 # How to use the SDK
 
-##### Initializing the SDK
+##### Initializing the client
 
-In order to initialize the client & you will need the following pre-requisite variables:
+_Note_: In order for a consumer to communicate with the Imosium API via the client you must have the following credentials: 
 
-1. An access token 
+1. An access token
 2. An Imposium experience id
 3. An Imposium act id
 
-Instantiate a client by passing the auth token and an optional config object as parameters to a new client as such:
+To instantiate a client you must supply a valid access token and optionally you can pass endpoint configuration as JSON (this is mainly used in dev, regular consumers won't need to adjust these options). Declare as follows:
 
 `const client = new Imposium.ImposiumClient(<token>, <options>);`
 
-The following options can be passed in to overwrite the default configuration (aside from auth, this is only really useful in dev if you're testing instances of the imposium servers outside of production).
+_Options_: For dev purposes you can change the default Imposium endpoint, type of auth and WebStomp configuration.
 
 `
 {
@@ -30,50 +30,125 @@ The following options can be passed in to overwrite the default configuration (a
 	auth: '',
 	stompConfig: {
 		'stompEndpoint':'ws://127.0.0.1:15674/ws',
-		'stompUser': 'guest',
-		'stompPass': 'guest',
+		'user': 'guest',
+		'password': 'guest',
 		'exchangeRoute': '/exchange/imposium/',
-		'onMessage': undefined,
-		'onError': undefined
+		'onMessage': gotMessage(msg),
+		'onError': errorHandler(err)
 }
 `
 
 * xhrBaseURL - location of an imposium api
-* auth - `options: [jwt]` currently the only flag supported here is jwt, you can pass in a relevant idToken here
+* auth - `options: [jwt], i.e: auth: 'jwt'` currently the only flag supported here is jwt, you can pass in a relevant idToken here
 * stompConfig
-	* stompEndpoint - location of an imposium rabbitMQ/stomp endpoint
-	* stompUser - stomp username
-	* stompPass - stomp password
-	* exchangeRoute - the default imposium exchange route on rabbitMQ
+	* stompEndpoint - location of an Imposium WebStomp endpoint
+	* user - stomp username
+	* password - stomp password
+	* exchangeRoute - default exchange
 	* onMessage - possible to pass a delegate message function here for message parsing/handling.
 	* onError - possible to pass a delegate error function here for custom error handling.
 
-##### Using the SDK
+##### Invoking new experiences
 
-To get started, you need to make a createExperience call: `imposium.createExperience(storyId, data, render, doneCallback, errorCallback, uploadingCallback);`
+To get started, you need to make a createExperience call: 
 
-The params are as follows: 
+`client.createExperience(
+	storyId, 
+	data, 
+	render, 
+	onSuccess, 
+	onError, 
+	onProgress
+);`
 
-* storyId - a valid Imposium storyId
-* data - {text:string, image:file, callback_url:string}
-* render - boolean
-* doneCallback(data), errorCallback(err), uploadingCallback(data) - callback functions (optional)
+The parameters are as follows: 
 
-To start listening to events pass in a doneCallback that contains the following: 
+* storyId - a valid Imposium storyId **(required)**
+* data - `{ text:string, image:file, callback_url:string }` **(required)**
+* render - boolean, tell the API to start rendering immediately **(required)**
+* onSuccess(data), onError(err), onProgress(data) - callback functions **(optional)**
+
+##### Receiving scene data and listening to events
+
+Experiences are identified by an experienceId. You'll need this id to fetch videos and stream messages related to processing. 
+
+When creating a new experience this id will be returned by `client.createExperience` in the onSuccess callback. The following example demonstrates how you would get the experience id and listen for a finished video URL. 
+
 `
-imposium.on(Imposium.events.STATUS, onStatusUpdate, this);
-imposium.startEventProcessor({
-    'expId' : data.id, 
-    'actId' : actId (set globally),
-}, onGotScene, onEventProcessorError);
+var accessToken = 'token', 
+	storyId = 'storyId', 
+	actId = 'actId',
+	job,
+	client;
+
+client = new Imposium.ImposiumClient(accessToken);
+
+client.createExperience(
+	storyId, 
+	data, 
+	render, 
+	experienceCreated
+);
+
+function experienceCreated(data) {
+	job = {
+		expId: data.id,
+		actId: actId
+	};
+
+	client.getVideo(
+		job, 
+		onProcessed, 
+		onError
+	);
+}
+
+function onProcessed(data) {
+	videoElement.src = data.mp4Url;
+}
+
+function onError(err) {
+	console.error(err);
+}
 `
 
-errorCallback will allow you to handle errors wherever you invoke the client. 
-uploadingCallback will allow you to monitor the experience creation request.
+_Optional_: If you want to listen to intermediate messages related to processing steps you can pass a callback function to the client event bus. If you check the examples you can see a use case where this is used to update a UI with incoming messages to provide the user with live feedback. 
 
-For an example of how this is done, check the examples.
+`
+function experienceCreated(data) {
+	job = {
+		expId: data.id,
+		actId: actId
+	};
 
+	client.on(
+		Imposium.events.STATUS, 
+		statusHandler, 
+		this
+	);
 
+	client.getVideo(
+		job, 
+		onProcessed, 
+		onError
+	);
+}
 
+function onProcessed(data) {
+	client.off(
+		Imposium.events.STATUS, 
+		statusHandler, 
+		this
+	);
 
+	videoElement.src = data.mp4Url;
+}
 
+function onError(err) {
+	console.error(err);
+}
+
+function statusHandler(data) {
+	console.log(data.msg);
+}
+`

@@ -7,8 +7,8 @@ import * as WebStomp from 'webstomp-client';
  */
 export interface StompConfig {
 	stompEndpoint:string;
-	stompUser:string;
-	stompPass:string;
+	user:string;
+	password:string;
 	exchangeRoute:string;
 	onMessage:(msg:WebStomp.Message)=>void;
 	onError:(err:any)=>void;
@@ -83,8 +83,8 @@ export class StompClient {
 
 		this.client.connect
 		(
-			this.config.stompUser,
-			this.config.stompPass,
+			this.config.user,
+			this.config.password,
 			this.subscribe = () => this.establishSubscription(),
 			this.config.onError
 		);
