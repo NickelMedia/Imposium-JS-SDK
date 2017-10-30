@@ -18,7 +18,7 @@ export class ImposiumClient {
 	// Default configuration options, can be overridden by passing in a 
 	// config object
 	static config:any = {
-		xhrBaseURL: 'http://api/',
+		url: 'http://api/',
 		auth: 'basic',
 		stompConfig: {
 			'stompEndpoint':'ws://127.0.0.1:15674/ws',
@@ -52,7 +52,7 @@ export class ImposiumClient {
 
 		// create the api instance
 		this.api = create({
-			baseURL:ImposiumClient.config.xhrBaseURL,
+			baseURL:ImposiumClient.config.url,
 			headers:this.getHeaders()
 		});
 	}

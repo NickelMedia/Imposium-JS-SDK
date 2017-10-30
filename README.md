@@ -11,13 +11,13 @@ Run the following for development:
 
 ### Initializing the client
 
-_Note_: In order for a consumer to communicate with the Imosium API via the client you must have the following credentials: 
+_Note_: In order for a consumer to communicate with the Imposium API via the client you must have the following credentials: 
 
 1. An access token
 2. An Imposium experience id
 3. An Imposium act id
 
-To instantiate a client you must supply a valid access token and optionally you can pass endpoint configuration as JSON (this is mainly used in dev, regular consumers won't need to adjust these options). Declare as follows:
+To instantiate a client you must supply a valid access token and optionally you can pass endpoint configuration in JSON format (this is only used in dev, regular consumers won't need to adjust these options).
 
 ```javascript
 var client = new Imposium.ImposiumClient(<token>, <options>);
@@ -26,8 +26,8 @@ var client = new Imposium.ImposiumClient(<token>, <options>);
 _Options_: For dev purposes you can change the default Imposium endpoint, type of auth and WebStomp configuration.
 
 ```javascript
-{
-	xhrBaseURL: 'http://api/',
+var options = {
+	url: 'http://api/',
 	auth: '',
 	stompConfig: {
 		'stompEndpoint':'ws://127.0.0.1:15674/ws',
@@ -39,7 +39,7 @@ _Options_: For dev purposes you can change the default Imposium endpoint, type o
 }
 ```
 
-* xhrBaseURL - location of an imposium api
+* url - location of an imposium api
 * auth - `options: [jwt], i.e: auth: 'jwt'` currently the only flag supported here is jwt, you can pass in a relevant idToken here
 * stompConfig
 	* stompEndpoint - location of an Imposium WebStomp endpoint
