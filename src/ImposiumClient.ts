@@ -22,9 +22,9 @@ export class ImposiumClient {
 		url: 'http://api/',
 		auth: 'basic',
 		stompConfig: {
-			'stompEndpoint':'ws://127.0.0.1:15674/ws',
-			'user': 'guest',
-			'password': 'guest',
+			'stompEndpoint':'wss://stomp.prod.k8s.nickel.media/ws',
+			'user': 'imposium_stomp',
+			'password': 'Teehe1ceeMe7Pe1d',
 			'exchangeRoute': '/exchange/imposium/',
 			'onMessage': undefined,
 			'onError': undefined
