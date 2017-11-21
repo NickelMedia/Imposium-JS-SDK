@@ -11,9 +11,9 @@ Run the following for development:
 
 ### Initializing the client
 
-Include in your html:
+Include in your HTML:
 
-```javascript
+```html
 <script type = "text/javascript" src = "../lib/imposium.js"></script>
 ```
 
