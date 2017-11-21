@@ -16,7 +16,7 @@ Reference the script:
 
 ```javascript
 // require
-var Imposium = require(imposium-js-sdk)
+var Imposium = require('imposium-js-sdk');
 
 // es6 
 import * as Imposium from 'imposium-js-sdk';
