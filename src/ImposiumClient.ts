@@ -44,11 +44,7 @@ export class ImposiumClient {
 
 		// overwrite default config values
 		if (config) {
-			for (let key in config) {
-				if (config.hasOwnProperty(key)) {
-					ImposiumClient.config[key] = config[key];
-				}
-			}
+			this.copy(ImposiumClient.config, config);
 		}
 
 		// create the api instance
@@ -56,6 +52,22 @@ export class ImposiumClient {
 			baseURL:ImposiumClient.config.url,
 			headers:this.getHeaders()
 		});
+	}
+
+	/**
+	 * Copy json obj recursively
+	 */
+	private copy(a:any, b:any):void {
+		for (let key in b) {
+			if (b.hasOwnProperty(key)) {
+				if (typeof b[key] === 'object') {
+					this.copy(a[key], b[key]);
+					a[key] = b[key];
+				} else {
+					a[key] = b[key];
+				}
+			}
+		}
 	}
 
 	/**
