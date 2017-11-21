@@ -20,7 +20,7 @@ Include in your HTML:
 _Note_: In order for a consumer to communicate with the Imposium API via the client you must have the following credentials: 
 
 1. An access token
-2. An Imposium experience id
+2. An Imposium story id
 3. An Imposium act id
 
 To instantiate a client you must supply a valid access token and optionally you can pass endpoint configuration in JSON format (this is only used in dev, regular consumers won't need to adjust these options).
@@ -62,7 +62,7 @@ To get started, you need to make a createExperience call:
 ```javascript
 client.createExperience(
 	storyId, 
-	data, 
+	inventory, 
 	render, 
 	onSuccess, 
 	onError, 
@@ -72,8 +72,10 @@ client.createExperience(
 
 The parameters are as follows: 
 
+_Note_: the inventory parameter will change from job to job. 
+
 * storyId - a valid Imposium storyId **(required)**
-* data - `{ text:string, image:file, callback_url:string }` **(required)**
+* inventory - `{ text:string, image:file, callback_url:string }` **(required)**
 * render - boolean, tell the API to start rendering immediately **(required)**
 * onSuccess(data), onError(err), onProgress(data) - callback functions **(optional)**
 
