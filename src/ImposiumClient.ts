@@ -19,7 +19,7 @@ export class ImposiumClient {
 	// Default configuration options, can be overridden by passing in a 
 	// config object
 	static config:any = {
-		url: 'http://api/',
+		url: 'https://api.imposium.com',
 		auth: 'basic',
 		stompConfig: {
 			'stompEndpoint':'wss://stomp.prod.k8s.nickel.media/ws',
