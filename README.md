@@ -3,17 +3,6 @@ Imposium JavaScript SDK
 
 ### Getting started
 
-Run the following for development: 
-
-* `npm i`
-* `webpack --watch`
-
-
-### Initializing the client
-
-Reference the script:
-
-
 ```javascript
 // require
 var Imposium = require('imposium-js-sdk');
@@ -28,6 +17,8 @@ or
 ```html
 <script type = "text/javascript" src = "../lib/imposium.js"></script>
 ```
+
+### Initializing the client
 
 _Note_: In order for a consumer to communicate with the Imposium API via the client you must have the following credentials: 
 

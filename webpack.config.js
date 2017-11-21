@@ -2,11 +2,14 @@
 const webpack = require('webpack');
 const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 const path = require('path');
+const package = require('./package.json');
 const nodeExternals = require('webpack-node-externals');
 const env = require('yargs').argv.env; // use --env with webpack 2
 
 let libraryName = 'Imposium';
-let plugins = [], outputFile;
+let plugins = [
+  new webpack.BannerPlugin({banner: `// Version: ${package.version}`, raw: true, entryOnly: true})
+], outputFile;
 
 if (env === 'build') {
   plugins.push(new UglifyJsPlugin({ minimize: true }));
