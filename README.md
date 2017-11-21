@@ -13,11 +13,6 @@ Run the following for development:
 
 Reference the script:
 
-```html
-<script type = "text/javascript" src = "../lib/imposium.js"></script>
-```
-
-or
 
 ```javascript
 // require
@@ -26,6 +21,12 @@ var Imposium = require(imposium-js-sdk)
 // es6 
 import * as Imposium from 'imposium-js-sdk';
 
+```
+
+or
+
+```html
+<script type = "text/javascript" src = "../lib/imposium.js"></script>
 ```
 
 _Note_: In order for a consumer to communicate with the Imposium API via the client you must have the following credentials: 
