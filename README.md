@@ -72,7 +72,7 @@ client.createExperience(
 
 The parameters are as follows: 
 
-_Note_: the inventory parameter will change from job to job. 
+_Note_: inventory content depends on the context of the specified story. 
 
 * storyId - a valid Imposium storyId **(required)**
 * inventory - `{ text:string, image:file, callback_url:string }` **(required)**
