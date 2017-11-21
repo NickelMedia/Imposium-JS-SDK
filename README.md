@@ -21,10 +21,10 @@ or
 
 ```javascript
 // require
-var imposium = require(imposium-js-sdk)
+var Imposium = require(imposium-js-sdk)
 
 // es6 
-import * as imposium from 'imposium-js-sdk';
+import * as Imposium from 'imposium-js-sdk';
 
 ```
 
