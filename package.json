@@ -12,13 +12,18 @@
     "path": "~0.4.9",
     "typescript": "^2.5.3",
     "webpack": "^3.8.1",
+    "webpack-node-externals": "^1.6.0",
     "webpack-notifier": "^1.5.0",
     "yargs": "~4.7.1"
   },
   "dependencies": {
     "apisauce": "^0.14.1",
     "event-emitter": "^0.3.5",
+    "form-data": "^2.3.1",
     "socket.io": "^2.0.3",
-    "webstomp-client": "^1.2.0"
+    "websocket-client": "^1.0.0",
+    "webstomp-client": "^1.2.0",
+    "window": "^4.2.1",
+    "ws": "^3.2.0"
   }
 }

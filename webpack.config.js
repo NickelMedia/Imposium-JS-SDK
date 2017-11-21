@@ -2,6 +2,7 @@
 const webpack = require('webpack');
 const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
 const path = require('path');
+const nodeExternals = require('webpack-node-externals');
 const env = require('yargs').argv.env; // use --env with webpack 2
 
 let libraryName = 'Imposium';
@@ -17,6 +18,7 @@ if (env === 'build') {
 const config = {
   entry: __dirname + '/src/ImposiumClient.ts',
   devtool: 'source-map',
+  target: 'node',
   output: {
     path: __dirname + '/lib',
     filename: outputFile,

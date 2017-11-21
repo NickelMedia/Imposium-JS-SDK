@@ -1,5 +1,6 @@
 import { create } from 'apisauce';
 import * as EventEmitter from 'event-emitter';
+// import * as FormData from 'form-data';
 
 import { MessageConsumer, Job } from './MessageConsumer';
 import { StompConfig } from './StompClient';
@@ -135,16 +136,17 @@ export class ImposiumClient {
 	 * @return {FormData}              payload object used in createExperience
 	 */
 	private formatData(storyId:string, inventory:any, error:(str)=>void):FormData {
-		const formData:FormData = new FormData();
+		const formData = new FormData();
 		let files:any = {};
 
 		// add the storyID
 		formData.append('story_id', storyId);
 		// pull any files from the inventory, add them to the top level
+		
 		for (let inventoryId in inventory) {
 			let fileInput = inventory[inventoryId];
 
-			if (fileInput instanceof HTMLInputElement && fileInput.type === "file") {
+			if (fileInput && fileInput.type === "file") {
 				if (fileInput.files.length > 0) {
 					inventory[inventoryId] = '';
 					formData.append(inventoryId, fileInput.files[0]);
