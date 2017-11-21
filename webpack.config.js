@@ -18,7 +18,6 @@ if (env === 'build') {
 const config = {
   entry: __dirname + '/src/ImposiumClient.ts',
   devtool: 'source-map',
-  target: 'node',
   output: {
     path: __dirname + '/lib',
     filename: outputFile,

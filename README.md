@@ -11,6 +11,12 @@ Run the following for development:
 
 ### Initializing the client
 
+Include in your html:
+
+```javascript
+<script type = "text/javascript" src = "../lib/imposium.js"></script>
+```
+
 _Note_: In order for a consumer to communicate with the Imposium API via the client you must have the following credentials: 
 
 1. An access token

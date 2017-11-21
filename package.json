@@ -1,6 +1,6 @@
 {
-  "name": "@imposium/imposium-js-sdk",
-  "version": "1.0.0",
+  "name": "imposium-js-sdk",
+  "version": "1.0.1",
   "description": "",
   "author": [
     "Greg Webber",
