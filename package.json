@@ -1,11 +1,12 @@
 {
   "name": "imposium-js-sdk",
-  "version": "1.0.3",
+  "version": "1.0.6",
   "description": "",
   "author": [
     "Greg Webber",
     "Patrick Chisholm"
   ],
+  "main": "lib/imposium.min.js",
   "devDependencies": {
     "awesome-typescript-loader": "^3.2.3",
     "del": "~0.1.3",

@@ -11,10 +11,21 @@ Run the following for development:
 
 ### Initializing the client
 
-Include in your HTML:
+Reference the script:
 
 ```html
 <script type = "text/javascript" src = "../lib/imposium.js"></script>
+```
+
+or
+
+```javascript
+// require
+var imposium = require(imposium-js-sdk)
+
+// es6 
+import * as imposium from 'imposium-js-sdk';
+
 ```
 
 _Note_: In order for a consumer to communicate with the Imposium API via the client you must have the following credentials: 
