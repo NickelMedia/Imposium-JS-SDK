@@ -22,22 +22,22 @@ or
 
 _Note_: In order for a consumer to communicate with the Imposium API via the client you must have the following credentials: 
 
-1. An access token
+1. An access token _or_ jwt (See options, jwt requires an additonal argument in config)
 2. An Imposium story id
 3. An Imposium act id
 
-To instantiate a client you must supply a valid access token and optionally you can pass endpoint configuration in JSON format (this is only used in dev, regular consumers won't need to adjust these options).
+To instantiate a client you must supply a valid access token and optionally you can pass endpoint configuration in JSON format (this is only used in dev really, regular consumers won't need to adjust these options).
 
 ```javascript
 var client = new Imposium.ImposiumClient(<token>, <options>);
 ```
 
-_Options_: For dev purposes you can change the default Imposium endpoint, type of auth and WebStomp configuration.
+_Options_: For dev purposes you can change the default Imposium and WebStomp settings.
 
 ```javascript
 var options = {
-	url: 'http://api/',
-	auth: '',
+	url: '<url>/api',
+	auth: '<jwt>', // Leave empty if using hmac
 	stompConfig: {
 		'stompEndpoint':'ws://127.0.0.1:15674/ws',
 		'user': 'guest',
@@ -58,7 +58,7 @@ var options = {
 	* onMessage - possible to pass a delegate message function here for message parsing/handling.
 	* onError - possible to pass a delegate error function here for custom error handling.
 
-### Invoking new experiences
+### Creating new experiences
 
 To get started, you need to make a createExperience call: 
 
