@@ -181,7 +181,7 @@ export class ImposiumClient {
 	 * @param {any)=>void} success success callback
 	 * @param {any)=>void} error   error callback
 	 */
-	public getVideo(job:any, success:(data:any)=>void, error:(data:any)=>void):void {
+	public getVideo(job:any, success:any, error:any):void {
 		const jobSpec:Job = {
 			'expId': job.expId, 
 			'actId': job.actId, 

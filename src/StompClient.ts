@@ -13,6 +13,7 @@ export interface StompConfig {
 	exchangeRoute:string;
 	onMessage:(msg:WebStomp.Message)=>void;
 	onError:(err:any)=>void;
+	onConnect:any;
 }
 
 /**
@@ -25,6 +26,8 @@ export class StompClient {
 	private socket:WebSocket;
 	private expId:string;
 	private subscribe:()=>void;
+	private onConnect:any;
+	private onError:any;
 
 	/**
 	 * Set config and initialize the client
@@ -96,10 +99,12 @@ export class StompClient {
 	 * then invokes message consumption
 	 */
 	private establishSubscription():void {
+
 		this.subscription = this.client.subscribe
 		(
 			`${this.config.exchangeRoute}${this.expId}`,
 			this.config.onMessage
 		);
+		this.config.onConnect();
 	}
 }

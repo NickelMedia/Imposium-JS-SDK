@@ -46,7 +46,7 @@
 			// accessKey - access key for public endpoints
 			var storyId = '[story_id]',
 			    actId = '[act_id]',
-			    token = '[token]';
+			    accessKey = '[access_key]';
 
 			// Create an instance of the ImposiumClient
 			var imposium = new Imposium.ImposiumClient(accessKey);
@@ -57,6 +57,11 @@
 
 			    if (expId) {
 			        var job = {expId: expId, actId: actId};
+
+			        imposium.on(
+			        	Imposium.events.STATUS, 
+			        	statusHandler
+			        );
 
 			        imposium.getVideo(
 			            job, 
@@ -107,8 +112,7 @@
 
 				imposium.on(
 					Imposium.events.STATUS, 
-					statusHandler, 
-					this
+					statusHandler
 				);
 
 				imposium.getVideo(
@@ -123,7 +127,7 @@
 			 * @param  {obj} data message payload containing the finished job details
 			 */
 			function onGotScene(data) {
-				imposium.off(Imposium.events.STATUS, statusHandler, this);
+				imposium.off(Imposium.events.STATUS, statusHandler);
 
 				vid.src = data.mp4Url;
 				vid.style.display = 'block';

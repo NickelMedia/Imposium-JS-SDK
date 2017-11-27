@@ -63,9 +63,10 @@ export class MessageConsumer {
 	public init(config:StompConfig):void {
 		config.onError = this.onError = (e:any) => this.streamError(e);
 		config.onMessage = this.onMessage = (msg:any) => this.router(msg);
-
+		config.onConnect = ()=>{
+			this.invokeStreaming();
+		};
 		this.stompClient = new StompClient(config, this.job.expId);
-		this.invokeStreaming();
 	}
 
 	/**
@@ -91,7 +92,7 @@ export class MessageConsumer {
 
 		this.api.post(endpoint, body)
 		.then(res => {
-			if (!res.ok) this.delegate.onError = (():void => this.job.onError(res.data))();
+			if (!res.ok) this.job.onError(res.data);
 		});
 	}
 
@@ -147,11 +148,11 @@ export class MessageConsumer {
 
 			if (sceneData != null) {
 				if (this.job.onSuccess) {
-					this.delegate.onError = (():void => this.job.onSuccess(sceneData))();
+					this.job.onSuccess(sceneData);
 				}
 			} else {
 				if (this.job.onError) {
-					this.delegate.onSuccess = (():void => this.job.onError(sceneData))();
+					this.job.onError(sceneData);
 				}
 			}			
 		}
@@ -169,7 +170,7 @@ export class MessageConsumer {
 				console.error(`WebStomp error: (retrying: ${this.retried})`, err);
 				this.stompClient.reconnect();
 			} else {
-				this.delegate.onError = (():void => this.job.onError(err))();
+				this.job.onError(err);
 			}
 		}
 	}
