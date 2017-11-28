@@ -85,6 +85,7 @@ client.createExperience(
 	experienceCreated
 );
 
+// Called once the experience has been created
 function experienceCreated(data) {
 	job = {
 		expId: data.id,
@@ -98,11 +99,13 @@ function experienceCreated(data) {
 	);
 }
 
+// Called once the video related to the experience has been rendered and saved
 function onProcessed(data) {
 	var videoElement = document.getElementById('my-video');
 	videoElement.src = data.mp4Url;
 }
 
+// Called if an error occurs during processing
 function onError(err) {
 	console.error(err);
 }
@@ -127,12 +130,14 @@ client.createExperience(
 	experienceCreated
 );
 
+// Called once the experience has been created
 function experienceCreated(data) {
 	job = {
 		expId: data.id,
 		actId: actId
 	};
 
+	// This will set up an event bus that allows you to listen to processing events
 	client.on(
 		Imposium.events.STATUS, 
 		statusHandler, 
@@ -146,6 +151,7 @@ function experienceCreated(data) {
 	);
 }
 
+// Called once the video related to the experience has been rendered and saved
 function onProcessed(data) {
 	var videoElement = document.getElementById('my-video');
 
@@ -158,10 +164,12 @@ function onProcessed(data) {
 	videoElement.src = data.mp4Url;
 }
 
+// Called if an error occurs during processing
 function onError(err) {
 	console.error(err);
 }
 
+// Called when processing events get emitted 
 function statusHandler(data) {
 	console.log(data.msg);
 }
