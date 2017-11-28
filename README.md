@@ -40,7 +40,15 @@ var client = new Imposium.ImposiumClient(accessToken);
 
 ### Creating new experiences
 
-To get started, you need to make a createExperience call: 
+To get started, you need to make a createExperience call. The parameters are as follows: 
+
+* storyId - a valid Imposium storyId **(required)**
+* inventory - `{text:string, image:file, callback_url:string}` **(required)**
+* render - boolean, tell the API to start rendering immediately **(required)**
+* onSuccess(data) - callback function **(required)**
+* onError(err) - callback function (handle errors creating the experience) **(optional)**
+
+_Note_: The content of inventory depends on the story you're attempting to reference.
 
 ```javascript
 client.createExperience(
@@ -50,17 +58,13 @@ client.createExperience(
 	onSuccess, 
 	onError 
 );
+
+// Called once the experience has been created
+function onSuccess(data) {
+	// References your new experience
+	console.log(data.id);
+}
 ```
-
-The parameters are as follows: 
-
-* storyId - a valid Imposium storyId **(required)**
-* inventory - `{text:string, image:file, callback_url:string}` **(required)**
-* render - boolean, tell the API to start rendering immediately **(required)**
-* onSuccess(data) - callback function **(required)**
-* onError(err) - callback function (handle errors creating the experience) **(optional)**
-
-_Note_: The content of inventory depends on the story you're attempting to reference.
 
 ### Receiving scene data and listening to events
 
