@@ -65,11 +65,12 @@ Experiences are identified by the id returned in the onSuccess callback in passe
 The following example demonstrates how to set up the full flow (without listening for processing events):
 
 ```javascript
-var accessToken = 'token', 
-	storyId = 'storyId', 
-	actId = 'actId',
-	job,
-	client;
+var accessToken = 'access_token', 
+	storyId = 'story_id', 
+	actId = 'act_id',
+	render = false,
+	job = null,
+	client = null;
 
 client = new Imposium.ImposiumClient(accessToken);
 
@@ -105,6 +106,22 @@ function onError(err) {
 _Optional_: The following example demonstrates how to set up the full flow (listening for processing events):
 
 ```javascript
+var accessToken = 'access_token', 
+	storyId = 'story_id', 
+	actId = 'act_id',
+	render = false,
+	job = null,
+	client = null;
+
+client = new Imposium.ImposiumClient(accessToken);
+
+client.createExperience(
+	storyId, 
+	data, 
+	render, 
+	experienceCreated
+);
+
 function experienceCreated(data) {
 	job = {
 		expId: data.id,
