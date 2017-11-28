@@ -22,41 +22,15 @@ or
 
 _Note_: In order for a consumer to communicate with the Imposium API via the client you must have the following credentials: 
 
-1. An access token _or_ jwt (See options, jwt requires an additonal argument in config)
+1. An access token _or_ a jwt (See options, jwt requires an additonal argument in config)
 2. An Imposium story id
 3. An Imposium act id
 
-To instantiate a client you must supply a valid access token and optionally you can pass endpoint configuration in JSON format (this is only used in dev really, regular consumers won't need to adjust these options).
+Pass the token as the first parameter in the client constructor. 
 
 ```javascript
-var client = new Imposium.ImposiumClient(<token>, <options>);
+var client = new Imposium.ImposiumClient(accessToken);
 ```
-
-_Options_: For dev purposes you can change the default Imposium and WebStomp settings.
-
-```javascript
-var options = {
-	url: '<url>/api',
-	auth: '<jwt>', // Leave empty if using hmac
-	stompConfig: {
-		'stompEndpoint':'ws://127.0.0.1:15674/ws',
-		'user': 'guest',
-		'password': 'guest',
-		'exchangeRoute': '/exchange/imposium/',
-		'onMessage': gotMessage(msg),
-		'onError': errorHandler(err)
-}
-```
-
-* url - location of an imposium api
-* auth - `options: [jwt], i.e: auth: 'jwt'` currently the only flag supported here is jwt, you can pass in a relevant idToken here
-* stompConfig
-	* stompEndpoint - location of an Imposium WebStomp endpoint
-	* user - stomp username
-	* password - stomp password
-	* exchangeRoute - default exchange
-	* onMessage - possible to pass a delegate message function here for message parsing/handling.
-	* onError - possible to pass a delegate error function here for custom error handling.
 
 ### Creating new experiences
 
@@ -75,7 +49,7 @@ client.createExperience(
 
 The parameters are as follows: 
 
-_Note_: inventory content depends on the context of the specified story. 
+_Note_: inventory contains the assets needed to render an experience. 
 
 * storyId - a valid Imposium storyId **(required)**
 * inventory - `{ text:string, image:file, callback_url:string }` **(required)**
@@ -84,9 +58,9 @@ _Note_: inventory content depends on the context of the specified story.
 
 ### Receiving scene data and listening to events
 
-Experiences are identified by an experienceId. You'll need this id to fetch videos and stream messages related to processing. 
+Experiences are identified by an experienceId returned in the onSuccess callback in passed to createExperience (as seen above). You'll need this id to fetch videos and stream messages related to processing. 
 
-When creating a new experience this id will be returned by `client.createExperience` in the onSuccess callback. The following example demonstrates how you would get the experience id and listen for a finished video URL. 
+The following example demonstrates how to set up the full flow (without listening for processing events):
 
 ```javascript
 var accessToken = 'token', 
@@ -126,7 +100,7 @@ function onError(err) {
 }
 ```
 
-_Optional_: If you want to listen to intermediate messages related to processing steps you can pass a callback function to the client event bus. If you check the examples you can see a use case where this is used to update a UI with incoming messages to provide the user with live feedback. 
+_Optional_: The following example demonstrates how to set up the full flow (listening for processing events):
 
 ```javascript
 function experienceCreated(data) {
