@@ -24,11 +24,11 @@ or
 
 _Important Note_: You need the following strings in order to use the client.
 
-1. accessToken [hmac] - authenticates with the api
-2. storyId [uuid] - Imposium story reference
-3. actId [uuid] - refernece to an act of a story 
+1. **accessToken [hmac]** - authenticates with the api
+2. **storyId [uuid]** - Imposium story reference
+3. **actId [uuid]** - refernece to an act of a story 
 
-Pass the token as the first parameter in the client constructor, the uses for storyId and actId are shown below. 
+Pass the token as a parameter in the client constructor. Uses for storyId and actId are shown below. 
 
 ```javascript
 var client = new Imposium.ImposiumClient(accessToken);
@@ -50,17 +50,17 @@ client.createExperience(
 
 The parameters are as follows: 
 
-_Note_: inventory contains the relevant assets needed to render an experience. 
-
 * storyId - a valid Imposium storyId **(required)**
 * inventory - `{text:string, image:file, callback_url:string}` **(required)**
 * render - boolean, tell the API to start rendering immediately **(required)**
 * onSuccess(data) - callback function **(required)**
 * onError(err) - callback function (handle errors creating the experience) **(optional)**
 
+_Note_: The content of inventory depends on the story you're attempting to reference.
+
 ### Receiving scene data and listening to events
 
-Experiences are identified by the id returned in the onSuccess callback in passed to createExperience (see below). You'll need this id to fetch videos and stream messages related to processing. 
+New experiences are identified by the id returned in the onSuccess callback passed to createExperience (shown below). You'll need this id to fetch the render and stream messages related to processing. 
 
 The following example demonstrates how to set up the full flow (without listening for processing events):
 
@@ -144,7 +144,7 @@ function experienceCreated(data) {
 
 function onProcessed(data) {
 	var videoElement = document.getElementById('my-video');
-	
+
 	client.off(
 		Imposium.events.STATUS, 
 		statusHandler, 
