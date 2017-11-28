@@ -95,6 +95,7 @@ function experienceCreated(data) {
 }
 
 function onProcessed(data) {
+	var videoElement = document.getElementById('my-video');
 	videoElement.src = data.mp4Url;
 }
 
@@ -142,6 +143,8 @@ function experienceCreated(data) {
 }
 
 function onProcessed(data) {
+	var videoElement = document.getElementById('my-video');
+	
 	client.off(
 		Imposium.events.STATUS, 
 		statusHandler, 
