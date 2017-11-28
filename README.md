@@ -3,6 +3,10 @@ Imposium JavaScript SDK
 
 ### Getting started
 
+Install:
+
+`npm i imposium-js-sdk`
+
 Create a reference:
 
 ```javascript
