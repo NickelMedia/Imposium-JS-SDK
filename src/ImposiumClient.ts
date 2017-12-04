@@ -156,13 +156,19 @@ export class ImposiumClient {
 		// pull any files from the inventory, add them to the top level
 		
 		for (let inventoryId in inventory) {
-			let fileInput = inventory[inventoryId];
+			let val = inventory[inventoryId];
 
-			if (fileInput && fileInput.type === "file") {
-				if (fileInput.files.length > 0) {
+			//input
+			if (val && val.type === "file") {
+				if (val.files.length > 0) {
 					inventory[inventoryId] = '';
-					formData.append(inventoryId, fileInput.files[0]);
+					formData.append(inventoryId, val.files[0]);
 				}
+
+			//blob
+			}else if(val && val instanceof Blob || val instanceof File){
+				inventory[inventoryId] = '';
+				formData.append(inventoryId, val);
 			}
 		}
 

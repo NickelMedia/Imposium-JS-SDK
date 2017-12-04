@@ -104,7 +104,7 @@ export class StompClient {
 		(
 			`${this.config.exchangeRoute}${this.expId}`,
 			this.config.onMessage
-		), {'ack': 'client'};
+		);
 		
 		this.config.onConnect();
 	}

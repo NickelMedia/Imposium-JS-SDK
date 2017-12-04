@@ -115,8 +115,6 @@ export class MessageConsumer {
 				break;
 			default: break;
 		}
-
-		msg.ack();
 	}
 
 	/**
