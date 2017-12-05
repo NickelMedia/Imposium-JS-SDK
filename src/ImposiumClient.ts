@@ -96,6 +96,8 @@ export class ImposiumClient {
 			} else {
 				error(res);
 			}
+		}).catch(err => {
+			error(err);
 		});
 	}
 
@@ -113,6 +115,8 @@ export class ImposiumClient {
 			} else {
 				error(res);
 			}
+		}).catch(err => {
+			error(err);
 		});
 	}
 
@@ -136,6 +140,8 @@ export class ImposiumClient {
 			} else {
 				error(res);
 			}
+		}).catch(err => {
+			error(err);
 		});
 	}
 

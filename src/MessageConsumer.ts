@@ -77,6 +77,8 @@ export class MessageConsumer {
 		this.stompClient.kill()
 		.then(() => {
 			this.init(config);	
+		}).catch(err => {
+			console.error('something went wrong killing webstomp.');
 		});
 	}
 
@@ -93,6 +95,8 @@ export class MessageConsumer {
 		this.api.post(endpoint, body)
 		.then(res => {
 			if (!res.ok) this.job.onError(res.data);
+		}).catch(err => {
+			this.job.onError(err);
 		});
 	}
 
