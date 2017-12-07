@@ -174,7 +174,7 @@ export class ImposiumClient {
 			//blob
 			}else if(val && val instanceof Blob || val instanceof File){
 				inventory[inventoryId] = '';
-				formData.append(inventoryId, val);
+				formData.append(inventoryId, val, "inventory.png");
 			}
 		}
 
