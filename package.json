@@ -1,6 +1,6 @@
 {
   "name": "imposium-js-sdk",
-  "version": "1.2.8",
+  "version": "1.2.9",
   "description": "",
   "author": [
     "Greg Webber",
@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "apisauce": "^0.14.1",
+    "babel-polyfill": "^6.26.0",
     "event-emitter": "^0.3.5",
     "form-data": "^2.3.1",
     "socket.io": "^2.0.3",
