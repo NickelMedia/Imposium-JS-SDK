@@ -1,6 +1,6 @@
 import { create } from 'apisauce';
 import * as EventEmitter from 'event-emitter';
-// import * as FormData from 'form-data';
+import "babel-polyfill";
 
 import { MessageConsumer, Job } from './MessageConsumer';
 import { StompConfig } from './StompClient';
