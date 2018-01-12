@@ -197,6 +197,7 @@ export class ImposiumClient {
 		const jobSpec:Job = {
 			'expId': job.expId, 
 			'actId': job.actId, 
+			'sceneId': job.sceneId,
 			'onSuccess': success, 
 			'onError': error
 		},
