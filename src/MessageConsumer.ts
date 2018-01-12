@@ -90,7 +90,7 @@ export class MessageConsumer {
 		// Calling this route with the following params will initiate streaming.
 		// Messages will be sent to RabbitMQ from the backend as processing occurs
 		const endpoint = `/experience/${this.job.expId}/trigger-event`,
-			body = {expId: this.job.expId, actId: this.job.actId};
+			body = {exp_id: this.job.expId, act_id: this.job.actId};
 
 		this.api.post(endpoint, body)
 		.then(res => {
