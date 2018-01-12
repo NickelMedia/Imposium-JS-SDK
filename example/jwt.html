@@ -45,6 +45,7 @@
             // actId - What particular act the job is related to
             // accessKey - access key for public endpoints
             var storyId = '[story_id]',
+                sceneId = '[scene_id]',
                 actId = '[act_id]',
                 token = '[token]';
 
@@ -101,6 +102,7 @@
             function onExperienceCreated(data) {
                 var job = {
                     expId: data.id,
+                    sceneId: sceneId,
                     actId: actId
                 }    
 

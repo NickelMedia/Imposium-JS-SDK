@@ -30,7 +30,8 @@ _Important Note_: You need the following strings in order to use the client.
 
 1. **accessToken [hmac]** - authenticates with the api
 2. **storyId [uuid]** - Imposium story reference
-3. **actId [uuid]** - refernece to an act of a story 
+3. **sceneId [uuid]** - Imposium scene reference
+4. **actId [uuid]** - refernece to an act of a story 
 
 Pass the token as a parameter in the client constructor. Uses for storyId and actId are shown below. 
 
@@ -75,6 +76,7 @@ The following example demonstrates how to set up the full flow (without listenin
 ```javascript
 var accessToken = 'access_token', 
 	storyId = 'story_id', 
+	sceneId = 'scene_id',
 	actId = 'act_id',
 	render = false,
 	job = null,
@@ -93,6 +95,7 @@ client.createExperience(
 function experienceCreated(data) {
 	job = {
 		expId: data.id,
+		sceneId: sceneId,
 		actId: actId
 	};
 
@@ -119,7 +122,8 @@ _Optional_: The following example demonstrates how to set up the full flow (list
 
 ```javascript
 var accessToken = 'access_token', 
-	storyId = 'story_id', 
+	storyId = 'story_id',
+	sceneId = 'scene_id', 
 	actId = 'act_id',
 	render = false,
 	job = null,
@@ -138,6 +142,7 @@ client.createExperience(
 function experienceCreated(data) {
 	job = {
 		expId: data.id,
+		sceneId: sceneId,
 		actId: actId
 	};
 
