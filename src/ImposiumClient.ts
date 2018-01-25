@@ -45,7 +45,6 @@ export class ImposiumClient {
 		this.token = token;
 
 		if (trackingId) {
-			console.log('sent~~')
 			this.ga = new Analytics(trackingId);
 			this.ga.send({t:'pageview', dp: 'home'});
 		}
