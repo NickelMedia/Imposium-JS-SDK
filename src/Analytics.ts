@@ -25,7 +25,7 @@ export default class Analytics {
 			this.guid = this.checkCache();
 		} else {
 			console.warn('Your Google Analytics tracking ID is invalid.');
-			
+
 			this.enabled = false;
 		}
 	}
@@ -34,8 +34,10 @@ export default class Analytics {
 		Sends events off to the GA collect API
 	 */
 	public send(event:any):void {
-		const url = this.concatParams(event);
-		this.makeRequest(url);
+		if (this.enabled) {
+			const url = this.concatParams(event);
+			this.makeRequest(url);
+		}
 	}
 
 	/*
@@ -132,9 +134,6 @@ export default class Analytics {
 	private makeRequest(url:string):void {
 		// make ga calls here
 		axios.get(url)
-		.then((res) => {
-			console.log('Successfully called GA', res.data);
-		})
 		.catch((err) => {
 			console.error('GA call err: ', err);
 		});

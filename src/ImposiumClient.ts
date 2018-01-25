@@ -11,7 +11,7 @@ export class events {
 
 export class ImposiumClient {
 	public messageConsumer:MessageConsumer;
-	private ga:Analytics = null;
+	private analytics:Analytics = null;
 	private video:HTMLVideoElement = null;
 	private token:string;
 	private api:any;
@@ -45,8 +45,8 @@ export class ImposiumClient {
 		this.token = token;
 
 		if (trackingId) {
-			this.ga = new Analytics(trackingId);
-			this.ga.send({t:'pageview', dp: 'home'});
+			this.analytics = new Analytics(trackingId);
+			this.analytics.send({t: 'pageview', dp: 'home'});
 		}
 
 		if (video) {
