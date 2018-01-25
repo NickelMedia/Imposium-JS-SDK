@@ -14,13 +14,20 @@ import parser from 'ua-parser-js';
 export default class Analytics {
 	private baseUrl:string = 'https://ssl.google-analytics.com/collect';
 	private cachedKey:string = 'imposium_js_ga_cid';
+	private idRegExp = /^ua-\d{4,9}-\d{1,4}$/i;
+	private enabled = true;
 	private trackingId:string = null;
 	private guid:string = null;
 
 	public constructor(trackingId:string) {
-		this.trackingId = trackingId;
-		this.guid = this.checkCache();
-		console.log('your guid: ' + this.guid)
+		if ((this.idRegExp).test(trackingId)) {
+			this.trackingId = trackingId;
+			this.guid = this.checkCache();
+		} else {
+			console.warn('Your Google Analytics tracking ID is invalid.');
+			
+			this.enabled = false;
+		}
 	}
 
 	/*
