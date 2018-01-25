@@ -166,13 +166,13 @@ export class MessageConsumer {
 					}
 				}			
 			}else{
-				if(this.job.onError){
+				if (this.job.onError){
 					this.job.onError(payload);
 				}
 			}
 
 		}else{
-			if(this.job.onError){
+			if (this.job.onError){
 				this.job.onError(payload);
 			}
 		}

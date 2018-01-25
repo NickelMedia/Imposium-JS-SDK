@@ -1,9 +1,9 @@
-import { create } from 'apisauce';
-import * as EventEmitter from 'event-emitter';
 import "babel-polyfill";
-
-import { MessageConsumer, Job } from './MessageConsumer';
+import * as EventEmitter from 'event-emitter';
+import Analytics from './Analytics';
+import { create } from 'apisauce';
 import { StompConfig } from './StompClient';
+import { MessageConsumer, Job } from './MessageConsumer';
 
 export class events {
 	public static STATUS:string = "imposium_status_update";
@@ -11,6 +11,8 @@ export class events {
 
 export class ImposiumClient {
 	public messageConsumer:MessageConsumer;
+	private ga:Analytics = null;
+	private video:HTMLVideoElement = null;
 	private token:string;
 	private api:any;
 	private onError:(err)=>void;
@@ -34,13 +36,26 @@ export class ImposiumClient {
 	/**
 	 * Set token, set config, initialize req factory
 	 * @param {string} token access token
-	 * @param {any =     null} config override options
+	 * @param {any = null} config override options
 	 */
-	constructor(token:string, config:any = null) {
+	constructor(token:string, trackingId = null, video:HTMLVideoElement = null, config:any = null) {
 		EventEmitter(this);
 
 		// set access token
 		this.token = token;
+
+		if (trackingId) {
+			console.log('sent~~')
+			this.ga = new Analytics(trackingId);
+			this.ga.send({t:'pageview', dp: 'home'});
+		}
+
+		if (video) {
+			// Set up the reference
+			this.video = video;
+			this.video.addEventListener('play', () => this.onPlay());
+			this.video.addEventListener('playing', () => this.onPlayback());
+		}
 
 		// overwrite default config values
 		if (config) {
@@ -68,6 +83,26 @@ export class ImposiumClient {
 				}
 			}
 		}
+	}
+
+	/*
+		TO DO: Determine what logic constitutes a 
+		video 'view' event, this could also be handled
+		in the 'onload' 'canplaythrough' event to signify
+		that a view has been loaded
+	 */
+	onPlay() {
+		if (this.video.currentTime === 0) {
+			console.log('MAKING CALL TO GA... VIDEO VIEWED...');
+		}
+	}
+
+	/*
+		TO DO: Determine what logic we want to use to 
+		measure playback
+	 */
+	onPlayback() {
+		console.log('MAKING CALL TO GA... PLAYBACK OCCURING...');
 	}
 
 	/**
