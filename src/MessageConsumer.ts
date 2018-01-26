@@ -17,7 +17,6 @@ export interface Job {
  */
 export class MessageConsumer {
 	public delegate:any;
-
 	private api:any;
 	private job:Job;
 	private stompClient:StompClient;

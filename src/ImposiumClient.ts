@@ -12,7 +12,13 @@ export class events {
 export class ImposiumClient {
 	public messageConsumer:MessageConsumer;
 	private analytics:Analytics = null;
+	private idRegExp:RegExp = /^ua-\d{4,9}-\d{1,4}$/i;
 	private video:HTMLVideoElement = null;
+	private progressCheckInterval:any;
+	private evts:[number] = [0.25, 0.5, 0.75];
+	private lastEvtFired:number = 0;
+	private startSent:boolean = false;
+	private finishedSent:boolean = false;
 	private token:string;
 	private api:any;
 	private onError:(err)=>void;
@@ -44,16 +50,24 @@ export class ImposiumClient {
 		// set access token
 		this.token = token;
 
-		if (trackingId) {
+		// set up analytics if tracking id was passed / is valid
+		if (trackingId && (this.idRegExp).test(trackingId)) {
 			this.analytics = new Analytics(trackingId);
-			this.analytics.send({t: 'pageview', dp: 'home'});
+
+			this.analytics.send({
+				t: 'pageview', 
+				dp: window.location.pathname
+			});
 		}
 
-		if (video) {
-			// Set up the reference
+		// set up video event listeners if video is passed and analytics was
+		// successfully instantiated
+		if (video && this.analytics) {
 			this.video = video;
+			this.video.addEventListener('loadstart', () => this.onLoad());
 			this.video.addEventListener('play', () => this.onPlay());
-			this.video.addEventListener('playing', () => this.onPlayback());
+			this.video.addEventListener('pause', () => this.onPause());
+			this.video.addEventListener('ended', () => this.onEnd());
 		}
 
 		// overwrite default config values
@@ -68,8 +82,73 @@ export class ImposiumClient {
 		});
 	}
 
-	/**
-	 * Copy json obj recursively
+	/*
+		Record video view hits
+	 */
+	private onLoad() {
+		this.analytics.send({
+			t: 'event',
+			ec: 'video_player',
+			ea: 'view'
+		});
+	}
+
+	/*
+		Start listening for playback progress when video starts playing
+	 */
+	private onPlay() {
+		clearInterval(this.progressCheckInterval);
+		this.progressCheckInterval = setInterval(() => this.checkProgress(), 100);
+	}
+
+	/*
+		Measure video playback percentage record analytics at defined intervals 
+	 */
+	private checkProgress() {
+        if (this.video) {
+            const perc = this.video.currentTime / this.video.duration,
+            	next = this.evts[this.lastEvtFired];
+
+            if (perc > next) {                
+                this.analytics.send({
+                	t: 'event',
+                	ec: 'video_player',
+                	ea: 'playback',
+                	ev: next
+                });
+
+                this.lastEvtFired++;
+            }
+        } else {
+            clearInterval(this.progressCheckInterval);
+        }
+    }
+
+	/*
+		Clear progress interval on video pause
+	 */
+	private onPause() {
+		clearInterval(this.progressCheckInterval);
+	}
+
+	/*
+		Handle cleaning up once video finishes playing
+	 */
+	private onEnd() {
+		clearInterval(this.progressCheckInterval);
+
+		this.analytics.send({
+			t: 'event',
+			ec: 'video_player',
+			ea: 'playback',
+			ev: 1
+		});
+
+		this.lastEvtFired = 0;
+	}
+
+	/*
+		Copy config objects recursively
 	 */
 	private copy(a:any, b:any):void {
 		for (let key in b) {
@@ -82,26 +161,6 @@ export class ImposiumClient {
 				}
 			}
 		}
-	}
-
-	/*
-		TO DO: Determine what logic constitutes a 
-		video 'view' event, this could also be handled
-		in the 'onload' 'canplaythrough' event to signify
-		that a view has been loaded
-	 */
-	onPlay() {
-		if (this.video.currentTime === 0) {
-			console.log('MAKING CALL TO GA... VIDEO VIEWED...');
-		}
-	}
-
-	/*
-		TO DO: Determine what logic we want to use to 
-		measure playback
-	 */
-	onPlayback() {
-		console.log('MAKING CALL TO GA... PLAYBACK OCCURING...');
 	}
 
 	/**
@@ -170,6 +229,15 @@ export class ImposiumClient {
 		this.api.post('/experience', data, config)
 		.then(res => {
 			if (res.ok) {
+				if (this.analytics) {
+					this.analytics.send({
+						t: 'event',
+						ec: 'experience',
+						ea: 'created',
+						el: res.data.id
+					});
+				}
+
 				success(res.data);
 			} else {
 				error(res);

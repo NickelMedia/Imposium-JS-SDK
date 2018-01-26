@@ -14,30 +14,21 @@ import parser from 'ua-parser-js';
 export default class Analytics {
 	private baseUrl:string = 'https://ssl.google-analytics.com/collect';
 	private cachedKey:string = 'imposium_js_ga_cid';
-	private idRegExp = /^ua-\d{4,9}-\d{1,4}$/i;
-	private enabled = true;
+	private enabled:boolean = true;
 	private trackingId:string = null;
 	private guid:string = null;
+	private retries:any = {current: 0, max: 3, timeout: null, delay: 2000};
 
 	public constructor(trackingId:string) {
-		if ((this.idRegExp).test(trackingId)) {
-			this.trackingId = trackingId;
-			this.guid = this.checkCache();
-		} else {
-			console.warn('Your Google Analytics tracking ID is invalid.');
-
-			this.enabled = false;
-		}
+		this.trackingId = trackingId;
+		this.guid = this.checkCache();
 	}
 
 	/*
 		Sends events off to the GA collect API
 	 */
 	public send(event:any):void {
-		if (this.enabled) {
-			const url = this.concatParams(event);
-			this.makeRequest(url);
-		}
+		this.makeRequest(this.concatParams(event));
 	}
 
 	/*
@@ -48,16 +39,14 @@ export default class Analytics {
 		try {
 			const cache = JSON.parse(localStorage.getItem(this.cachedKey));
 
-			// If cached creds obj exits
+			// Check ref val
 			if (cache) {
-				// Check if expiry is still valid
+				// check guid expiry
 				if (cache.expiry > new Date()) {
 					return cache.guid;
 				} else {
-					// If the expiry is invalid, remove the creds
-					// and provide new ones
+					// Set new creds if expired 
 					localStorage.removeItem(this.cachedKey);
-
 					return this.setCache(this.generateGuid());
 				}
 			} else {
@@ -136,7 +125,25 @@ export default class Analytics {
 		axios.get(url)
 		.catch((err) => {
 			console.error('GA call err: ', err);
+
+			this.retry();
 		});
+	}
+
+	/*
+		Retry request n times before resigning @
+	 */
+	private retry():void {
+		this.retries.timeout = setTimeout(() => {
+			if (this.retries.current < this.retries.max) {
+				this.retries.delay *= 2;
+				this.retries.current++;
+				
+				this.retry();
+			} else {
+				clearTimeout(this.retries.timeout);
+			}
+		}, this.retries.delay);
 	}
 }
 
