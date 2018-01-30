@@ -21,23 +21,23 @@ export default class Analytics {
 	private rate:number = 100;
 	private deferRequests:boolean = false;
 	private retries:any = {current: 0, max: 3, timeout: null, delay: 2000};
-	private activeReqs:Queue = null;
-	private deferredReqs:Queue = null;
+	private activeRequests:Queue = null;
+	private deferredRequests:Queue = null;
 	private testReqCount:number = 0;
 
 	public constructor(trackingId:string) {
 		this.trackingId = trackingId;
 		this.guid = this.checkCache();
 
-		this.activeReqs = new Queue();
-		this.deferredReqs = new Queue();
+		this.activeRequests = new Queue();
+		this.deferredRequests = new Queue();
 	}
 
 	/*
 		Sends events off to the GA collect API
 	 */
 	public send(event:any):void {
-		if (this.activeReqs.isEmpty() && !this.deferRequests) this.emit();
+		if (this.activeRequests.isEmpty() && !this.deferRequests) this.emit();
 
 		this.addToQueue(this.concatParams(event));
 	}
@@ -140,10 +140,10 @@ export default class Analytics {
 	 */
 	private addToQueue(url:string):void {
 		if (!this.deferRequests) {
-			this.activeReqs.enqueue(url);
-			this.deferRequests = !this.activeReqs.isFull(this.concurrency);
+			this.activeRequests.enqueue(url);
+			this.deferRequests = !this.activeRequests.isFull(this.concurrency);
 		} else {
-			this.deferredReqs.enqueue(url);
+			this.deferredRequests.enqueue(url);
 		}
 	}
 
@@ -154,8 +154,8 @@ export default class Analytics {
 	private scrapeDeferred():void {
 		let max = 0;
 
-		if (!this.deferredReqs.isEmpty()) {
-			const nReqs = this.deferredReqs.getLength();
+		if (!this.deferredRequests.isEmpty()) {
+			const nReqs = this.deferredRequests.getLength();
 
 			if (nReqs > this.concurrency) {
 				max = this.concurrency;
@@ -163,11 +163,9 @@ export default class Analytics {
 				max = nReqs;
 			}
 
-			console.log(`set of ${max} complete!`);
-
 			for (let i = 0; i < max; i++) {
-				this.activeReqs.enqueue(this.deferredReqs.peek());
-				this.deferredReqs.pop();
+				this.activeRequests.enqueue(this.deferredRequests.peek());
+				this.deferredRequests.pop();
 			}
 
 			this.deferRequests = false;
@@ -182,14 +180,14 @@ export default class Analytics {
 		Makes GET request to GA collect API with formatted query string
 	 */
 	private makeRequest():void {
-		const url = this.activeReqs.peek();
+		const url = this.activeRequests.peek();
 
 		if (url) {
 			axios.get(url)
 			.then((res) => {
 				this.testReqCount++;
 				console.log(this.testReqCount);
-				this.activeReqs.pop();
+				this.activeRequests.pop();
 			})
 			.catch((err) => {
 				console.error('GA call err: ', err);
