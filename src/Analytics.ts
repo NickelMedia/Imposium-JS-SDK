@@ -11,32 +11,69 @@ import Queue from './Queue';
 	for information on the query parameter options:
 	https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
  */
+
+ interface Request {
+ 	baseUrl: string;
+ 	cacheKey: string;
+ 	appId: string;
+ 	clientId: string;
+ }
+
+interface Broker {
+	concurrency: number;
+	frequency: number;
+	enqueued: number;
+	defer: boolean;
+	active: Queue;
+	deferred: Queue;
+}
+
+interface Retries {
+	current: number;
+	max: number;
+	delay: number;
+}
+
 export default class Analytics {
-	private baseUrl:string = 'https://ssl.google-analytics.com/collect';
-	private cachedKey:string = 'imposium_js_ga_cid';
-	private trackingId:string = null;
-	private guid:string = null;
-	private reqInterval:any = null;
-	private concurrency:number = 10;
-	private rate:number = 100;
-	private deferRequests:boolean = false;
-	private retries:any = {current: 0, max: 3, timeout: null, delay: 2000};
-	private activeRequests:Queue = null;
-	private deferredRequests:Queue = null;
+	private emitter:any = null;
+	private retryTimeout:any = null;
+
+	private request:Request = {
+		baseUrl: 'https://ssl.google-analytics.com/collect',
+		cacheKey: 'imposium_js_ga_cid',
+		appId: '',
+		clientId: ''
+	}
+
+	private broker:Broker = {
+		concurrency: 10, 
+		frequency: 50, 
+		enqueued: 0, 
+		defer: false, 
+		active: new Queue(), 
+		deferred: new Queue()
+	};
+
+	private retries:Retries = {
+		current: 0, 
+		max: 3,  
+		delay: 2000
+	};
 
 	public constructor(trackingId:string) {
-		this.trackingId = trackingId;
-		this.guid = this.checkCache();
+		let {appId, clientId} = this.request;
 
-		this.activeRequests = new Queue();
-		this.deferredRequests = new Queue();
+		appId = trackingId;
+		clientId = this.checkCache();
 	}
 
 	/*
 		Sends events off to the GA collect API
 	 */
 	public send(event:any):void {
-		if (this.activeRequests.isEmpty() && !this.deferRequests) this.emit();
+		const {defer, active} = this.broker;
+
+		if (active.isEmpty() && !defer) this.emit();
 
 		this.addToQueue(this.concatParams(event));
 	}
@@ -46,8 +83,10 @@ export default class Analytics {
 		in their localStorage
 	 */
 	private checkCache():string {
+		const {cacheKey} = this.request;
+
 		try {
-			const cache = JSON.parse(localStorage.getItem(this.cachedKey));
+			const cache = JSON.parse(localStorage.getItem(cacheKey));
 
 			// Check ref val
 			if (cache) {
@@ -56,7 +95,7 @@ export default class Analytics {
 					return cache.guid;
 				} else {
 					// Set new creds if expired 
-					localStorage.removeItem(this.cachedKey);
+					localStorage.removeItem(cacheKey);
 					return this.setCache(this.generateGuid());
 				}
 			} else {
@@ -74,16 +113,14 @@ export default class Analytics {
 	 */
 	private setCache(guid:string):string {
 		try {
-			const expiry = new Date();
+			const {cacheKey} = this.request,
+				cache = {guid: null, expiry: null},
+				expiry = new Date();
+				
+			cache.guid = guid;
+			cache.expiry = expiry.setFullYear(expiry.getFullYear() + 2)
 
-			// Expiry is modeled after the GA client id cookie
-			// which expires after 2 years
-			const cache = {
-				guid: guid,
-				expiry: expiry.setFullYear(expiry.getFullYear() + 2)
-			};
-
-			localStorage.setItem(this.cachedKey, JSON.stringify(cache));
+			localStorage.setItem(cacheKey, JSON.stringify(cache));
 		} catch (e) {
 			
 		}
@@ -118,7 +155,9 @@ export default class Analytics {
 		url encoded to prevent errors.
 	 */
 	private concatParams(event:any):string {
-		let queryString = `${this.baseUrl}?v=1&tid=${this.trackingId}&z=${this.getRandom()}&cid=${this.guid}`;
+		const {baseUrl, appId, clientId} = this.request;
+
+		let queryString = `${baseUrl}?v=1&tid=${appId}&z=${this.getRandom()}&cid=${clientId}`;
 
 		for (const param of Object.keys(event)) {
 			queryString += `&${encodeURIComponent(param)}=${encodeURIComponent(event[param])}`;
@@ -131,18 +170,22 @@ export default class Analytics {
 		Set request emitting interval
 	 */
 	private emit() {
-		this.reqInterval = setInterval(() => this.makeRequest(), this.rate);
+		let {frequency} = this.broker;
+
+		this.emitter = setInterval(() => this.makeRequest(), frequency);
 	}
 
 	/*
 		Determine if request needs to be deferred during a burst
 	 */
 	private addToQueue(url:string):void {
-		if (!this.deferRequests) {
-			this.activeRequests.enqueue(url);
-			this.deferRequests = !this.activeRequests.isFull(this.concurrency);
+		let {concurrency, defer, active, deferred} = this.broker;
+
+		if (!defer) {
+			active.enqueue(url);
+			defer = !active.isFull(concurrency);
 		} else {
-			this.deferredRequests.enqueue(url);
+			deferred.enqueue(url);
 		}
 	}
 
@@ -151,27 +194,28 @@ export default class Analytics {
 		and pass them to the active queue
 	 */
 	private scrapeDeferred():void {
-		let max = 0;
+		let {concurrency, enqueued, defer, active, deferred} = this.broker;
 
-		if (!this.deferredRequests.isEmpty()) {
-			const nReqs = this.deferredRequests.getLength();
+		if (!deferred.isEmpty()) {
+			let limit = 0;
 
-			if (nReqs > this.concurrency) {
-				max = this.concurrency;
+			enqueued = deferred.getLength();
+
+			if (enqueued > concurrency) {
+				limit = concurrency;
 			} else {
-				max = nReqs;
+				limit = enqueued;
 			}
 
-			for (let i = 0; i < max; i++) {
-				this.activeRequests.enqueue(this.deferredRequests.peek());
-				this.deferredRequests.pop();
+			for (let i = 0; i < limit; i++) {
+				active.enqueue(deferred.peek());
+				deferred.pop();
 			}
 
-			this.deferRequests = false;
-
+			defer = false;
 			this.emit();
 		} else {
-			this.deferRequests = false;
+			defer = false;
 		}
 	}
 
@@ -179,19 +223,21 @@ export default class Analytics {
 		Makes GET request to GA collect API with formatted query string
 	 */
 	private makeRequest():void {
-		const url = this.activeRequests.peek();
+		const {active} = this.broker,
+			url = active.peek();
 
 		if (url) {
 			axios.get(url)
 			.then((res) => {
-				this.activeRequests.pop();
+				active.pop();
+				if (active.isEmpty()) clearInterval(this.emitter);
 			})
 			.catch((err) => {
-				console.error('GA call err: ', err);
+				clearInterval(this.emitter);
 				this.retry();
 			});
 		} else {
-			clearInterval(this.reqInterval);
+			clearInterval(this.emitter);
 			this.scrapeDeferred();
 		}
 	}
@@ -202,16 +248,24 @@ export default class Analytics {
 		TO DO: Make this slow the queue processing down
 	 */
 	private retry():void {
-		this.retries.timeout = setTimeout(() => {
-			if (this.retries.current < this.retries.max) {
-				this.retries.delay *= 2;
-				this.retries.current++;
+		const {active} = this.broker;
+		let {current, max, delay} = this.retries;
 
-				this.retry();
+		this.retryTimeout = setTimeout(() => {
+			if (current < max) {
+				delay *= 2;
+				current++;
+
+				this.makeRequest();
 			} else {
-				clearTimeout(this.retries.timeout);
+				clearTimeout(this.retryTimeout);
+
+				active.pop();
+				this.emit();
+				// add a check here to do a long poll if 
+				// n number of requests fail after retrying
 			}
-		}, this.retries.delay);
+		}, delay);
 	}
 }
 
