@@ -23,7 +23,6 @@ export default class Analytics {
 	private retries:any = {current: 0, max: 3, timeout: null, delay: 2000};
 	private activeRequests:Queue = null;
 	private deferredRequests:Queue = null;
-	private testReqCount:number = 0;
 
 	public constructor(trackingId:string) {
 		this.trackingId = trackingId;
@@ -185,8 +184,6 @@ export default class Analytics {
 		if (url) {
 			axios.get(url)
 			.then((res) => {
-				this.testReqCount++;
-				console.log(this.testReqCount);
 				this.activeRequests.pop();
 			})
 			.catch((err) => {

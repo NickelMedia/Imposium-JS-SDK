@@ -1,3 +1,6 @@
+/*
+	Simple queue for storing URL strings
+ */
 export default class Queue {
 	private q:any[];
 
@@ -5,14 +8,12 @@ export default class Queue {
 		this.q = [];
 	}
 
-	public enqueue(item):any[] {
+	public enqueue(item:string):void {
 		this.q.push(item);
-		return this.q;
 	}
 
-	public pop(count:number = 1):any[] {
-		this.q.splice(0,count);
-		return this.q;
+	public pop():void {
+		this.q.splice(0,1);
 	}
 
 	public peek():any {
