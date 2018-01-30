@@ -1,5 +1,5 @@
 import axios from 'axios';
-import parser from 'ua-parser-js';
+import Queue from './Queue';
 
 /*
 	Manually handles calls to GA, this was developed to avoid having to ask
@@ -14,21 +14,32 @@ import parser from 'ua-parser-js';
 export default class Analytics {
 	private baseUrl:string = 'https://ssl.google-analytics.com/collect';
 	private cachedKey:string = 'imposium_js_ga_cid';
-	private enabled:boolean = true;
 	private trackingId:string = null;
 	private guid:string = null;
+	private reqInterval:any = null;
+	private concurrency:number = 10;
+	private rate:number = 100;
+	private deferRequests:boolean = false;
 	private retries:any = {current: 0, max: 3, timeout: null, delay: 2000};
+	private activeReqs:Queue = null;
+	private deferredReqs:Queue = null;
+	private testReqCount:number = 0;
 
 	public constructor(trackingId:string) {
 		this.trackingId = trackingId;
 		this.guid = this.checkCache();
+
+		this.activeReqs = new Queue();
+		this.deferredReqs = new Queue();
 	}
 
 	/*
 		Sends events off to the GA collect API
 	 */
 	public send(event:any):void {
-		this.makeRequest(this.concatParams(event));
+		if (this.activeReqs.isEmpty() && !this.deferRequests) this.emit();
+
+		this.addToQueue(this.concatParams(event));
 	}
 
 	/*
@@ -118,27 +129,89 @@ export default class Analytics {
 	}
 
 	/*
-		Makes GET request to GA collect API with formatted query string
+		Set request emitting interval
 	 */
-	private makeRequest(url:string):void {
-		// make ga calls here
-		axios.get(url)
-		.catch((err) => {
-			console.error('GA call err: ', err);
-
-			this.retry();
-		});
+	private emit() {
+		this.reqInterval = setInterval(() => this.makeRequest(), this.rate);
 	}
 
 	/*
-		Retry request n times before resigning @
+		Determine if request needs to be deferred during a burst
+	 */
+	private addToQueue(url:string):void {
+		if (!this.deferRequests) {
+			this.activeReqs.enqueue(url);
+			this.deferRequests = !this.activeReqs.isFull(this.concurrency);
+		} else {
+			this.deferredReqs.enqueue(url);
+		}
+	}
+
+	/*
+		If the deferral queue has urls in it, take 10 or queue length
+		and pass them to the active queue
+	 */
+	private scrapeDeferred():void {
+		let max = 0;
+
+		if (!this.deferredReqs.isEmpty()) {
+			const nReqs = this.deferredReqs.getLength();
+
+			if (nReqs > this.concurrency) {
+				max = this.concurrency;
+			} else {
+				max = nReqs;
+			}
+
+			console.log(`set of ${max} complete!`);
+
+			for (let i = 0; i < max; i++) {
+				this.activeReqs.enqueue(this.deferredReqs.peek());
+				this.deferredReqs.pop();
+			}
+
+			this.deferRequests = false;
+
+			this.emit();
+		} else {
+			this.deferRequests = false;
+		}
+	}
+
+	/*
+		Makes GET request to GA collect API with formatted query string
+	 */
+	private makeRequest():void {
+		const url = this.activeReqs.peek();
+
+		if (url) {
+			axios.get(url)
+			.then((res) => {
+				this.testReqCount++;
+				console.log(this.testReqCount);
+				this.activeReqs.pop();
+			})
+			.catch((err) => {
+				console.error('GA call err: ', err);
+				this.retry();
+			});
+		} else {
+			clearInterval(this.reqInterval);
+			this.scrapeDeferred();
+		}
+	}
+
+	/*
+		Retry request n times before resigning @ max
+
+		TO DO: Make this slow the queue processing down
 	 */
 	private retry():void {
 		this.retries.timeout = setTimeout(() => {
 			if (this.retries.current < this.retries.max) {
 				this.retries.delay *= 2;
 				this.retries.current++;
-				
+
 				this.retry();
 			} else {
 				clearTimeout(this.retries.timeout);

@@ -54,10 +54,16 @@ export class ImposiumClient {
 		if (trackingId && (this.idRegExp).test(trackingId)) {
 			this.analytics = new Analytics(trackingId);
 
-			this.analytics.send({
-				t: 'pageview', 
-				dp: window.location.pathname
-			});
+			// Remove the loop once testing is done
+			// for (let i = 0; i < 100; i++) {
+				// setTimeout(() => {
+					this.analytics.send({
+						t: 'pageview', 
+						dp: window.location.pathname
+					});
+			// 	// }, 400);
+			// }
+
 		}
 
 		// set up video event listeners if video is passed and analytics was

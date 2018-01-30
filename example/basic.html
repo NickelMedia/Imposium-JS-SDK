@@ -44,19 +44,20 @@
 			// storyId - Imposium storyId (relates to an experience template)
 			// actId - What particular act the job is related to
 			// accessKey - access key for public endpoints
-			var storyId = '[story_id]',
-			    actId = '[act_id]',
-			    accessKey = '[access_key]';
+			var storyId = '295a80d0-871c-4def-a579-8a375d6942fc',
+				sceneId = '',
+			    actId = '11a8e3b8-d3c4-4232-80a7-e757fb18fa57',
+			    accessKey = 'zooch5ja8fiejoojoo6AeQuahmex1wes';
 
 			// Create an instance of the ImposiumClient
-			var imposium = new Imposium.ImposiumClient(accessKey, 'UA-113079866-1');
+			var imposium = new Imposium.ImposiumClient(accessKey, 'UA-113079866-1', vid);
 
 			// If there is a deeplink to an experience, connect to that experience
 			if (window.location.hash !== '') {
 			    var expId = window.location.hash.replace('#', '');
 
 			    if (expId) {
-			        var job = {expId: expId, actId: actId};
+			        var job = {expId: expId, sceneId: sceneId, actId: actId};
 
 			        imposium.on(
 			        	Imposium.events.STATUS, 
