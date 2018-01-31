@@ -54,10 +54,9 @@ export class ImposiumClient {
 		if (trackingId && (this.idRegExp).test(trackingId)) {
 			this.analytics = new Analytics(trackingId);
 
-			this.analytics.send({
-				t: 'pageview', 
-				dp: window.location.pathname
-			});
+			this.pageView();
+
+			window.addEventListener('popstate', () => this.pageView());
 		}
 
 		// set up video event listeners if video is passed and analytics was
@@ -79,6 +78,16 @@ export class ImposiumClient {
 		this.api = create({
 			baseURL:ImposiumClient.config.url,
 			headers:this.getHeaders()
+		});
+	}
+
+	/*
+		Record page view metric
+	 */
+	private pageView() {
+		this.analytics.send({
+			t: 'pageview', 
+			dp: window.location.pathname
 		});
 	}
 

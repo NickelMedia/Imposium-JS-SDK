@@ -12,13 +12,15 @@ import Queue from './Queue';
 	https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
  */
 
- interface Request {
+// Holds default request settings
+interface Request {
  	baseUrl: string;
  	cacheKey: string;
  	appId: string;
  	clientId: string;
  }
 
+// Holds settings related to rate limiting
 interface Broker {
 	concurrency: number;
 	frequency: number;
@@ -28,6 +30,7 @@ interface Broker {
 	deferred: Queue;
 }
 
+// Holds request retry settings
 interface Retries {
 	current: number;
 	max: number;
@@ -127,6 +130,8 @@ export default class Analytics {
 
 		return guid;
 	}
+
+	// TO DO: use more robust uuid solution (?) 
 
 	/*
 		Generate random sequence 
@@ -255,11 +260,9 @@ export default class Analytics {
 			if (current < max) {
 				delay *= 2;
 				current++;
-
 				this.makeRequest();
 			} else {
 				clearTimeout(this.retryTimeout);
-
 				active.pop();
 				this.emit();
 				// add a check here to do a long poll if 
