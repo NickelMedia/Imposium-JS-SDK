@@ -44,10 +44,14 @@
 			var storyId = 'story_id',
 				sceneId = 'scene_id',
 			    actId = 'act_id',
-			    accessKey = 'acess_key';
+			    accessKey = 'acess_key',
+			    gaTrackingID = 'tracking_id';
 
-			// Create an instance of the ImposiumClient
-			var imposium = new Imposium.ImposiumClient(accessKey);
+			// Create an instance of the ImposiumClient. The main difference here
+			// is that instead of only passing in an access key a google analytics
+			// id and video element are passed (optionally) which allows recording
+			// of imposium specific metrics. 
+			var imposium = new Imposium.ImposiumClient(accessKey, trackingId, vid);
 
 			// If there is a deeplink to an experience, connect to that experience
 			if (window.location.hash !== '') {
