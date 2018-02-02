@@ -10,7 +10,7 @@ Install:
 Create a reference:
 
 ```javascript
-// require
+// commonJS
 var Imposium = require('imposium-js-sdk');
 
 // es6 
@@ -29,7 +29,7 @@ or
 _Important Note_: You will need an access token to use the client.
 
 ```javascript
-var accessToken = 'my_access_token';
+var accessToken = 'access_token';
 
 var client = new Imposium.ImposiumClient(accessToken);
 ```
@@ -42,8 +42,8 @@ _Important Note_: You need to provide optional parameters as shown to use the cl
 2. **video** - a reference to your HTML5 video element
 
 ```javascript
-var accessToken = 'my_access_token',
-	trackingId = 'my_ga_tracking_id',
+var accessToken = 'access_token',
+	trackingId = 'ga_tracking_id',
 	video = document.getElementById('video');
 
 var client = new Imposium.ImposiumClient(accessToken, trackingId, video);
