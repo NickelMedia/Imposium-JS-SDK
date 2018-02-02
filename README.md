@@ -21,7 +21,7 @@ import * as Imposium from 'imposium-js-sdk';
 or
 
 ```html
-<script type = "text/javascript" src = "../lib/imposium.js"></script>
+<script type = "text/javascript" src = "../lib/imposium.min.js"></script>
 ```
 
 ### Initializing the client - Basic
@@ -56,12 +56,27 @@ To get started, you need to make a createExperience call. The parameters are as 
 1. **storyId** - a valid Imposium storyId **(required)**
 2. **inventory** - object, `{text:string, image:file, callback_url:string}` **(required)**
 3. **render** - boolean, tells the API to start rendering immediately **(required)**
-4. **onSuccess(data)** - callback function **(required)**
-5. **onError(err)** - callback function **(optional)**
+4. **onSuccess(data)** - success callback function **(required)**
+5. **onError(err)** - error callback function **(optional)**
 
-_Note_: The content of inventory depends on the story you're attempting to reference, callback_url is also optional and can be an empty string unless you require the video metadata be sent to a custom callback url.
+_Note_: The content of inventory depends on the story you're attempting to reference, callback_url is also optional and can be an empty string unless you require that the experience metadata be sent to a custom callback url.
 
 ```javascript
+var accessToken = 'access_token', 
+	storyId = 'story_id',
+	inventory = null,
+	render = false,
+	client = null;
+
+var client = new Imposium.ImposiumClient(accessToken);
+
+// For the sake of simplicity let's eschew input handling code and assume we already have references to user inputs.
+inventory = {
+    text: 'some_user_input_string',
+    image: someUserInputImageFile,
+    callback_url: ''
+};
+
 client.createExperience(
 	storyId, 
 	inventory, 
@@ -70,21 +85,22 @@ client.createExperience(
 	onError 
 );
 
-// Called once the experience has been created
 function onSuccess(data) {
-	// References your new experience
 	console.log(data.id);
+}
+
+function onError(err) {
+	console.error('Something went wrong...', err);
 }
 ```
 
 ### Receiving scene data and listening to events
 
-New experiences are identified by the id returned in the onSuccess callback passed to createExperience (shown below). You'll need this id to fetch the render and stream messages related to processing. 
+New experiences are identified by the id returned in the onSuccess callback passed to createExperience (as shown above). You'll need this id to fetch the render and stream messages related to processing. 
 
 The following example demonstrates how to set up the full flow (without listening for processing events):
 
-_Important Note_: Your code needs access to the following strings, you can arrange
-this however you like. If these details are provided incorrectly, you will generate errors. For the sake of this demo, let's assume these are declared globally.
+_Important Note_: Your code needs access to the following strings, you can arrange this however you like. If these details are provided incorrectly, you will generate errors. For the sake of this demo, let's assume these are declared globally.
 
 1. **storyId** - Imposium story reference
 2. **sceneId** - Imposium scene reference
@@ -92,18 +108,20 @@ this however you like. If these details are provided incorrectly, you will gener
 
 ```javascript
 var accessToken = 'access_token', 
-	storyId = 'story_id', 
+	storyId = 'story_id',
 	sceneId = 'scene_id',
 	actId = 'act_id',
+	inventory = null,
 	render = false,
 	job = null,
 	client = null;
 
 client = new Imposium.ImposiumClient(accessToken);
 
-var inventory = {
-    text: 'some_string',
-    image: someImageFile,
+// For the sake of simplicity let's eschew input handling code and assume we already have references to user inputs.
+inventory = {
+    text: 'some_user_input_string',
+    image: someUserInputImageFile,
     callback_url: ''
 };
 
@@ -148,15 +166,17 @@ var accessToken = 'access_token',
 	storyId = 'story_id',
 	sceneId = 'scene_id', 
 	actId = 'act_id',
+	inventory = null,
 	render = false,
 	job = null,
 	client = null;
 
 client = new Imposium.ImposiumClient(accessToken);
 
-var inventory = {
-    text: 'some_string',
-    image: someImageFile,
+// For the sake of simplicity let's eschew input handling code and assume we already have references to user inputs.
+inventory = {
+    text: 'some_user_input_string',
+    image: someUserInputImageFile,
     callback_url: ''
 };
 
