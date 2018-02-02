@@ -34,7 +34,7 @@ var accessToken = 'my_access_token';
 var client = new Imposium.ImposiumClient(accessToken);
 ```
 
-### Initializing the client - Analytics
+### Initializing the client - With Analytics
 
 _Important Note_: You need to provide optional parameters as shown to use the client with analytics:
 
@@ -59,7 +59,7 @@ To get started, you need to make a createExperience call. The parameters are as 
 4. **onSuccess(data)** - success callback function **(required)**
 5. **onError(err)** - error callback function **(optional)**
 
-_Note_: The content of inventory depends on the story you're attempting to reference, callback_url is also optional and can be an empty string unless you require that the experience metadata be sent to a custom callback url.
+_Note_: The content of inventory is structured by the inputs defined by the experience requirements. The callback_url property is also optional and can be an empty string unless you require that metadata be sent to a custom callback url.
 
 ```javascript
 var accessToken = 'access_token', 
@@ -70,7 +70,8 @@ var accessToken = 'access_token',
 
 var client = new Imposium.ImposiumClient(accessToken);
 
-// For the sake of simplicity let's eschew input handling code and assume we already have references to user inputs.
+// For the sake of simplicity let's eschew input handling code 
+// and assume we already have references to user inputs.
 inventory = {
     text: 'some_user_input_string',
     image: someUserInputImageFile,
@@ -100,7 +101,7 @@ New experiences are identified by the id returned in the onSuccess callback pass
 
 The following example demonstrates how to set up the full flow (without listening for processing events):
 
-_Important Note_: Your code needs access to the following strings, you can arrange this however you like. If these details are provided incorrectly, you will generate errors. For the sake of this demo, let's assume these are declared globally.
+_Important Note_: Your client code needs access to the following strings. If these details are provided incorrectly, you will generate errors. For the sake of this demo, let's assume these are declared globally.
 
 1. **storyId** - Imposium story reference
 2. **sceneId** - Imposium scene reference
@@ -118,7 +119,8 @@ var accessToken = 'access_token',
 
 client = new Imposium.ImposiumClient(accessToken);
 
-// For the sake of simplicity let's eschew input handling code and assume we already have references to user inputs.
+// For the sake of simplicity let's eschew input handling code 
+// and assume we already have references to user inputs.
 inventory = {
     text: 'some_user_input_string',
     image: someUserInputImageFile,
@@ -173,7 +175,8 @@ var accessToken = 'access_token',
 
 client = new Imposium.ImposiumClient(accessToken);
 
-// For the sake of simplicity let's eschew input handling code and assume we already have references to user inputs.
+// For the sake of simplicity let's eschew input handling code 
+// and assume we already have references to user inputs.
 inventory = {
     text: 'some_user_input_string',
     image: someUserInputImageFile,
