@@ -24,30 +24,41 @@ or
 <script type = "text/javascript" src = "../lib/imposium.js"></script>
 ```
 
-### Initializing the client
+### Initializing the client - Basic
 
-_Important Note_: You need the following strings in order to use the client.
+_Important Note_: You need the variable in order to use the client.
 
-1. **accessToken [hmac]** - authenticates with the api
-2. **storyId [uuid]** - Imposium story reference
-3. **sceneId [uuid]** - Imposium scene reference
-4. **actId [uuid]** - refernece to an act of a story 
+1. **accessToken** - authenticates with the api **(required)**
 
-Pass the token as a parameter in the client constructor. Uses for storyId and actId are shown below. 
+Pass the token as a parameter to the client constructor.
 
 ```javascript
 var client = new Imposium.ImposiumClient(accessToken);
+```
+
+### Initializing the client - Analytics
+
+_Important Note_: You need to declare the following variables in order to use the client with analytics.
+
+1. **accessToken** - authenticates with the api **(required)**
+2. **trackingId** - a google analytics tracking ID **(optional)**
+3. **video** - a reference to your HTML5 video element **(optional)**
+
+Pass the token, trackingId and HTML5 video reference as parameters to the client constructor.
+
+```javascript
+var client = new Imposium.ImposiumClient(accessToken, trackingId, video);
 ```
 
 ### Creating new experiences
 
 To get started, you need to make a createExperience call. The parameters are as follows: 
 
-* storyId - a valid Imposium storyId **(required)**
-* inventory - `{text:string, image:file, callback_url:string}` **(required)**
-* render - boolean, tell the API to start rendering immediately **(required)**
-* onSuccess(data) - callback function **(required)**
-* onError(err) - callback function (handle errors creating the experience) **(optional)**
+1. **storyId** - a valid Imposium storyId **(required)**
+2. **inventory** - object, `{text:string, image:file, callback_url:string}` **(required)**
+3. **render** - boolean, tells the API to start rendering immediately **(required)**
+4. **onSuccess(data)** - callback function **(required)**
+5. **onError(err)** - callback function **(optional)**
 
 _Note_: The content of inventory depends on the story you're attempting to reference.
 
@@ -72,6 +83,13 @@ function onSuccess(data) {
 New experiences are identified by the id returned in the onSuccess callback passed to createExperience (shown below). You'll need this id to fetch the render and stream messages related to processing. 
 
 The following example demonstrates how to set up the full flow (without listening for processing events):
+
+_Important Note_: Your code needs access to the following strings, you can arrange
+this however you like. If these details are provided incorrectly, you will generate errors. For the sake of this demo, let's assume these are declared globally.
+
+1. **storyId** - Imposium story reference
+2. **sceneId** - Imposium scene reference
+3. **actId** - reference to an act of a story 
 
 ```javascript
 var accessToken = 'access_token', 
