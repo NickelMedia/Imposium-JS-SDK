@@ -43,7 +43,7 @@ _Important Note_: You need to provide optional parameters as shown to use the cl
 
 ```javascript
 var accessToken = 'my_access_token',
-	trackingId = 'my_ga_tracking_id,
+	trackingId = 'my_ga_tracking_id',
 	video = document.getElementById('video');
 
 var client = new Imposium.ImposiumClient(accessToken, trackingId, video);
