@@ -39,10 +39,8 @@ export class ImposiumClient {
 		}
 	}
 
-	/**
-	 * Set token, set config, initialize req factory
-	 * @param {string} token access token
-	 * @param {any = null} config override options
+	/*
+		Initialize Imposium client
 	 */
 	constructor(token:string, trackingId = null, video:HTMLVideoElement = null, config:any = null) {
 		EventEmitter(this);
@@ -173,9 +171,8 @@ export class ImposiumClient {
 		}
 	}
 
-	/**
-	 * Return auth headers based on type of access token supplied by the user
-	 * @return {any} formatted header object 
+	/*
+		Set up default requet headers based on auth type config
 	 */
 	private getHeaders():any {
 		if (ImposiumClient.config.auth.toLowerCase() === 'jwt') {
@@ -185,11 +182,8 @@ export class ImposiumClient {
 		}
 	}
 
-	/**
-	 * Get a story based on a storyId
-	 * @param {string}     storyId Imposium story id
-	 * @param {any)=>void} success success callback 
-	 * @param {any)=>void} error   error callback
+	/*
+		Get story meta by ID
 	 */
 	public getStory(storyId:string, success:(data:any)=>void, error:(res:any)=>void):void {
 		this.api.get(`/story/${storyId}`)
@@ -204,11 +198,8 @@ export class ImposiumClient {
 		});
 	}
 
-	/**
-	 * Get a specific user experience
-	 * @param {string}     expId   Imposium experience id
-	 * @param {any)=>void} success success callback
-	 * @param {any)=>void} error   error callback
+	/*
+		Get experience data
 	 */
 	public getExperience(expId:string, success:(data:any)=>void, error:(res:any)=>void):void {
 		this.api.get(`/experience/${expId}`)
@@ -223,14 +214,8 @@ export class ImposiumClient {
 		});
 	}
 
-	/**
-	 * Create a new user experience
-	 * @param {string}     storyId   Imposium storyId
-	 * @param {any}        inventory job inputs
-	 * @param {boolean}    render    (TO DO: Greg, clarify this option?)
-	 * @param {any)=>void} success   success callback
-	 * @param {any)=>void} error     error callback
-	 * @param {any=null}   progress  progress callback
+	/*
+		Create new experience & return relevant meta
 	 */
 	public createExperience(storyId:string, inventory:any, render:boolean, success:(data:any)=>void, error:(res:any)=>void, progress:any=null):void {
 		const data = this.formatData(storyId, inventory, error),
@@ -257,13 +242,8 @@ export class ImposiumClient {
 		});
 	}
 
-	/**
-	 * Parse the inventory object and return a FormData object to handle multipart
-	 * inputs
-	 * @param  {string}      storyId   Imposium story id
-	 * @param  {any}         inventory job inputs
-	 * @param  {(str)=>void} error     error callback
-	 * @return {FormData}              payload object used in createExperience
+	/*
+		Format multi-part form object based on inventory content
 	 */
 	private formatData(storyId:string, inventory:any, error:(str)=>void):FormData {
 		const formData = new FormData();
@@ -298,12 +278,9 @@ export class ImposiumClient {
 		return formData;
 	}
 
-	/**
-	 * Invokes a stream for fetching existing videos or for monitoring/fetching
-	 * new renders
-	 * @param {any}        job     object containing job specification details
-	 * @param {any)=>void} success success callback
-	 * @param {any)=>void} error   error callback
+	/*
+		Open TDP connection with Imposium and get event based messages and/or
+		video urls / meta
 	 */
 	public getVideo(job:any, success:any, error:any):void {
 		const jobSpec:Job = {
