@@ -36,7 +36,7 @@ var client = new Imposium.ImposiumClient(accessToken);
 
 ### Initializing the client - With Analytics
 
-_Important Note_: You need to provide an optional config object to the constructor to use analytics as such:
+_Important Note_: You need to provide an optional config object parameter to the constructor to use analytics as such:
 
 ```javascript
 var accessToken = 'access_token',
@@ -45,7 +45,7 @@ var accessToken = 'access_token',
 		video: document.getElementById('video_player_elem');
 	};
 
-var client = new Imposium.ImposiumClient(accessToken, trackingId, video);
+var client = new Imposium.ImposiumClient(accessToken, config);
 ```
 
 ### Creating new experiences
