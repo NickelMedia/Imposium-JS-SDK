@@ -177,7 +177,7 @@ export default class Analytics {
 	private emit() {
 		let {frequency} = this.broker;
 
-		this.emitter = setInterval(() => this.makeRequest(), frequency);
+		this.emitter = setInterval(() => this.setRequestUrl(), frequency);
 	}
 
 	/*
@@ -225,34 +225,51 @@ export default class Analytics {
 	}
 
 	/*
-		Makes GET request to GA collect API with formatted query string
+		Determine if the request is fresh, if so pop the request
+		off the head of the queue. Otherwise call scrapeDeferred.
+		Failed urls can also be passed as an optional param to
+		enable retries. 
 	 */
-	private makeRequest():void {
-		const {active} = this.broker,
-			url = active.peek();
-
-		if (url) {
-			axios.get(url)
-			.then((res) => {
-				active.pop();
-				if (active.isEmpty()) clearInterval(this.emitter);
-			})
-			.catch((err) => {
-				clearInterval(this.emitter);
-				this.retry();
-			});
+	private setRequestUrl(failedUrl:any = null) {
+		if (failedUrl) {
+			this.makeRequest(failedUrl);
 		} else {
-			clearInterval(this.emitter);
-			this.scrapeDeferred();
+			const {active} = this.broker,
+				url = active.peek();
+
+			if (url) {
+				active.pop();
+				this.makeRequest(url);
+			} else {
+				clearInterval(this.emitter);
+				this.scrapeDeferred();
+			}
 		}
 	}
 
 	/*
-		Retry request n times before resigning @ max
-
-		TO DO: Make this slow the queue processing down
+		Makes GET request to GA collect API with formatted query string
 	 */
-	private retry():void {
+	private makeRequest(url:string):void {
+		axios.get(url)
+		.then((res) => {
+			const {active} = this.broker;
+
+			if (active.isEmpty()) {
+				clearInterval(this.emitter);
+			} 
+		})
+		.catch((err) => {
+			clearInterval(this.emitter);
+			this.retry(url);
+		});
+	}
+
+	/*
+		Retry requests recursively based on settings defined in 
+		Retry interface.
+	 */
+	private retry(url:string):void {
 		const {active} = this.broker;
 		let {current, max, delay} = this.retries;
 
@@ -260,7 +277,7 @@ export default class Analytics {
 			if (current < max) {
 				delay *= 2;
 				current++;
-				this.makeRequest();
+				this.setRequestUrl(url);
 			} else {
 				clearTimeout(this.retryTimeout);
 				active.pop();

@@ -85,6 +85,7 @@ export class ImposiumClient {
 		Record page view metric
 	 */
 	private pageView() {
+		console.log('page view called')
 		this.analytics.send({
 			t: 'pageview', 
 			dp: window.location.pathname
