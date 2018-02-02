@@ -26,27 +26,26 @@ or
 
 ### Initializing the client - Basic
 
-_Important Note_: You need the variable in order to use the client.
-
-1. **accessToken** - authenticates with the api **(required)**
-
-Pass the token as a parameter to the client constructor.
+_Important Note_: You will need an access token to use the client.
 
 ```javascript
+var accessToken = 'my_access_token';
+
 var client = new Imposium.ImposiumClient(accessToken);
 ```
 
 ### Initializing the client - Analytics
 
-_Important Note_: You need to declare the following variables in order to use the client with analytics.
+_Important Note_: You need to provide optional parameters as shown to use the client with analytics:
 
-1. **accessToken** - authenticates with the api **(required)**
-2. **trackingId** - a google analytics tracking ID **(optional)**
-3. **video** - a reference to your HTML5 video element **(optional)**
-
-Pass the token, trackingId and HTML5 video reference as parameters to the client constructor.
+1. **trackingId** - a google analytics tracking ID
+2. **video** - a reference to your HTML5 video element
 
 ```javascript
+var accessToken = 'my_access_token',
+	trackingId = 'my_ga_tracking_id,
+	video = document.getElementById('video');
+
 var client = new Imposium.ImposiumClient(accessToken, trackingId, video);
 ```
 
@@ -60,7 +59,7 @@ To get started, you need to make a createExperience call. The parameters are as 
 4. **onSuccess(data)** - callback function **(required)**
 5. **onError(err)** - callback function **(optional)**
 
-_Note_: The content of inventory depends on the story you're attempting to reference.
+_Note_: The content of inventory depends on the story you're attempting to reference, callback_url is also optional and can be an empty string unless you require the video metadata be sent to a custom callback url.
 
 ```javascript
 client.createExperience(
@@ -102,9 +101,15 @@ var accessToken = 'access_token',
 
 client = new Imposium.ImposiumClient(accessToken);
 
+var inventory = {
+    text: 'some_string',
+    image: someImageFile,
+    callback_url: ''
+};
+
 client.createExperience(
 	storyId, 
-	data, 
+	inventory, 
 	render, 
 	experienceCreated
 );
@@ -149,9 +154,15 @@ var accessToken = 'access_token',
 
 client = new Imposium.ImposiumClient(accessToken);
 
+var inventory = {
+    text: 'some_string',
+    image: someImageFile,
+    callback_url: ''
+};
+
 client.createExperience(
 	storyId, 
-	data, 
+	inventory, 
 	render, 
 	experienceCreated
 );
