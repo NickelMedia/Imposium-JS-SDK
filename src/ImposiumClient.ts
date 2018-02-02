@@ -29,6 +29,8 @@ export class ImposiumClient {
 	static config:any = {
 		url: 'https://api.imposium.com',
 		auth: 'basic',
+		trackingId: null,
+		video: null,
 		stompConfig: {
 			'stompEndpoint':'wss://stomp.prod.k8s.nickel.media/ws',
 			'user': 'imposium_stomp',
@@ -42,34 +44,30 @@ export class ImposiumClient {
 	/*
 		Initialize Imposium client
 	 */
-	constructor(token:string, trackingId = null, video:HTMLVideoElement = null, config:any = null) {
+	constructor(token:string, config:any = null) {
 		EventEmitter(this);
 
 		// set access token
 		this.token = token;
 
+		// overwrite default config values
+		this.copy(ImposiumClient.config, config);
+
 		// set up analytics if tracking id was passed / is valid
-		if (trackingId && (this.idRegExp).test(trackingId)) {
-			this.analytics = new Analytics(trackingId);
+		if (ImposiumClient.config.trackingId && (this.idRegExp).test(ImposiumClient.config.trackingId)) {
+			this.analytics = new Analytics(ImposiumClient.config.trackingId);
 
 			this.pageView();
 
 			window.addEventListener('popstate', () => this.pageView());
 		}
 
-		// set up video event listeners if video is passed and analytics was
-		// successfully instantiated
-		if (video && this.analytics) {
-			this.video = video;
-			this.video.addEventListener('loadstart', () => this.onLoad());
-			this.video.addEventListener('play', () => this.onPlay());
-			this.video.addEventListener('pause', () => this.onPause());
-			this.video.addEventListener('ended', () => this.onEnd());
-		}
-
-		// overwrite default config values
-		if (config) {
-			this.copy(ImposiumClient.config, config);
+		// set up video event listeners if video is passed and analytics was successfully instantiated
+		if (ImposiumClient.config.video && this.analytics) {
+			ImposiumClient.config.video.addEventListener('loadstart', () => this.onLoad());
+			ImposiumClient.config.video.addEventListener('play', () => this.onPlay());
+			ImposiumClient.config.video.addEventListener('pause', () => this.onPause());
+			ImposiumClient.config.video.addEventListener('ended', () => this.onEnd());
 		}
 
 		// create the api instance
@@ -83,7 +81,6 @@ export class ImposiumClient {
 		Record page view metric
 	 */
 	private pageView() {
-		console.log('page view called')
 		this.analytics.send({
 			t: 'pageview', 
 			dp: window.location.pathname
@@ -113,8 +110,10 @@ export class ImposiumClient {
 		Measure video playback percentage record analytics at defined intervals 
 	 */
 	private checkProgress() {
-        if (this.video) {
-            const perc = this.video.currentTime / this.video.duration,
+		const v = ImposiumClient.config.video;
+
+        if (v) {
+            const perc = v.currentTime / v.duration,
             	next = this.evts[this.lastEvtFired];
 
             if (perc > next) {                

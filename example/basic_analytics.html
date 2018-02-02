@@ -41,17 +41,20 @@
 				statusHandler = onStatusUpdate;
 
 			// You will need the following variables 
-			var storyId = 'story_id',
-				sceneId = 'scene_id',
-			    actId = 'act_id',
-			    accessKey = 'acess_key',
-			    gaTrackingID = 'tracking_id';
+			var storyId = '295a80d0-871c-4def-a579-8a375d6942fc',
+				sceneId = '',
+			    actId = '11a8e3b8-d3c4-4232-80a7-e757fb18fa57',
+			    accessKey = 'zooch5ja8fiejoojoo6AeQuahmex1wes',
+			    config = {
+			    	trackingId: 'UA-113079866-1',
+			    	video: vid
+			    };
 
 			// Create an instance of the ImposiumClient. The main difference here
 			// is that instead of only passing in an access key a google analytics
-			// id and video element are passed (optionally) which allows recording
-			// of imposium specific metrics. 
-			var imposium = new Imposium.ImposiumClient(accessKey, trackingId, vid);
+			// id and video element are passed (optionally) in a config object
+			// which allows recording of imposium specific metrics. 
+			var imposium = new Imposium.ImposiumClient(accessKey, config);
 
 			// If there is a deeplink to an experience, connect to that experience
 			if (window.location.hash !== '') {

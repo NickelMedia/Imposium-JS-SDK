@@ -36,15 +36,14 @@ var client = new Imposium.ImposiumClient(accessToken);
 
 ### Initializing the client - With Analytics
 
-_Important Note_: You need to provide optional parameters as shown to use the client with analytics:
-
-1. **trackingId** - a google analytics tracking ID
-2. **video** - a reference to your HTML5 video element
+_Important Note_: You need to provide an optional config object to the constructor to use analytics as such:
 
 ```javascript
 var accessToken = 'access_token',
-	trackingId = 'ga_tracking_id',
-	video = document.getElementById('video');
+	config {
+		trackingId: 'ga_tracking_id',
+		video: document.getElementById('video_player_elem');
+	};
 
 var client = new Imposium.ImposiumClient(accessToken, trackingId, video);
 ```
