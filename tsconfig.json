@@ -4,8 +4,8 @@
         "sourceMap": true,
         "noImplicitAny": false,
         "module": "commonjs",
-        "target": "ES5",
-        "lib": ["ES5", "DOM"]
+        "target": "es5",
+        "lib": ["es5", "dom", "es2015.promise"]
     },
     "include": [
         "./src/**/*"

@@ -1,10 +1,8 @@
 import * as WebStomp from 'webstomp-client';
 // import * as WebSocket from 'ws';
 
-/**
- * Encapsulates config required by the WebStomp client
- * and accepts lexically scoped functions from an invoking
- * class in onMessage and onError
+/*
+	Config interface
  */
 export interface StompConfig {
 	stompEndpoint:string;
@@ -16,9 +14,6 @@ export interface StompConfig {
 	onConnect:any;
 }
 
-/**
- * Encapsulates WebStomp client handling functionality
- */
 export class StompClient {
 	private client:WebStomp.Client;
 	private subscription:WebStomp.Subscription;
@@ -29,19 +24,15 @@ export class StompClient {
 	private onConnect:any;
 	private onError:any;
 
-	/**
-	 * Set config and initialize the client
-	 * @param {StompConfig} config WebStomp config
-	 */
 	public constructor(config:StompConfig, expId:string) {
 		this.config = config;
 		this.expId = expId;
 		this.init();
 	}
 
-	/**
-	 * Kill current socket and client definitions and 
-	 * reconnect to RabbitMQ
+	/*
+		Make sure previous socket & client get cleaned up 
+		and set up a new connection
 	 */
 	public reconnect():void {
 		this.socket = null;
@@ -49,17 +40,18 @@ export class StompClient {
 		this.init();
 	}
 
-	/**
-	 * Disconnect the current client
+	/*
+		Kills the active subscription then disconnects the
+		client.
 	 */
 	public disconnect():void {
 		this.subscription.unsubscribe();
 		this.client.disconnect();
 	}
 
-	/**
-	 * Kill the current socket and clear the class
-	 * level references to the socket and client
+	/*
+		Kill the current socket and clear the class
+		level references to the socket and client
 	 */
 	public kill():any {
 		return new Promise((resolve, reject) => {
@@ -76,9 +68,13 @@ export class StompClient {
 		.catch(e => {});
 	}
 
-	/**
-	 * Initializes WebSocket and WebStomp client objects and 
-	 * established a connection to the RabbitMQ server
+	/*
+		Initializes WebSocket and WebStomp clients which are 
+		used for exchanging data between the Imposium client 
+		and RabbitMQ. 
+
+		The debug method needs to be overridden as a rule of 
+		this WebStomp library. 
 	 */
 	private init():void {
 		this.socket = new WebSocket(this.config.stompEndpoint);
@@ -94,9 +90,9 @@ export class StompClient {
 		);
 	}
 
-	/**
-	 * Subscribes to a queue on the base imposium exchange
-	 * then invokes message consumption
+	/*
+		Subscribes to a queue on the base imposium exchange
+		then invokes message consumption
 	 */
 	private establishSubscription():void {
 
