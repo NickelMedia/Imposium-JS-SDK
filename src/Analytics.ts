@@ -44,8 +44,8 @@ export default class Analytics {
 	private request:Request = {
 		baseUrl: 'https://ssl.google-analytics.com/collect',
 		cacheKey: 'imposium_js_ga_cid',
-		appId: '',
-		clientId: ''
+		appId: null,
+		clientId: null
 	}
 
 	private broker:Broker = {
@@ -64,10 +64,8 @@ export default class Analytics {
 	};
 
 	public constructor(trackingId:string) {
-		let {appId, clientId} = this.request;
-
-		appId = trackingId;
-		clientId = this.checkCache();
+		this.request.appId = trackingId;
+		this.request.clientId = this.checkCache();
 	}
 
 	/*
