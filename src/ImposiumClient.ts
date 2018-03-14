@@ -260,6 +260,8 @@ export class ImposiumClient {
 				if (val.files.length > 0) {
 					inventory[inventoryId] = '';
 					formData.append(inventoryId, val.files[0]);
+				}else{
+					inventory[inventoryId] = '';
 				}
 
 			//blob

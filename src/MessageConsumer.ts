@@ -18,7 +18,7 @@ export class MessageConsumer {
 	private onError:(err:any)=>void;
 	private streamErr:(err:any)=>void;
 	private retried:number = 0;
-	private maxRetries:number = 3;
+	private maxRetries:number = 5;
 
 	public constructor(job:Job, config:StompConfig, delegate:any, api:any) {
 		this.job = job;
@@ -32,6 +32,7 @@ export class MessageConsumer {
 		Copy the job object passed in
 	 */
 	public setJob(job:Job):void {
+		this.retried = 0;
 		this.job = { ...job };
 	}
 
