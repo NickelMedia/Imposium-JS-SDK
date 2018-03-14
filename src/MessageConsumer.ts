@@ -119,39 +119,44 @@ export class MessageConsumer {
 		If any error occurs, propagate the error.
 	 */
 	private gotScene(payload:any):void {
-		if(payload.output){
-			if (payload.output[payload.sceneData.id].mp4Url) {
-				let sceneData;
 
-				if (payload.hasOwnProperty('output')) {
-					if (typeof payload.output != 'undefined') {
+		if(payload.sceneData){
+			if(payload.sceneData.type == 'VideoScene01'){
+				if(payload.output){
+					if (payload.output[payload.sceneData.id].mp4Url) {
+						let sceneData;
 
-						for (let key in payload.output) {
-							sceneData = payload.output[key];
-							sceneData.experience_id = payload.id;
-							break;
+						if (payload.hasOwnProperty('output')) {
+							if (typeof payload.output != 'undefined') {
+
+								for (let key in payload.output) {
+									sceneData = payload.output[key];
+									sceneData.experience_id = payload.id;
+									break;
+								}
+							}
+						}
+
+						if (sceneData != null) {
+							if (this.job.onSuccess) {
+								this.job.onSuccess(sceneData);
+							}
+						} else {
+							if (this.job.onError) {
+								this.job.onError(sceneData);
+							}
+						}			
+					}else{
+						if (this.job.onError){
+							this.job.onError(payload);
 						}
 					}
-				}
 
-				if (sceneData != null) {
-					if (this.job.onSuccess) {
-						this.job.onSuccess(sceneData);
+				}else{
+					if (this.job.onError){
+						this.job.onError(payload);
 					}
-				} else {
-					if (this.job.onError) {
-						this.job.onError(sceneData);
-					}
-				}			
-			}else{
-				if (this.job.onError){
-					this.job.onError(payload);
 				}
-			}
-
-		}else{
-			if (this.job.onError){
-				this.job.onError(payload);
 			}
 		}
 	}
