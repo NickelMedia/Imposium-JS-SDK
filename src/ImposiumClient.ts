@@ -15,7 +15,7 @@ export class ImposiumClient {
 	private idRegExp:RegExp = /^ua-\d{4,9}-\d{1,4}$/i;
 	private video:HTMLVideoElement = null;
 	private progressCheckInterval:any;
-	private evts:[number] = [0.25, 0.5, 0.75];
+	private evts:number[] = [0.25, 0.5, 0.75];
 	private lastEvtFired:number = 0;
 	private startSent:boolean = false;
 	private finishedSent:boolean = false;
