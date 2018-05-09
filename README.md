@@ -107,14 +107,14 @@ function onProcessed(data) {
 	var videoElement = document.getElementById('video_player_element');
 
 
-// Stop listening to processing events for the video
+	// Stop listening to processing events for the video
 	client.off(
 		Imposium.events.STATUS, 
 		statusHandler, 
 		this
 	);
 	
-// Choose the video format that fits your needs for this browser
+	// Choose the video format that fits your needs for this browser
 	// TODO: List the video formats
 	videoElement.src = data.mp4Url;
 }
