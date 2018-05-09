@@ -23,22 +23,13 @@ import * as Imposium from 'imposium-js-sdk';
 
 ### 3. Set up your Imposium story values:
 
-The following values are used to communicate with your project. You will receive the UpperCase values from your Imposium account manager. If you don’t have them yet, please contact support@imposium.com.
-
-1. ACCESS_TOKEN: the access token provided by your account manager (required)
-2. STORY_ID: the id of your story (required)
-3.SCENE_ID: the id of the scene in your story (required)
-4. ACT_ID: the id of the act in your story (required)
-5. inventory - object, {text:string, image:file, callback_url:string} (required)
-6. render - boolean, tells the API to start rendering immediately (required)
+The following values are used to communicate with your project. You will receive these from your Imposium account manager. If you don’t have them yet, please contact support@imposium.com.
 
 ```javascript
 var ACCESS_TOKEN = 'access_token', 
 	STORY_ID  = 'story_id',
 	SCENE_ID  = 'scene_id', 
-	ACT_ID    = 'act_id',
-	inventory = null,
-	render    = false;
+	ACT_ID    = 'act_id'
 ```
 
 ### 4. Initialize the Imposium client:
@@ -52,19 +43,22 @@ var client = new Imposium.ImposiumClient(ACCESS_TOKEN);
 ### 5. Define the data to be rendered
 
 Dynamic data is defined in Imposium through the inventory object. This object lists all dynamic values to be used in the creation of the video. The property names are assigned based on the values in the story which come from your particular project set up by your Imposium account manager. You will find these values in an email from your Imposium account manager.
-The callback_url property is the only optional value and can be an empty string unless you require the responses be sent to a custom callback url.
+
+The `callback_url` property is the only optional value and can be an empty string unless you require the responses be sent to a custom callback url.
 
 ```javascript
 inventory = {
 	textPropertyName: 'some_user_input_string',
 	imagePropertyName: someUserInputImageFile,
+	callback_url: ''
 };
 ```
 
 ### 6. Create new experiences
 
 An Imposium experience is the data record of the video that is being generated. You must first create the experience before generating the video. This loads the data into Imposium to be rendered when getVideo is called in the next step.
-The parameters in this createExperience call are defined in your story values from step 3. The experienceCreated value is a callback function defined in your code for when the experience is created (shown in step 7).
+
+experienceCreated is a callback function defined in your code for when the experience is created (shown in step 7).
 
 ```javascript
 client.createExperience(
@@ -115,8 +109,8 @@ function onProcessed(data) {
 	);
 	
 	// Choose the video format that fits your needs for this browser
-	// TODO: List the video formats
-	videoElement.src = data.mp4Url;
+	// Video formats: mp4_1080, mp4_720, mp4_480
+	videoElement.src = data.output[data.id].videoUrls.mp4_720;
 }
 
 // Called if an error occurs during processing
