@@ -64,6 +64,7 @@ experienceCreated is a callback function defined in your code for when the exper
 client.createExperience(
 	STORY_ID, 
 	inventory,
+	false,
 	experienceCreated
 );
 ```
