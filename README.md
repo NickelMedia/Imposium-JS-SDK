@@ -71,7 +71,9 @@ client.createExperience(
 
 ### 7. Receive experience data and listen to events
 
-When the experience is created successfully, the experienceCreated callback is called and passes in the experienceId used to retrieve the render and stream messages related to processing.
+When the experience is created successfully, the `experienceCreated` callback is called and passes in the `experienceId` used to retrieve the render and stream messages related to processing.
+
+`getVideo` initiates the render process and also retrieves a video that has already been rendered or is in the process of being rendered. Call this method to start and retrieve the video urls. Passing in a callback function to `getVideo` will allow you to receive the video urls when it’s finished rendering.
 
 ```javascript
 // Called once the experience has been created
