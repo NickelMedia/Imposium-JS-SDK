@@ -27,9 +27,9 @@ The following values are used to communicate with your project. You will receive
 
 ```javascript
 var ACCESS_TOKEN = 'access_token', 
-	STORY_ID  = 'story_id',
-	SCENE_ID  = 'scene_id', 
-	ACT_ID    = 'act_id';
+	    STORY_ID = 'story_id',
+	    SCENE_ID = 'scene_id', 
+	      ACT_ID = 'act_id';
 ```
 
 ### 4. Initialize the Imposium client:
