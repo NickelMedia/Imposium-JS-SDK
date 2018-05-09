@@ -27,9 +27,9 @@ The following values are used to communicate with your project. You will receive
 
 ```javascript
 var ACCESS_TOKEN = 'access_token', 
-	   STORY_ID  = 'story_id',
-	   SCENE_ID  = 'scene_id', 
-	   ACT_ID    = 'act_id';
+	STORY_ID  = 'story_id',
+	SCENE_ID  = 'scene_id', 
+	ACT_ID    = 'act_id';
 ```
 
 ### 4. Initialize the Imposium client:
@@ -47,7 +47,7 @@ Dynamic data is defined in Imposium through the inventory object. This object li
 The `callback_url` property is the only optional value and can be an empty string unless you require the responses be sent to a custom callback url.
 
 ```javascript
-inventory = {
+var inventory = {
 	textPropertyName: 'some_user_input_string',
 	imagePropertyName: someUserInputImageFile,
 	callback_url: ''
@@ -63,8 +63,7 @@ experienceCreated is a callback function defined in your code for when the exper
 ```javascript
 client.createExperience(
 	STORY_ID, 
-	inventory, 
-	render, 
+	inventory,
 	experienceCreated
 );
 ```
