@@ -26,10 +26,10 @@ import * as Imposium from 'imposium-js-sdk';
 The following values are used to communicate with your project. You will receive these from your Imposium account manager. If you don’t have them yet, please contact support@imposium.com.
 
 ```javascript
-var ACCESS_TOKEN = 'access_token', 
-	    STORY_ID = 'story_id',
-	    SCENE_ID = 'scene_id', 
-	      ACT_ID = 'act_id';
+var ACCESS_TOKEN = 'access_token',
+	STORY_ID = 'story_id',
+	SCENE_ID = 'scene_id',
+	ACT_ID = 'act_id';
 ```
 
 ### 4. Initialize the Imposium client:
