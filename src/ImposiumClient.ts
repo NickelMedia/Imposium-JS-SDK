@@ -122,9 +122,8 @@ export class ImposiumClient {
                 this.analytics.send({
                 	t: 'event',
                 	ec: 'video_player',
-                	ea: 'playback',
-					el: this.activeExpId,
-                	ev: next
+                	ea: 'playback_' + next,
+					el: this.activeExpId
                 });
 
                 this.lastEvtFired++;
@@ -150,9 +149,8 @@ export class ImposiumClient {
 		this.analytics.send({
 			t: 'event',
 			ec: 'video_player',
-			ea: 'playback',
-			el: this.activeExpId,
-			ev: 1
+			ea: 'playback_1',
+			el: this.activeExpId
 		});
 
 		this.lastEvtFired = 0;
