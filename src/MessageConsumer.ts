@@ -1,5 +1,6 @@
-import { events } from './ImposiumClient';
-import { StompClient, StompConfig } from './StompClient';
+import {events} from './ImposiumClient';
+import Stomp from './Stomp';
+import API from './API';
 
 export interface Job {
 	expId: string;
@@ -11,21 +12,15 @@ export interface Job {
 
 export class MessageConsumer {
 	public delegate:any;
-	private api:any;
 	private job:Job;
-	private stompClient:StompClient;
-	private onMessage:(msg:any)=>void;
-	private onError:(err:any)=>void;
-	private streamErr:(err:any)=>void;
 	private retried:number = 0;
 	private maxRetries:number = 5;
 
-	public constructor(job:Job, config:StompConfig, delegate:any, api:any) {
+	public constructor(job:Job, delegate:any) {
 		this.job = job;
 		this.delegate = delegate;
-		this.api = api;
 
-		this.init(config);
+		this.init();
 	}
 
 	/*
@@ -46,22 +41,25 @@ export class MessageConsumer {
 	/*
 		Initialize WebStomp
 	 */
-	public init(config:StompConfig):void {
-		config.onError = this.onError = (e:any) => this.streamError(e);
-		config.onMessage = this.onMessage = (msg:any) => this.router(msg);
-		config.onConnect = ()=>{
-			this.invokeStreaming();
-		};
-		this.stompClient = new StompClient(config, this.job.expId);
+	public init():void {
+		const {expId} = this.job;
+
+		Stomp.setHandlers(
+			() => {this.invokeStreaming()},
+			(msg:any) => this.router(msg),
+			(e:any) => this.streamError(e)
+		);
+
+		Stomp.init(expId);
 	}
 
 	/*
 		Sets up a websocket for the experience
 	 */
-	public reconnect(config:StompConfig):void {
-		this.stompClient.kill()
+	public reconnect():void {
+		Stomp.kill()
 		.then(() => {
-			this.init(config);	
+			this.init();	
 		}).catch(err => {
 			console.error('something went wrong killing webstomp.');
 		});
@@ -72,17 +70,10 @@ export class MessageConsumer {
 		it should begin to publish messages to queue: expId
 	 */
 	private invokeStreaming():void {
-		const endpoint = `/experience/${this.job.expId}/trigger-event`,
-			body = {
-				exp_id: this.job.expId,
-				scene_id: this.job.sceneId,
-				act_id: this.job.actId
-			};
+		const {expId, sceneId, actId} = this.job;
 
-		this.api.post(endpoint, body)
-		.then(res => {
-			if (!res.ok) this.job.onError(res.data);
-		}).catch(err => {
+		API.invokeStream(expId, sceneId, actId)
+		.catch((err) => {
 			this.job.onError(err);
 		});
 	}
@@ -96,7 +87,7 @@ export class MessageConsumer {
 
 		switch(payload.event) {
 			case 'actComplete':
-				this.stompClient.disconnect();
+				Stomp.disconnect();
 				break;
 			case 'gotMessage':
 				this.gotMessage(payload);
@@ -171,8 +162,9 @@ export class MessageConsumer {
 			++this.retried;
 
 			if (this.retried < this.maxRetries) {
+				const {expId} = this.job;
 				console.error(`WebStomp error: (retrying: ${this.retried})`, err);
-				this.stompClient.reconnect();
+				Stomp.reconnect(expId);
 			} else {
 				this.job.onError(err);
 			}
