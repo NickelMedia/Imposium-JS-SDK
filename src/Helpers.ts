@@ -34,3 +34,7 @@ export const formatInventory = (storyId:string, inventory:any) => {
 
 	return formData;
 }
+
+export const errorHandler = (message:string, error:any) => {
+	console.error(message, error);
+}

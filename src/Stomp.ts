@@ -49,7 +49,8 @@ export default class Stomp {
 			endpoint, 
 			username, 
 			password,
-			onError
+			onError,
+			establishSubscription
 		} = Stomp;
 
 		if (isEnabled) {
@@ -62,7 +63,7 @@ export default class Stomp {
 			(
 				username,
 				password,
-				() => Stomp.establishSubscription(),
+				() => establishSubscription(),
 				onError
 			);
 		} else {

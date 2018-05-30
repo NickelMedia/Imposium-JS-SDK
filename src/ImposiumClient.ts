@@ -1,7 +1,7 @@
 import "babel-polyfill";
 import * as EventEmitter from 'event-emitter';
 import Analytics from './Analytics';
-import { MessageConsumer, Job } from './MessageConsumer';
+import {MessageConsumer, Job} from './MessageConsumer';
 
 import API from './API';
 import VideoPlayer from './VideoPlayer';
@@ -11,22 +11,21 @@ export class events {
 }
 
 export class ImposiumClient {
-	public static player:VideoPlayer = null;	
-	public messageConsumer:MessageConsumer;
-	private onError:(err)=>void;
-	private onSuccess:(data)=>void;
+	private static readonly GARegExp:RegExp = RegExp(/^ua-\d{4,9}-\d{1,4}$/i);
+	private messageConsumer:MessageConsumer;
 
 	/*
 		Initialize Imposium client
 	 */
 	constructor(token:string, config:any = null) {
 		EventEmitter(this);
-
 		API.setupAuth(token);
 	}
 
 	public setupAnalytics = (trackingId:string = '', playerRef:HTMLVideoElement = null):void => {
-		if (RegExp(/^ua-\d{4,9}-\d{1,4}$/i).test(trackingId)) {
+		const {GARegExp} = ImposiumClient;
+
+		if (GARegExp.test(trackingId)) {
 			Analytics.setup(trackingId);
 
 			this.pageView();
