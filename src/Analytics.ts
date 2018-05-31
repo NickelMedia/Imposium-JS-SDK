@@ -109,12 +109,10 @@ export default class Analytics {
 				} else {
 					// Set new creds if expired 
 					localStorage.removeItem(cacheKey);
-					return setCache(generateGuid());
 				}
-			} else {
-				// If a user has no cached creds, set new ones
-				return setCache(generateGuid());
 			}
+			
+			return setCache(generateGuid());
 		} catch (e) {
 			// If any operations fail, return a guid for Analytics session
 			return generateGuid();

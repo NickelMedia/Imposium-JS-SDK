@@ -37,8 +37,7 @@
 				captionInput = document.getElementById('caption'),
 				imageInput = document.getElementById('image'),
 				vid = document.getElementById('dynamicVideo'),
-				btnGenerate = document.getElementById('btnGenerate'),
-				statusHandler = onStatusUpdate;
+				btnGenerate = document.getElementById('btnGenerate');
 
 			// You will need the following variables 
 			var storyId = '295a80d0-871c-4def-a579-8a375d6942fc',
@@ -54,26 +53,48 @@
 			// id and video element are passed (optionally) in a config object
 			// which allows recording of imposium specific metrics. 
 			var imposium = new Imposium.ImposiumClient(accessKey);
+			var events = Imposium.Events;
 
 			imposium.setupAnalytics(trackingId, vid);
 
-			// If there is a deeplink to an experience, connect to that experience
+			imposium.on(events.EXPERIENCE_CREATED, function(data) {
+				var job = {
+					expId: data.id,
+					sceneId: sceneId,
+					actId: actId
+				};
+
+				// put the experience in the URL for deeplinking
+				window.location.hash = '#' + job.expId;
+				imposium.getVideo(job);
+			});
+
+			imposium.on(events.GOT_SCENE, function(data) {
+				vid.src = data.mp4Url;
+				vid.style.display = 'block';
+				setStatus('Got Scene', 'green');
+			});
+
+			imposium.on(events.GOT_MESSAGE, function(data) {
+				setStatus(data.msg, 'green');
+			});
+
+			imposium.on(events.ERROR, function(err) {
+				console.error(err);
+			});
+
+			//If there is a deeplink to an experience, connect to that experience
 			if (window.location.hash !== '') {
 			    var expId = window.location.hash.replace('#', '');
 
 			    if (expId) {
-			        var job = {expId: expId, sceneId: sceneId, actId: actId};
+			        var job = {
+			        	expId: expId, 
+			        	sceneId: sceneId, 
+			        	actId: actId
+			        };
 
-			        imposium.on(
-			        	Imposium.events.STATUS, 
-			        	statusHandler
-			        );
-
-			        imposium.getVideo(
-			            job, 
-			            onGotScene, 
-			            onEventProcessorError
-			        );
+			        imposium.getVideo(job);
 			    }                   
 			}
 
@@ -92,51 +113,10 @@
 			    imposium.createExperience(
 			        storyId, 
 			        inventory,
-			        false,
-			        onExperienceCreated, 
-			        onExperienceError, 
-			        onUploadProgress
+			        false
 			    );
 
 			    setStatus('Creating Experience', 'green');
-			}
-
-			// Callback once all media is uploaded and the experience has been created
-			function onExperienceCreated(data) {
-				var job = {
-					expId: data.id,
-					sceneId: sceneId,
-					actId: actId
-				}	
-
-				// put the experience in the URL for deeplinking
-				window.location.hash = '#' + job.expId;
-
-				imposium.on(
-					Imposium.events.STATUS, 
-					statusHandler
-				);
-
-				imposium.getVideo(
-					job,
-					onGotScene,
-					onEventProcessorError
-				);
-			}
-
-			// Called once the experience has rendered and is ready to view
-			function onGotScene(data) {
-				imposium.off(Imposium.events.STATUS, statusHandler);
-
-				vid.src = data.mp4Url;
-				vid.style.display = 'block';
-
-				setStatus('Got Scene', 'green');
-			}
-
-			// Called through each step of the rendering process
-			function onStatusUpdate(data) {
-				setStatus(data.msg, 'green');
 			}
 
 			// Helper that updates statusField div with incoming messages
@@ -145,22 +125,6 @@
 				this.statusField.style.color = color;
 			}
 
-			// Callback passed to createExperience for monitoring file upload
-			function onUploadProgress(e) {
-
-			}
-
-			// Callback passed to getVideo for handling api error data
-			function onExperienceError(e) {
-				console.error('Error creating new experience: ', e);
-				setStatus('Something went wrong creating the experience, please try again.', 'red');
-			}
-
-			// Callback passed to getVideo for handling render error data
-			function onEventProcessorError(e) {
-				console.error('Error starting the event procesor: ', e);
-				setStatus('Something went wrong while rendering your experience, please try again.', 'red');
-			}
 		</script>
 	</body>
 </html>

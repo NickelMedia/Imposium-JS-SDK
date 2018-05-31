@@ -1,41 +1,15 @@
-import {events} from './ImposiumClient';
-import Stomp from './Stomp';
 import API from './API';
+import Stomp from './Stomp';
+import ImposiumEvents from './ImposiumEvents';
 
-export interface Job {
-	expId: string;
-	actId: string;
-	sceneId: string;
-	onSuccess: any;
-	onError: any;
-}
-
-export class MessageConsumer {
-	public delegate:any;
-	private job:Job;
+export default class MessageConsumer {
+	private job:any = null;
 	private retried:number = 0;
 	private maxRetries:number = 5;
 
-	public constructor(job:Job, delegate:any) {
+	public constructor(job:any) {
 		this.job = job;
-		this.delegate = delegate;
-
 		this.init();
-	}
-
-	/*
-		Copy the job object passed in
-	 */
-	public setJob(job:Job):void {
-		this.retried = 0;
-		this.job = { ...job };
-	}
-
-	/*
-		Set the context for the event listener
-	 */
-	public setContext(ctx:any):void {
-		this.delegate = ctx;
 	}
 
 	/*
@@ -45,9 +19,9 @@ export class MessageConsumer {
 		const {expId} = this.job;
 
 		Stomp.setHandlers(
-			() => {this.invokeStreaming()},
+			()        => this.invokeStreaming(),
 			(msg:any) => this.routeMessageData(msg),
-			(e:any) => this.streamError(e)
+			(e:any)   => this.streamError(e)
 		);
 
 		Stomp.init(expId);
@@ -56,8 +30,10 @@ export class MessageConsumer {
 	/*
 		Sets up a websocket for the experience
 	 */
-	public reconnect():void {
-		Stomp.kill()
+	public reconnect(job:any):void {
+		const {kill} = Stomp;
+
+		kill()
 		.then(() => {
 			this.init();	
 		}).catch(err => {
@@ -66,20 +42,17 @@ export class MessageConsumer {
 	}
 
 	/*
-		Call the event processor api route to let the server know
-		it should begin to publish messages to queue: expId
+		Initiates the streaming process on the Imposium web servers
 	 */
 	private invokeStreaming():void {
+		const {invokeStream} = API;
+		const {onError} = ImposiumEvents;
 		const {expId, sceneId, actId} = this.job;
 
-		API.invokeStream(expId, sceneId, actId)
+		invokeStream(expId, sceneId, actId)
 		.catch((err) => {
-			this.job.onError(err);
+			onError(err);
 		});
-	}
-
-	private *observer() {
-		yield null;
 	}
 
 	/*
@@ -95,10 +68,10 @@ export class MessageConsumer {
 					Stomp.disconnect();
 					break;
 				case 'gotMessage':
-					this.gotMessage(payload);
+					this.emitMessageData(payload);
 					break;
 				case 'gotScene':
-					this.gotScene(payload);
+					this.emitSceneData(payload);
 					break;
 				default: break;
 			}
@@ -108,47 +81,42 @@ export class MessageConsumer {
 	}
 
 	/*
-		Propagates event messages via event bus
+		Fire the gotMessage callback if the user is listening for this event
 	 */
-	private gotMessage(payload:any):void {
-		if (payload) this.delegate.emit(events.STATUS, payload);
+	private emitMessageData(message:any):void {
+		const {gotMessage} = ImposiumEvents;
+		if (gotMessage) gotMessage(message);
 	}
 
 	/*
 		Parse the scene data and propagate if there aren't errors.
 		If any error occurs, propagate the error.
 	 */
-	private gotScene(payload:any):void {
-		const {onSuccess, onError} = this.job;
+	private emitSceneData(experienceData:any):void {
+		const {gotScene, onError} = ImposiumEvents
+		const rejected = (experienceData || {}).error;
 
-		// TO DO: once the client architecture is decided on, we can get rid of this check and never call 
-		// on the message consumer when callbacks aren't set. instead we should alert the user they they
-		// set a null reference or that they didn't set the callback at all.
-		if (onSuccess && onError) {
-			const rejected = (payload || {}).error;
+		if (!rejected) {
+			// Shorthand idioms for checking if required nested JSON data exists
+			const isVideo = (((experienceData || {}).sceneData || {}).type === 'VideoScene01');
+			const sceneId = ((experienceData || {}).sceneData || {}).id;
+			const hasUrls = (((experienceData || {}).output || {})[sceneId] || {}).mp4Url;
 
-			if (!rejected) {
-				// Shorthand idioms for checking if required nested JSON data exists
-				const isVideo = (((payload || {}).sceneData || {}).type === 'VideoScene01');
-				const sceneId = ((payload || {}).sceneData || {}).id;
-				const hasUrls = (((payload || {}).output || {})[sceneId] || {}).mp4Url;
+			if (isVideo && hasUrls) {
+				const {id, output} = experienceData;
 
-				if (isVideo && hasUrls) {
-					const {id, output} = payload;
+				// Merge the scene data & experience ID
+				const sceneData = {
+					...output[sceneId],
+					experience_id: id
+				};
 
-					// Merge the scene data & experience ID
-					const sceneData = {
-						...output[sceneId],
-						experience_id: id
-					};
-
-					onSuccess(sceneData);
-				} else {
-					onError(payload);
-				}
+				gotScene(sceneData);
 			} else {
-				onError(new Error(rejected));
+				onError(experienceData);
 			}
+		} else {
+			onError(new Error(rejected));
 		}
 	}
 

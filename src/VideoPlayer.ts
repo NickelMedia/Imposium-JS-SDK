@@ -1,4 +1,5 @@
 import Analytics from './Analytics';
+import {errorHandler} from './Helpers';
 
 export default class VideoPlayer {
 	public static updateId:boolean = false;
@@ -17,14 +18,16 @@ export default class VideoPlayer {
 		Assign the tracking events to a video player reference
 	 */
 	public static setup = (ref:HTMLVideoElement) => {
-		VideoPlayer.ref = ref;
-
-		VideoPlayer.ref.addEventListener('loadstart', () => VideoPlayer.onLoad());
-		VideoPlayer.ref.addEventListener('play',      () => VideoPlayer.onPlay());
-		VideoPlayer.ref.addEventListener('pause',     () => VideoPlayer.onPause());
-		VideoPlayer.ref.addEventListener('ended',     () => VideoPlayer.onEnd());
-
-		VideoPlayer.updateId = true;
+		if (ref instanceof HTMLVideoElement) {
+			VideoPlayer.ref = ref;
+			VideoPlayer.updateId = true;
+			VideoPlayer.ref.addEventListener('loadstart', () => VideoPlayer.onLoad());
+			VideoPlayer.ref.addEventListener('play',      () => VideoPlayer.onPlay());
+			VideoPlayer.ref.addEventListener('pause',     () => VideoPlayer.onPause());
+			VideoPlayer.ref.addEventListener('ended',     () => VideoPlayer.onEnd());
+		} else {
+			throw new Error('The video player reference passed to ImposiumClient.setupAnalytics is not of type HTMLVideoElement');
+		}
 	}
 
 	/*
