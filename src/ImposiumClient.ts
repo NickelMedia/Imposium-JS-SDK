@@ -267,7 +267,12 @@ export class ImposiumClient {
 			//blob
 			}else if(val && val instanceof Blob || val instanceof File){
 				inventory[inventoryId] = '';
-				formData.append(inventoryId, val, "inventory.png");
+				let name = val['name'];
+				if(!name){
+					let type = val.type.split('/')[1];
+					name = 'inventory.' + type;
+				}
+				formData.append(inventoryId, val, name);
 			}
 		}
 
