@@ -1,203 +1,90 @@
 Imposium JavaScript SDK
 ====================================================
 
-### Getting started
-
-Install:
+### 1. Install:
 
 `npm i imposium-js-sdk`
 
-Create a reference:
+### 2. Create an Imposium reference:
 
 ```javascript
+
+// Choose one of the following:
+
 // commonJS
 var Imposium = require('imposium-js-sdk');
 
-// es6 
+// ES6 modules 
 import * as Imposium from 'imposium-js-sdk';
 
-```
-
-or
-
-```html
+// Include
 <script type = "text/javascript" src = "../lib/imposium.min.js"></script>
 ```
 
-### Initializing the client - Basic
+### 3. Set up your Imposium story values:
 
-_Important Note_: You will need an access token to use the client.
+The following values are used to communicate with your project. You will receive these from your Imposium account manager. If you don’t have them yet, please contact support@imposium.com.
 
 ```javascript
-var accessToken = 'access_token';
-
-var client = new Imposium.ImposiumClient(accessToken);
+var ACCESS_TOKEN = 'access_token',
+	STORY_ID = 'story_id',
+	SCENE_ID = 'scene_id',
+	  ACT_ID = 'act_id';
 ```
 
-### Initializing the client - With Analytics
+### 4. Initialize the Imposium client:
 
-_Important Note_: You need to provide an optional config object parameter to the constructor to use analytics as such:
+Pass in the ACCESS_TOKEN you received from your Imposium account manager.
 
 ```javascript
-var accessToken = 'access_token',
-	config {
-		trackingId: 'ga_tracking_id',
-		video: document.getElementById('video_player_elem');
-	};
-
-var client = new Imposium.ImposiumClient(accessToken, config);
+var client = new Imposium.ImposiumClient(ACCESS_TOKEN);
 ```
 
-### Creating new experiences
+### 5. Define the data to be rendered
 
-To get started, you need to make a createExperience call. The parameters are as follows: 
+Dynamic data is defined in Imposium through the inventory object. This object lists all dynamic values to be used in the creation of the video. The property names are assigned based on the values in the story which come from your particular project set up by your Imposium account manager. You will find these values in an email from your Imposium account manager.
 
-1. **storyId** - a valid Imposium storyId **(required)**
-2. **inventory** - object, `{text:string, image:file, callback_url:string}` **(required)**
-3. **render** - boolean, tells the API to start rendering immediately **(required)**
-4. **onSuccess(data)** - success callback function **(required)**
-5. **onError(err)** - error callback function **(optional)**
-
-_Note_: The content of inventory is structured by the inputs defined by the experience requirements. The callback_url property is also optional and can be an empty string unless you require that metadata be sent to a custom callback url.
+The `callback_url` property is the only optional value and can be an empty string unless you require the responses be sent to a custom callback url.
 
 ```javascript
-var accessToken = 'access_token', 
-	storyId = 'story_id',
-	inventory = null,
-	render = false,
-	client = null;
-
-var client = new Imposium.ImposiumClient(accessToken);
-
-// For the sake of simplicity let's eschew input handling code 
-// and assume we already have references to user inputs.
-inventory = {
-    text: 'some_user_input_string',
-    image: someUserInputImageFile,
-    callback_url: ''
+var inventory = {
+	textPropertyName: 'some_user_input_string',
+	imagePropertyName: someUserInputImageFile,
+	callback_url: ''
 };
-
-client.createExperience(
-	storyId, 
-	inventory, 
-	render, 
-	onSuccess, 
-	onError 
-);
-
-function onSuccess(data) {
-	console.log(data.id);
-}
-
-function onError(err) {
-	console.error('Something went wrong...', err);
-}
 ```
 
-### Receiving scene data and listening to events
+### 6. Create new experiences
 
-New experiences are identified by the id returned in the onSuccess callback passed to createExperience (as shown above). You'll need this id to fetch the render and stream messages related to processing. 
+An Imposium experience is the data record of the video that is being generated. You must first create the experience before generating the video. This loads the data into Imposium to be rendered when getVideo is called in the next step.
 
-The following example demonstrates how to set up the full flow (without listening for processing events):
-
-_Important Note_: Your client code needs access to the following strings. If these details are provided incorrectly, you will generate errors. For the sake of this demo, let's assume these are declared globally.
-
-1. **storyId** - Imposium story reference
-2. **sceneId** - Imposium scene reference
-3. **actId** - reference to an act of a story 
+experienceCreated is a callback function defined in your code for when the experience is created (shown in step 7).
 
 ```javascript
-var accessToken = 'access_token', 
-	storyId = 'story_id',
-	sceneId = 'scene_id',
-	actId = 'act_id',
-	inventory = null,
-	render = false,
-	job = null,
-	client = null;
-
-client = new Imposium.ImposiumClient(accessToken);
-
-// For the sake of simplicity let's eschew input handling code 
-// and assume we already have references to user inputs.
-inventory = {
-    text: 'some_user_input_string',
-    image: someUserInputImageFile,
-    callback_url: ''
-};
-
 client.createExperience(
-	storyId, 
-	inventory, 
-	render, 
+	STORY_ID, 
+	inventory,
+	false,
 	experienceCreated
 );
-
-// Called once the experience has been created
-function experienceCreated(data) {
-	job = {
-		expId: data.id,
-		sceneId: sceneId,
-		actId: actId
-	};
-
-	client.getVideo(
-		job, 
-		onProcessed, 
-		onError
-	);
-}
-
-// Called once the video related to the experience has been rendered and saved
-function onProcessed(data) {
-	var videoElement = document.getElementById('my-video');
-	videoElement.src = data.mp4Url;
-}
-
-// Called if an error occurs during processing
-function onError(err) {
-	console.error(err);
-}
 ```
 
-_Optional_: The following example demonstrates how to set up the full flow (listening for processing events):
+### 7. Receive experience data and listen to events
+
+When the experience is created successfully, the `experienceCreated` callback is called and passes in the `experienceId` used to retrieve the render and stream messages related to processing.
+
+`getVideo` initiates the render process and also retrieves a video that has already been rendered or is in the process of being rendered. Call this method to start and retrieve the video urls. Passing in a callback function to `getVideo` will allow you to receive the video urls when it’s finished rendering.
 
 ```javascript
-var accessToken = 'access_token', 
-	storyId = 'story_id',
-	sceneId = 'scene_id', 
-	actId = 'act_id',
-	inventory = null,
-	render = false,
-	job = null,
-	client = null;
-
-client = new Imposium.ImposiumClient(accessToken);
-
-// For the sake of simplicity let's eschew input handling code 
-// and assume we already have references to user inputs.
-inventory = {
-    text: 'some_user_input_string',
-    image: someUserInputImageFile,
-    callback_url: ''
-};
-
-client.createExperience(
-	storyId, 
-	inventory, 
-	render, 
-	experienceCreated
-);
-
 // Called once the experience has been created
 function experienceCreated(data) {
-	job = {
-		expId: data.id,
-		sceneId: sceneId,
-		actId: actId
+	var job = {
+		experienceId: data.id,
+		sceneId: SCENE_ID,
+		actId: ACT_ID
 	};
 
-	// This will set up an event bus that allows you to listen to processing events
+	// Listen to status updates as the video is being processed and rendered
 	client.on(
 		Imposium.events.STATUS, 
 		statusHandler, 
@@ -213,15 +100,19 @@ function experienceCreated(data) {
 
 // Called once the video related to the experience has been rendered and saved
 function onProcessed(data) {
-	var videoElement = document.getElementById('my-video');
+	var videoElement = document.getElementById('video_player_element');
 
+
+	// Stop listening to processing events for the video
 	client.off(
 		Imposium.events.STATUS, 
 		statusHandler, 
 		this
 	);
-
-	videoElement.src = data.mp4Url;
+	
+	// Choose the video format that fits your needs for this browser
+	// Video formats: mp4_1080, mp4_720, mp4_480
+	videoElement.src = data.output[data.id].videoUrls.mp4_720;
 }
 
 // Called if an error occurs during processing
@@ -234,5 +125,3 @@ function statusHandler(data) {
 	console.log(data.msg);
 }
 ```
-
-For more example code see the example directory.

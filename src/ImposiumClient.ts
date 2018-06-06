@@ -13,6 +13,7 @@ export class ImposiumClient {
 	public messageConsumer:MessageConsumer;
 	private analytics:Analytics = null;
 	private idRegExp:RegExp = /^ua-\d{4,9}-\d{1,4}$/i;
+	private activeExpId:string = '';
 	private video:HTMLVideoElement = null;
 	private progressCheckInterval:any;
 	private evts:number[] = [0.25, 0.5, 0.75];
@@ -94,7 +95,8 @@ export class ImposiumClient {
 		this.analytics.send({
 			t: 'event',
 			ec: 'video_player',
-			ea: 'view'
+			ea: 'view',
+			el: this.activeExpId
 		});
 	}
 
@@ -120,8 +122,8 @@ export class ImposiumClient {
                 this.analytics.send({
                 	t: 'event',
                 	ec: 'video_player',
-                	ea: 'playback',
-                	ev: next
+                	ea: 'playback_' + next,
+					el: this.activeExpId
                 });
 
                 this.lastEvtFired++;
@@ -147,8 +149,8 @@ export class ImposiumClient {
 		this.analytics.send({
 			t: 'event',
 			ec: 'video_player',
-			ea: 'playback',
-			ev: 1
+			ea: 'playback_1',
+			el: this.activeExpId
 		});
 
 		this.lastEvtFired = 0;
@@ -297,6 +299,8 @@ export class ImposiumClient {
 			'onError': error
 		},
 		stompConfig:StompConfig = ImposiumClient.config.stompConfig;
+
+		this.activeExpId = job.expId;
 
 		if (!this.messageConsumer) {
 			this.messageConsumer = new MessageConsumer(jobSpec, stompConfig, this, this.api);		
