@@ -1,3 +1,4 @@
+import Analytics from './Analytics';
 import {create} from 'apisauce';
 import {formatInventory} from './Helpers';
 import * as jwt_decode from 'jwt-decode';
@@ -24,32 +25,13 @@ export default class API {
 	}
 
 	/*
-		Wait async for GET /story, resolve response data
-	 */
-	public static getStory = (storyId:string):Promise<any> => {
-		return new Promise((resolve, reject) => {
-			API.http.get(`/story/${storyId}`)
-			.then((res) => {
-				const {ok, data} = res;
-
-				if (ok) {
-					resolve(data);
-				} else {
-					reject();
-				}
-			})
-			.catch((err) => {
-				reject(err);
-			});
-		});
-	}
-
-	/*
 		Wait async for GET /experience, resolve response data
 	 */
 	public static getExperience = (expId:string):Promise<any> => {
+		const {http: {get}} = API;
+
 		return new Promise((resolve, reject) => {
-			API.http.get(`/experience/${expId}`)
+			get(`/experience/${expId}`)
 			.then((res) => {
 				const {ok, data} = res;
 
@@ -69,15 +51,26 @@ export default class API {
 		Wait async for POST /experience, resolve response data
 	 */
 	public static postExperience = (storyId:string, inventory:any, progress:(e)=>any = null):Promise<any> => {
+		const {http: {post}} = API;
 		const data = formatInventory(storyId, inventory);
 		const config = (progress) ? {onUploadProgress: (e) => progress(e)} : null;
 
 		return new Promise((resolve, reject) => {
-			API.http.post('/experience', data, config)
+			post('/experience', data, config)
 			.then((res) => {
 				const {ok, data} = res;
 
 				if (ok) {
+					const {send} = Analytics;
+					const {id} = data;
+
+					send({
+						t: 'event',
+						ec: 'experience',
+						ea: 'created',
+						el: id
+					});
+
 					resolve(data);
 				} else {
 					reject();
@@ -93,6 +86,8 @@ export default class API {
 		Wait async for POST /experience/{expId}/trigger-event, resolve on success
 	 */
 	public static invokeStream = (expId:string, sceneId:string, actId:string):Promise<any> => {
+		const {http: {post}} = API;
+
 		return new Promise((resolve, reject) => {
 			const body = {
 				exp_id: expId,
@@ -100,7 +95,7 @@ export default class API {
 				act_id: actId
 			};
 
-			API.http.post(`/experience/${expId}/trigger-event`)
+			post(`/experience/${expId}/trigger-event`)
 			.then((res) => {
 				const {ok} = res;
 

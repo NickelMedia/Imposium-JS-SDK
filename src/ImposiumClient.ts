@@ -11,7 +11,6 @@ import {errorHandler} from './Helpers';
 export class Events {
 	public static EXPERIENCE_CREATED:string = 'experienceCreated';
 	public static UPLOAD_PROGRESS:string = 'uploadProgress';
-	public static GOT_STORY:string = 'gotStory';
 	public static GOT_EXPERIENCE:string = 'gotExperience';
 	public static GOT_SCENE:string = 'gotScene';
 	public static GOT_MESSAGE:string = 'gotMessage';
@@ -23,7 +22,6 @@ export class ImposiumClient {
 	private static readonly validEvents:string[] = [
 		'experienceCreated',
 		'uploadProgress',
-		'gotStory',
 		'gotExperience',
 		'gotScene',
 		'gotMessage',
@@ -67,13 +65,17 @@ export class ImposiumClient {
 		Sets a callback for an event
 	 */
 	public on = (eventName:string, callback:any):void => {
-		const {validEvents} = ImposiumClient;
-
 		try {
-			if (~validEvents.indexOf(eventName)) {
-				ImposiumEvents[eventName] = callback;
+			if (Object.prototype.toString.call(callback) === '[object Function]') {
+				const {validEvents} = ImposiumClient;
+
+				if (~validEvents.indexOf(eventName)) {
+					ImposiumEvents[eventName] = callback;
+				} else {
+					throw new Error(`${eventName} is not a valid Imposium event.`);
+				}
 			} else {
-				throw new Error(`${eventName} is not a valid Imposium event.`);
+				throw new Error(`The callback reference passed to ${eventName} was not of type Function.`);
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -86,108 +88,149 @@ export class ImposiumClient {
 	public off = (eventName:string = ''):void => {
 		const {validEvents} = ImposiumClient;
 
-		if (~validEvents.indexOf(eventName)) {
-			ImposiumEvents[eventName] = null;
-		} else {
-			validEvents.forEach((event) => {
-				ImposiumEvents[event] = null;
-			});
+		try {
+			if (eventName !== '') {
+				if (~validEvents.indexOf(eventName)) {
+					ImposiumEvents[eventName] = null;
+				} else {
+					throw new Error(`${eventName} is not a valid Imposium event.`);
+				}
+			} else {
+				validEvents.forEach((event) => {
+					ImposiumEvents[event] = null;
+				});
+			}
+		} catch (e) {
+			errorHandler(e);
 		}
-	}
 
-	/*
-		Record page view metric
-		TO DO: move to analytics
-	 */
-	private pageView = ():void => {
-		Analytics.send({
-			t: 'pageview', 
-			dp: window.location.pathname
-		});
-	}
-
-	/*
-		Get story meta by ID
-	 */
-	public getStory = (storyId:string, success:(data:any)=>void, error:(res:any)=>void):void => {
-		API.getStory(storyId)
-		.then((data) => {
-			success(data);
-		})
-		.catch((err) => {
-			error(err);
-		});
-	}
-
-	/*
-		Get experience data
-	 */
-	public getExperience = (expId:string, success:(data:any)=>void, error:(res:any)=>void):void => {
-		API.getExperience(expId)
-		.then((data) => {
-			success(data);
-		})
-		.catch((err) => {
-
-			error(err);
-		});
 	}
 
 	/*
 		Create new experience & return relevant meta
 	 */
 	public createExperience = (storyId:string, inventory:any, render:boolean):void => {
-		const {experienceCreated, uploadProgress, onError} = ImposiumEvents;
+		const {experienceCreated, uploadProgress} = ImposiumEvents;
 
-		if (experienceCreated) {
-			const {postExperience} = API;
+		try {
+			if (experienceCreated) {
+				const {postExperience} = API;
 
-			postExperience(storyId, inventory, uploadProgress)
-			.then((data) => {
-				const {send} = Analytics;
-				const {id} = data;
-
-				send({
-					t: 'event',
-					ec: 'experience',
-					ea: 'created',
-					el: id
+				postExperience(storyId, inventory, uploadProgress)
+				.then((data) => {
+					experienceCreated(data);
+				})
+				.catch((e) => {
+					errorHandler(e);
 				});
+			} else {
+				throw new Error('Please set the following callback: experienceCreated to call createExperience');
+			}
+		} catch (e) {
+			errorHandler(e);
+		}
 
-				experienceCreated(data);
-			})
-			.catch((err) => {
-				onError(err);
-			});
-		} else {
-			// TO DO: Add error handling
+	}
+
+	/*
+		Get experience data
+	 */
+	public getVideo = (expId:string):void => {
+		const {gotExperience} = ImposiumEvents;
+
+		try {
+			if (gotExperience) {
+				API.getExperience(expId)
+				.then((data) => {
+					gotExperience(data);
+				})
+				.catch((e) => {
+					errorHandler(e)
+				});
+			} else {
+				throw new Error('Please set the following callback: gotExperience to call getExperience.');
+			}
+		} catch (e) {
+			errorHandler(e);
 		}
 	}
 
-	private call
+	/*
+		Create a new experience and start listening for messages
+	 */
+	public renderVideo = (storyId:string, sceneId:string, actId:string, inventory:any) => {
+		const {
+			experienceCreated,
+			uploadProgress, 
+			gotScene, 
+			gotMessage
+		} = ImposiumEvents;
+
+		try {
+			if (gotScene) {
+				const {postExperience} = API;
+
+				postExperience(storyId, inventory, uploadProgress)
+				.then((data) => {
+					const {id} = data;
+
+					if (experienceCreated) {
+						experienceCreated(data);
+					}
+
+					this.initStomp({
+						expId: id,
+						sceneId: sceneId,
+						actId: actId
+					});
+				})
+				.catch((e) => {
+					errorHandler(e);
+				});
+			} else {
+				throw new Error('Please set the following callback: gotScene to call renderExperience.');
+			}
+		} catch (e) {
+			errorHandler(e);
+		}
+	}
 
 	/*
 		Open TDP connection with Imposium and get event based messages and/or
 		video urls / meta
 	 */
-	public getVideo(job:any):void {
+	private initStomp(job:any):void {
 		const {gotScene} = ImposiumEvents;
 
-		if (gotScene) {
-			const {updateId, updateExperienceID} = VideoPlayer;
+		try {
+			if (gotScene) {
+				const {updateId, updateExperienceID} = VideoPlayer;
 
-			if (updateId) {
-				const {expId} = job;
-				updateExperienceID(expId);
-			}
+				if (updateId) {
+					const {expId} = job;
+					updateExperienceID(expId);
+				}
 
-			if (!this.messageConsumer) {
-				this.messageConsumer = new MessageConsumer(job);		
+				if (!this.messageConsumer) {
+					this.messageConsumer = new MessageConsumer(job);		
+				} else {
+					this.messageConsumer.reconnect(job);
+				}
 			} else {
-				this.messageConsumer.reconnect(job);
+				throw new Error('Please set the following callback: gotScene to call getVideo.');
 			}
-		} else {
-			// TO DO: add error handling
+		} catch (e) {
+			errorHandler(e)
 		}
+	}
+
+	/*
+		Record page view metric
+	 */
+	private pageView = ():void => {
+		Analytics.send({
+			t: 'pageview', 
+			dp: window.location.pathname
+		});
 	}
 }

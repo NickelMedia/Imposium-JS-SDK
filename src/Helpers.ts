@@ -1,3 +1,5 @@
+import ImposiumEvents from './ImposiumEvents';
+
 // TO DO: make a shimmed nodeJS version
 export const formatInventory = (storyId:string, inventory:any) => {
 	const formData = new FormData();
@@ -11,7 +13,7 @@ export const formatInventory = (storyId:string, inventory:any) => {
 	for (let inventoryId in inventory) {
 		let val = inventory[inventoryId];
 
-		//input
+		// input
 		if (val && val.type === 'file') {
 			if (val.files.length > 0) {
 				inventory[inventoryId] = '';
@@ -20,7 +22,7 @@ export const formatInventory = (storyId:string, inventory:any) => {
 				inventory[inventoryId] = '';
 			}
 
-		//blob
+		// blob
 		} else if (val && val instanceof Blob || val instanceof File) {
 			inventory[inventoryId] = '';
 			formData.append(inventoryId, val, 'inventory.png');
@@ -35,6 +37,12 @@ export const formatInventory = (storyId:string, inventory:any) => {
 	return formData;
 }
 
-export const errorHandler = (error:any) => {
+export const errorHandler = (error:Error) => {
+	const {onError} = ImposiumEvents;
+
+	if (onError) {
+		onError(error);
+	}
+
 	console.error('[IMPOSIUM-JS-SDK]\n', error);
 }

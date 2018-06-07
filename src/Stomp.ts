@@ -1,40 +1,32 @@
 import * as WebStomp from 'webstomp-client';
 // import * as WebSocket from 'ws';
 
+class SocketEvents {
+	public static triggerEmit:()=>void = null;
+	public static onMessage:(message:any)=>any = null;
+	public static onError:(err:any)=>any = null;
+}
+
 export default class Stomp {
 	// RabbitMQ creds
-	private static readonly endpoint:string = 'wss://stomp.prod.k8s.nickel.media/ws';
-	private static readonly exchange:string = '/exchange/imposium/';
-	private static readonly username:string = 'imposium_stomp';
-	private static readonly password:string = 'Teehe1ceeMe7Pe1d';
+	static readonly endpoint:string = 'wss://stomp.prod.k8s.nickel.media/ws';
+	static readonly exchange:string = '/exchange/imposium/';
+	static readonly username:string = 'imposium_stomp';
+	static readonly password:string = 'Teehe1ceeMe7Pe1d';
 
 	// WS / Stomp objs
-	private static expId:string;
-	private static socket:WebSocket;
-	private static client:WebStomp.Client;
-	private static subscription:WebStomp.Subscription;
-
-	// Handlers / Callbacks
-	private static triggerEmit:()=>void = null;
-	private static onMessage:(message:any)=>any = null;
-	private static onError:(err:any)=>any = null;
-
-	// Set based on if handlers are established
-	private static isEnabled:boolean = false;
+	static expId:string;
+	static socket:WebSocket;
+	static client:WebStomp.Client;
+	static subscription:WebStomp.Subscription;
 
 	/*
 		Setup callbacks
 	 */
-	public static setHandlers = (triggerEmit:()=>void, onMessage:(message:any)=>any, onError:(err:any)=>any) => {
-		if (triggerEmit && onMessage && onError) {
-			Stomp.triggerEmit = triggerEmit;
-			Stomp.onMessage = onMessage;
-			Stomp.onError = onError;
-			Stomp.isEnabled = true;
-		} else {
-			console.warn('Failed to setup WebStomp handlers.');
-		}
-
+	public static setEvents = (t:()=>void, m:(message:any)=>any, e:(err:any)=>any) => {
+		SocketEvents.triggerEmit = t;
+		SocketEvents.onMessage = m;
+		SocketEvents.onError = e;
 	}
 
 	/*
@@ -45,42 +37,35 @@ export default class Stomp {
 	 */
 	public static init = (expId:string):void => {
 		const {
-			isEnabled,
 			endpoint, 
 			username, 
 			password,
-			onError,
 			establishSubscription
 		} = Stomp;
 
-		if (isEnabled) {
-			Stomp.expId = expId;
-			Stomp.socket = new WebSocket(endpoint);
-			Stomp.client = WebStomp.over(Stomp.socket);
-			Stomp.client.debug = () => {};
+		const {onError} = SocketEvents;
 
-			Stomp.client.connect
-			(
-				username,
-				password,
-				() => establishSubscription(),
-				onError
-			);
-		} else {
-			console.warn('WebStomp isn\'t enabled, are you sure you set up the correct handlers?');
-		}
+		Stomp.expId = expId;
+		Stomp.socket = new WebSocket(endpoint);
+		Stomp.client = WebStomp.over(Stomp.socket);
+		Stomp.client.debug = () => {};
+
+		Stomp.client.connect
+		(
+			username,
+			password,
+			() => establishSubscription(),
+			onError
+		);
+
 	}
 
 	/*
 		Triggers socketIO to emit & sets up a listener for messages
 	 */
 	private static establishSubscription = ():void => {
-		const {
-			exchange, 
-			expId,
-			onMessage,
-			triggerEmit
-		} = Stomp;
+		const {exchange, expId} = Stomp;
+		const {triggerEmit, onMessage} = SocketEvents;
 
 		Stomp.subscription = Stomp.client.subscribe
 		(
@@ -102,8 +87,7 @@ export default class Stomp {
 	}
 
 	/*
-		Kills the active subscription then disconnects the
-		client.
+		Kills the current connection gracefully without handlers
 	 */
 	public static disconnect = ():void => {
 		Stomp.subscription.unsubscribe();
@@ -111,11 +95,10 @@ export default class Stomp {
 	}
 
 	/*
-		Kill the current socket and clear the class
-		level references to the socket and client
+		Kills the current connection gracefully and resolves on closure
 	 */
-	public static kill = ():any => {
-		return new Promise((resolve, reject) => {
+	public static disconnectAsync = ():any => {
+		return new Promise((resolve) => {
 			const {client, subscription} = Stomp;
 
 			if (client.connected) {
@@ -127,7 +110,6 @@ export default class Stomp {
 			} else {
 				resolve();
 			}
-		})
-		.catch(e => {});
+		});
 	}
 }

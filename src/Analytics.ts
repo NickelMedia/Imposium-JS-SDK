@@ -39,6 +39,7 @@ interface Retries {
 
 export default class Analytics {
 	public static isSetup:boolean = false;
+	public static forcePageview:boolean = true;
 	private static emitter:any = null;
 	private static retryTimeout:any = null;
 
@@ -67,6 +68,11 @@ export default class Analytics {
 	public static setup(trackingId:string) {
 		Analytics.request.appId = trackingId;
 		Analytics.request.clientId = Analytics.checkCache();
+
+		if (Analytics.forcePageview) {
+
+		}
+		
 		Analytics.isSetup = true;
 	}
 

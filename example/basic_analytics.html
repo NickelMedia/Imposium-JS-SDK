@@ -40,38 +40,23 @@
 				btnGenerate = document.getElementById('btnGenerate');
 
 			// You will need the following variables 
-			var storyId = '295a80d0-871c-4def-a579-8a375d6942fc',
-				sceneId = 'f7a20d1f-96f2-4672-a7e3-3891b4a8ed25',
-			    actId = '295a80d0-871c-4def-a579-8a375d6942fc',
-			    accessKey = 'zooch5ja8fiejoojoo6AeQuahmex1wes',
-			   	trackingId = 'UA-113079866-1',
-			   	video = vid
-			    
+			var STORY_ID    = '295a80d0-871c-4def-a579-8a375d6942fc',
+				SCENE_ID    = 'f7a20d1f-96f2-4672-a7e3-3891b4a8ed25',
+			    ACT_ID      = '295a80d0-871c-4def-a579-8a375d6942fc',
+			    ACCESS_KEY  = 'zooch5ja8fiejoojoo6AeQuahmex1wes',
+			    TRACKING_ID = 'UA-113079866-1';
 
-			// Create an instance of the ImposiumClient. The main difference here
-			// is that instead of only passing in an access key a google analytics
-			// id and video element are passed (optionally) in a config object
-			// which allows recording of imposium specific metrics. 
-			var imposium = new Imposium.ImposiumClient(accessKey);
+			var imposium = new Imposium.ImposiumClient(ACCESS_KEY);
 			var events = Imposium.Events;
 
-			imposium.setupAnalytics(trackingId, vid);
-
-			imposium.on(events.EXPERIENCE_CREATED, function(data) {
-				var job = {
-					expId: data.id,
-					sceneId: sceneId,
-					actId: actId
-				};
-
-				// put the experience in the URL for deeplinking
-				window.location.hash = '#' + job.expId;
-				imposium.getVideo(job);
-			});
+			imposium.setupAnalytics(TRACKING_ID, vid);
 
 			imposium.on(events.GOT_SCENE, function(data) {
+				window.location.hash = '#' + data.experience_id;
+				
 				vid.src = data.mp4Url;
 				vid.style.display = 'block';
+
 				setStatus('Got Scene', 'green');
 			});
 
@@ -80,8 +65,12 @@
 			});
 
 			imposium.on(events.ERROR, function(err) {
-				console.error(err);
+				setStatus('Something went wrong processing your experience.', 'red');
 			});
+
+			imposium.on(events.GOT_EXPERIENCE, function(data) {
+				console.log(data);
+			})
 
 			//If there is a deeplink to an experience, connect to that experience
 			if (window.location.hash !== '') {
@@ -90,11 +79,11 @@
 			    if (expId) {
 			        var job = {
 			        	expId: expId, 
-			        	sceneId: sceneId, 
-			        	actId: actId
+			        	sceneId: SCENE_ID, 
+			        	actId: ACT_ID
 			        };
 
-			        imposium.getVideo(job);
+			        imposium.getVideo(expId);
 			    }                   
 			}
 
@@ -110,10 +99,11 @@
 			        'callback_url':''
 			    };
 			    
-			    imposium.createExperience(
-			        storyId, 
-			        inventory,
-			        false
+			    imposium.renderVideo(
+			        STORY_ID, 
+			        SCENE_ID,
+			        ACT_ID,
+			        inventory
 			    );
 
 			    setStatus('Creating Experience', 'green');

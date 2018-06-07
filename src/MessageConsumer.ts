@@ -2,6 +2,15 @@ import API from './API';
 import Stomp from './Stomp';
 import ImposiumEvents from './ImposiumEvents';
 
+import {errorHandler} from './Helpers';
+
+class Messages {
+	public static readonly ACT_COMPLETE:string = 'actComplete';
+	public static readonly GOT_MESSAGE:string = 'gotMessage';
+	public static readonly GOT_SCENE:string = 'gotScene';
+}
+
+// Wraps around the Stomp client, providing the message handling
 export default class MessageConsumer {
 	private job:any = null;
 	private retried:number = 0;
@@ -18,40 +27,38 @@ export default class MessageConsumer {
 	public init():void {
 		const {expId} = this.job;
 
-		Stomp.setHandlers(
+		Stomp.setEvents(
 			()        => this.invokeStreaming(),
 			(msg:any) => this.routeMessageData(msg),
-			(e:any)   => this.streamError(e)
+			(e:any)   => this.stompError(e)
 		);
 
 		Stomp.init(expId);
 	}
 
 	/*
-		Sets up a websocket for the experience
+		Kills the current stomp connection and initates a new connection on closure
 	 */
 	public reconnect(job:any):void {
-		const {kill} = Stomp;
+		this.job = job;
 
-		kill()
+		Stomp.disconnectAsync()
 		.then(() => {
 			this.init();	
-		}).catch(err => {
-			console.error('something went wrong killing webstomp.');
+		}).catch(e => {
+			errorHandler(e);
 		});
 	}
 
 	/*
-		Initiates the streaming process on the Imposium web servers
+		Initiates the message queueing process on Imposium
 	 */
 	private invokeStreaming():void {
-		const {invokeStream} = API;
-		const {onError} = ImposiumEvents;
 		const {expId, sceneId, actId} = this.job;
 
-		invokeStream(expId, sceneId, actId)
-		.catch((err) => {
-			onError(err);
+		API.invokeStream(expId, sceneId, actId)
+		.catch((e) => {
+			errorHandler(e)
 		});
 	}
 
@@ -63,77 +70,98 @@ export default class MessageConsumer {
 		try {
 			const payload = JSON.parse(msg.body);
 
+			const {
+				ACT_COMPLETE,
+				GOT_MESSAGE,
+				GOT_SCENE
+			} = Messages;
+
 			switch(payload.event) {
-				case 'actComplete':
+				case ACT_COMPLETE:
+					// Kills the Stomp connection without handlers
 					Stomp.disconnect();
 					break;
-				case 'gotMessage':
+				case GOT_MESSAGE:
 					this.emitMessageData(payload);
 					break;
-				case 'gotScene':
+				case GOT_SCENE:
 					this.emitSceneData(payload);
 					break;
 				default: break;
 			}
 		} catch (e) {
-			// TO DO : propagate err
+			errorHandler(e);
 		}
 	}
 
 	/*
 		Fire the gotMessage callback if the user is listening for this event
 	 */
-	private emitMessageData(message:any):void {
+	private emitMessageData(messageData:any):void {
 		const {gotMessage} = ImposiumEvents;
-		if (gotMessage) gotMessage(message);
-	}
+		const {msg} = messageData;
 
-	/*
-		Parse the scene data and propagate if there aren't errors.
-		If any error occurs, propagate the error.
-	 */
-	private emitSceneData(experienceData:any):void {
-		const {gotScene, onError} = ImposiumEvents
-		const rejected = (experienceData || {}).error;
-
-		if (!rejected) {
-			// Shorthand idioms for checking if required nested JSON data exists
-			const isVideo = (((experienceData || {}).sceneData || {}).type === 'VideoScene01');
-			const sceneId = ((experienceData || {}).sceneData || {}).id;
-			const hasUrls = (((experienceData || {}).output || {})[sceneId] || {}).mp4Url;
-
-			if (isVideo && hasUrls) {
-				const {id, output} = experienceData;
-
-				// Merge the scene data & experience ID
-				const sceneData = {
-					...output[sceneId],
-					experience_id: id
-				};
-
-				gotScene(sceneData);
-			} else {
-				onError(experienceData);
+		try {
+			if (msg === 'Server failure.') {
+				throw new Error('Something went wrong processing your experience. Try reviewing your configuration.');
 			}
-		} else {
-			onError(new Error(rejected));
+
+			if (gotMessage) {
+				gotMessage(messageData);
+			} 
+		} catch (e) {
+			errorHandler(e);
 		}
 	}
 
 	/*
-		Invoked if there's an err in the WebStomp client. Retries n times
-		based on config. 
+		Parses the experience data into a prop delivered via gotScene
 	 */
-	private streamError(err:any):void {
-		if (!err.wasClean) {
+	private emitSceneData(experienceData:any):void {
+		const {gotScene} = ImposiumEvents
+		const rejected = (experienceData || {}).error;
+
+		try {
+			if (!rejected) {
+				// Shorthand idioms for checking if required nested JSON data exists
+				const sceneId = ((  experienceData || {}).sceneData || {}).id;
+				const hasUrls = ((( experienceData || {}).output    || {})[sceneId] || {}).mp4Url;
+				const isVideo = ((( experienceData || {}).sceneData || {}).type === 'VideoScene01');
+
+				if (isVideo && hasUrls) {
+					// Merge up the scene data and the experience ID 
+					const {id, output} = experienceData;
+					const sceneData = {...output[sceneId], experience_id: id};
+
+					delete sceneData.id;
+					gotScene(sceneData);
+				} else {
+					throw new Error(`Imposium failed to prepare your experience:\n${JSON.stringify(experienceData, null, 2)}`);
+				}
+			} else {
+				throw new Error('Your experience was rejected.');
+			}
+		} catch (e) {
+			errorHandler(e);
+		}
+	}
+
+	/*
+		Called on Stomp errors
+	 */
+	private stompError(e:any):void {
+		const {wasClean} = e;
+
+		if (!e.wasClean) {
 			++this.retried;
 
 			if (this.retried < this.maxRetries) {
 				const {expId} = this.job;
-				console.error(`WebStomp error: (retrying: ${this.retried})`, err);
+
 				Stomp.reconnect(expId);
+				console.warn(`Stomp over TCP failed (${this.retried}): Attempting to reconnect...`);
 			} else {
-				this.job.onError(err);
+				errorHandler(e);
 			}
 		}
 	}
