@@ -56,21 +56,48 @@ export default class API {
 
 		const config = {
 			onUploadProgress: (progress) ? (e) => progress(e) : null,
-			headers: null
+			headers: {}
 		};
 
 		if (!isNode()) {
 			return doPostExperience(formData, config);
 		} else {
-			getContentLength(formData)
-			.then((header) => {
-				config.headers = header;
-				return doPostExperience(formData, config);
-			})
-			.catch((e) => {
-				return Promise.reject(e);
-			});
+			config.headers = formData.getHeaders();
+			return doPostExperience(formData, config);
 		}
+	}
+
+	/*
+		Make create experience POST request and resolve
+	 */
+	private static doPostExperience = (formData:any, config:any):Promise<any> => {
+		const {http: {post}} = API;
+
+		return new Promise((resolve, reject) => {
+			post('/experience', formData, config)
+			.then((res) => {
+				const {ok, data, status} = res;
+
+				if (ok) {
+					const {send} = Analytics;
+					const {id} = data;
+
+					send({
+						t: 'event',
+						ec: 'experience',
+						ea: 'created',
+						el: id
+					});
+
+					resolve(data);
+				} else {
+					throw new Error(`Error reaching Imposium API. Status code: ${status}`);
+				}
+			})
+			.catch((err) => {
+				reject(err);
+			});
+		});
 	}
 
 	/*
@@ -88,45 +115,12 @@ export default class API {
 
 			post(`/experience/${expId}/trigger-event`)
 			.then((res) => {
-				const {ok} = res;
+				const {ok, status} = res;
 
 				if (ok) {
 					resolve();
 				} else {
-					reject();
-				}
-			})
-			.catch((err) => {
-				reject(err);
-			});
-		});
-	}
-
-	/*
-		Make create experience POST request and resolve
-	 */
-	private static doPostExperience = (formData:any, config:any):Promise<any> => {
-		const {http: {post}} = API;
-
-		return new Promise((resolve, reject) => {
-			post('/experience', formData, config)
-			.then((res) => {
-				const {ok, data} = res;
-
-				if (ok) {
-					const {send} = Analytics;
-					const {id} = data;
-
-					send({
-						t: 'event',
-						ec: 'experience',
-						ea: 'created',
-						el: id
-					});
-
-					resolve(data);
-				} else {
-					reject();
+					throw new Error(`Error reaching Imposium API. Status code: ${status}`);
 				}
 			})
 			.catch((err) => {

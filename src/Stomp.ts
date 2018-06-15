@@ -1,5 +1,7 @@
 import * as WebStomp from 'webstomp-client';
-// import * as WebSocket from 'ws';
+import {isNode} from './Helpers';
+
+const WebSocketShim = require('isomorphic-ws');
 
 class SocketEvents {
 	public static triggerEmit:()=>void = null;
@@ -46,7 +48,7 @@ export default class Stomp {
 		const {onError} = SocketEvents;
 
 		Stomp.expId = expId;
-		Stomp.socket = new WebSocket(endpoint);
+		Stomp.socket = (!isNode()) ? new WebSocket(endpoint) : new WebSocketShim(endpoint);
 		Stomp.client = WebStomp.over(Stomp.socket);
 		Stomp.client.debug = () => {};
 

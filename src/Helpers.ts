@@ -1,4 +1,4 @@
-import FormDataShim from 'form-data';
+import * as FormDataShim from 'form-data';
 import ImposiumEvents from './ImposiumEvents';
 
 export const isNode = ():boolean => {
@@ -7,18 +7,6 @@ export const isNode = ():boolean => {
 
 export const InventoryToFormData = (s:string, i:any):any => {
 	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
-}
-
-export const getContentLength = (formData:FormDataShim):Promise<any> => {
-	return new Promise((resolve, reject) => {
-		formData.getLength((e, length) => {
-			if (!e) {
-				resolve({"Content-Length": length});
-			} else {
-				reject(e);
-			}
-		})
-	});
 }
 
 export const errorHandler = (error:Error):void => {
@@ -65,6 +53,7 @@ const invToFDGlobal = (storyId:string, inventory:any):FormData => {
 
 // Uses shimmed FormData lib, checks for Buffers when working in nodeJS to prep POST data
 const invToFDShim = (storyId:string, inventory:any):FormDataShim => {
+	const stream = require('stream');
 	const formData = new FormDataShim();
 
 	formData.append('story_id', storyId);
@@ -72,12 +61,12 @@ const invToFDShim = (storyId:string, inventory:any):FormDataShim => {
 	for (const key in inventory) {
 		const data = inventory[key];
 
-		if (data instanceof Buffer) {
+		if (inventory[key] instanceof stream.Readable) {
 			inventory[key] = '';
-			formData.append(key, data);
+			formData.append(key, data, 'test.jpg');
 		}
 
-		formData.append(`inventory[${key}]`, inventory[key]);
+		formData.append(`inventory[${key}]`, (inventory[key]) ? inventory[key] : '');
 	}
 
 	return formData;
