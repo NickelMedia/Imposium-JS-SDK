@@ -1,31 +1,30 @@
+import FormDataShim from 'form-data';
 import ImposiumEvents from './ImposiumEvents';
 
-// TO DO: make a shimmed nodeJS version
-export const formatInventory = (storyId:string, inventory:any) => {
+// Uses browser based FormData library
+export const invToFDGlobal = (storyId:string, inventory:any) => {
 	const formData = new FormData();
 
-	let files:any = {};
-
-	// add the storyID
 	formData.append('story_id', storyId);
-	// pull any files from the inventory, add them to the top level
-	
-	for (let inventoryId in inventory) {
-		let val = inventory[inventoryId];
 
-		// input
-		if (val && val.type === 'file') {
-			if (val.files.length > 0) {
-				inventory[inventoryId] = '';
-				formData.append(inventoryId, val.files[0]);
+	for (const key in inventory) {
+		const data = inventory[key];
+
+		// Handle file input iterables
+		if (data && data.type === 'file') {
+			const {files} = data;
+
+			if (files.length > 0) {
+				inventory[key] = '';
+				formData.append(key, files[0]);
 			} else {
-				inventory[inventoryId] = '';
+				inventory[key] = '';
 			}
 
-		// blob
-		} else if (val && val instanceof Blob || val instanceof File) {
-			inventory[inventoryId] = '';
-			formData.append(inventoryId, val, 'inventory.png');
+		// Handle media blobs
+		} else if (data && data instanceof Blob || data instanceof File) {
+			inventory[key] = '';
+			formData.append(key, data, 'inventory.png');
 		}
 	}
 
@@ -35,6 +34,17 @@ export const formatInventory = (storyId:string, inventory:any) => {
 	}
 
 	return formData;
+}
+
+// Uses shimmed 
+export const invToFDShim = (storyId:string, inventory:any) => {
+	const formData = new FormDataShim();
+
+
+}
+
+export const isNode = ():boolean => {
+	return (typeof process === 'object' && process + '' === '[object process]');
 }
 
 export const errorHandler = (error:Error) => {
