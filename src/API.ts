@@ -1,6 +1,6 @@
 import Analytics from './Analytics';
 import {create} from 'apisauce';
-import {InventoryToFormData, isNode} from './Helpers';
+import {InventoryToFormData, getContentLength, isNode} from './Helpers';
 import * as jwt_decode from 'jwt-decode';
 
 export default class API {
@@ -51,35 +51,26 @@ export default class API {
 		Wait async for POST /experience, resolve response data
 	 */
 	public static postExperience = (storyId:string, inventory:any, progress:(e)=>any = null):Promise<any> => {
-		const {http: {post}} = API;
-		const data = InventoryToFormData(storyId, inventory);
-		const config = (progress) ? {onUploadProgress: (e) => progress(e)} : null;
+		const {doPostExperience} = API;
+		const formData = InventoryToFormData(storyId, inventory);
 
-		return new Promise((resolve, reject) => {
-			post('/experience', data, config)
-			.then((res) => {
-				const {ok, data} = res;
+		const config = {
+			onUploadProgress: (progress) ? (e) => progress(e) : null,
+			headers: null
+		};
 
-				if (ok) {
-					const {send} = Analytics;
-					const {id} = data;
-
-					send({
-						t: 'event',
-						ec: 'experience',
-						ea: 'created',
-						el: id
-					});
-
-					resolve(data);
-				} else {
-					reject();
-				}
+		if (!isNode()) {
+			return doPostExperience(formData, config);
+		} else {
+			getContentLength(formData)
+			.then((header) => {
+				config.headers = header;
+				return doPostExperience(formData, config);
 			})
-			.catch((err) => {
-				reject(err);
+			.catch((e) => {
+				return Promise.reject(e);
 			});
-		});
+		}
 	}
 
 	/*
@@ -109,5 +100,38 @@ export default class API {
 				reject(err);
 			});
 		});
-	} 
+	}
+
+	/*
+		Make create experience POST request and resolve
+	 */
+	private static doPostExperience = (formData:any, config:any):Promise<any> => {
+		const {http: {post}} = API;
+
+		return new Promise((resolve, reject) => {
+			post('/experience', formData, config)
+			.then((res) => {
+				const {ok, data} = res;
+
+				if (ok) {
+					const {send} = Analytics;
+					const {id} = data;
+
+					send({
+						t: 'event',
+						ec: 'experience',
+						ea: 'created',
+						el: id
+					});
+
+					resolve(data);
+				} else {
+					reject();
+				}
+			})
+			.catch((err) => {
+				reject(err);
+			});
+		});
+	}
 }

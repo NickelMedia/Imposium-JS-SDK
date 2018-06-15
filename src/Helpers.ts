@@ -1,15 +1,27 @@
 import FormDataShim from 'form-data';
 import ImposiumEvents from './ImposiumEvents';
 
-export const InventoryToFormData = (s:string, i:any) => {
-	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
-}
-
 export const isNode = ():boolean => {
 	return (typeof process === 'object' && process + '' === '[object process]');
 }
 
-export const errorHandler = (error:Error) => {
+export const InventoryToFormData = (s:string, i:any):any => {
+	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
+}
+
+export const getContentLength = (formData:FormDataShim):Promise<any> => {
+	return new Promise((resolve, reject) => {
+		formData.getLength((e, length) => {
+			if (!e) {
+				resolve({"Content-Length": length});
+			} else {
+				reject(e);
+			}
+		})
+	});
+}
+
+export const errorHandler = (error:Error):void => {
 	const {onError} = ImposiumEvents;
 
 	if (onError) {
@@ -19,8 +31,8 @@ export const errorHandler = (error:Error) => {
 	console.error('[IMPOSIUM-JS-SDK]\n', error);
 }
 
-// Uses browser based FormData library
-const invToFDGlobal = (storyId:string, inventory:any) => {
+// Uses browser based FormData library to prep POST data
+const invToFDGlobal = (storyId:string, inventory:any):FormData => {
 	const formData = new FormData();
 
 	formData.append('story_id', storyId);
@@ -51,8 +63,8 @@ const invToFDGlobal = (storyId:string, inventory:any) => {
 	return formData;
 }
 
-// Uses shimmed FormData lib, checks for Buffers when working in nodeJS
-const invToFDShim = (storyId:string, inventory:any) => {
+// Uses shimmed FormData lib, checks for Buffers when working in nodeJS to prep POST data
+const invToFDShim = (storyId:string, inventory:any):FormDataShim => {
 	const formData = new FormDataShim();
 
 	formData.append('story_id', storyId);
