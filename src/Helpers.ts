@@ -1,46 +1,8 @@
 import FormDataShim from 'form-data';
 import ImposiumEvents from './ImposiumEvents';
 
-// Uses browser based FormData library
-export const invToFDGlobal = (storyId:string, inventory:any) => {
-	const formData = new FormData();
-
-	formData.append('story_id', storyId);
-
-	for (const key in inventory) {
-		const data = inventory[key];
-
-		// Handle file input iterables
-		if (data && data.type === 'file') {
-			const {files} = data;
-
-			if (files.length > 0) {
-				inventory[key] = '';
-				formData.append(key, files[0]);
-			} else {
-				inventory[key] = '';
-			}
-
-		// Handle media blobs
-		} else if (data && data instanceof Blob || data instanceof File) {
-			inventory[key] = '';
-			formData.append(key, data, 'inventory.png');
-		}
-	}
-
-	// add the inventory
-	for (let invKey in inventory) {
-		formData.append(`inventory[${invKey}]`, inventory[invKey]);
-	}
-
-	return formData;
-}
-
-// Uses shimmed 
-export const invToFDShim = (storyId:string, inventory:any) => {
-	const formData = new FormDataShim();
-
-
+export const InventoryToFormData = (s:string, i:any) => {
+	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
 }
 
 export const isNode = ():boolean => {
@@ -55,4 +17,56 @@ export const errorHandler = (error:Error) => {
 	}
 
 	console.error('[IMPOSIUM-JS-SDK]\n', error);
+}
+
+// Uses browser based FormData library
+const invToFDGlobal = (storyId:string, inventory:any) => {
+	const formData = new FormData();
+
+	formData.append('story_id', storyId);
+
+	for (const key in inventory) {
+		const data = inventory[key];
+
+		if (data && data.type === 'file') {
+			// Deal with HTML5 File inputs, only accept one currently
+			const {files} = data;
+
+			if (files.length > 0) {
+				inventory[key] = '';
+				formData.append(key, files[0]);
+			} else {
+				inventory[key] = '';
+			}
+		} else if (data && data instanceof Blob || data instanceof File) {
+			// Deal with blobs && pre-parsed HTML5 File objects
+			inventory[key] = '';
+			formData.append(key, data, 'inventory.png');
+		}
+
+		// Add other inputs, for files this will just be a key that our API uses for a look up
+		formData.append(`inventory[${key}]`, inventory[key])
+	}
+
+	return formData;
+}
+
+// Uses shimmed FormData lib, checks for Buffers when working in nodeJS
+const invToFDShim = (storyId:string, inventory:any) => {
+	const formData = new FormDataShim();
+
+	formData.append('story_id', storyId);
+
+	for (const key in inventory) {
+		const data = inventory[key];
+
+		if (data instanceof Buffer) {
+			inventory[key] = '';
+			formData.append(key, data);
+		}
+
+		formData.append(`inventory[${key}]`, inventory[key]);
+	}
+
+	return formData;
 }

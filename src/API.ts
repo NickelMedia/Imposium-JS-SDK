@@ -1,6 +1,6 @@
 import Analytics from './Analytics';
 import {create} from 'apisauce';
-import {invToFDGlobal} from './Helpers';
+import {InventoryToFormData, isNode} from './Helpers';
 import * as jwt_decode from 'jwt-decode';
 
 export default class API {
@@ -52,7 +52,7 @@ export default class API {
 	 */
 	public static postExperience = (storyId:string, inventory:any, progress:(e)=>any = null):Promise<any> => {
 		const {http: {post}} = API;
-		const data = invToFDGlobal(storyId, inventory);
+		const data = InventoryToFormData(storyId, inventory);
 		const config = (progress) ? {onUploadProgress: (e) => progress(e)} : null;
 
 		return new Promise((resolve, reject) => {
