@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const Imposium = require('../../lib/imposium.min.js');
+const Imposium = require('../../lib/imposium.js');
 
 const STORY_ID    = '295a80d0-871c-4def-a579-8a375d6942fc',
 	SCENE_ID      = 'f7a20d1f-96f2-4672-a7e3-3891b4a8ed25',
@@ -29,4 +29,3 @@ const inventory = {
 };
 
 client.renderVideo(STORY_ID, SCENE_ID, ACT_ID, inventory);
-

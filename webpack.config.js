@@ -1,43 +1,50 @@
-
-const webpack = require('webpack');
-const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin;
-const path = require('path');
 const package = require('./package.json');
-const nodeExternals = require('webpack-node-externals');
-const env = require('yargs').argv.env; // use --env with webpack 2
+const webpack = require('webpack');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
-let libraryName = 'Imposium';
-let plugins = [
-  new webpack.BannerPlugin({banner: `// Version: ${package.version}`, raw: true, entryOnly: true})
-], outputFile;
+const LIB_NAME = 'Imposium';
 
-if (env === 'build') {
-  plugins.push(new UglifyJsPlugin({ minimize: true }));
-  outputFile = libraryName.toLowerCase() + '.min.js';
-} else {
-  outputFile = libraryName.toLowerCase() + '.js';
-}
-
-const config = {
-  entry: __dirname + '/src/ImposiumClient.ts',
-  devtool: 'source-map',
-  target: 'node',
-  output: {
-    path: __dirname + '/lib',
-    filename: outputFile,
-    library: libraryName,
-    libraryTarget: 'umd',
-    umdNamedDefine: true
-  },
-  module: {
-    loaders: [
-        { test: /\.tsx?$/, loader: "awesome-typescript-loader" }
+config = {
+    entry: __dirname + '/src/ImposiumClient.ts',
+    devtool: 'source-map',
+    module: {
+        rules: [{
+            test    : /\.ts$/,
+            use     : 'awesome-typescript-loader',
+            exclude : /node_modules/
+        }]
+    },
+    resolve: {
+        extensions: ['.ts', '.js']
+    },
+    output: {
+        library        : LIB_NAME,
+        libraryTarget  : 'umd',
+        umdNamedDefine : true,
+        path           : __dirname + '/lib',
+        globalObject   : 'this'
+    },
+    plugins: [
+        new webpack.BannerPlugin({
+            banner    : `// Version: ${package.version}`, 
+            raw       : true, 
+            entryOnly : true
+        })
     ],
-  },
-  resolve: {
-    extensions: [".webpack.js", ".web.js", ".ts", ".js", ".json"]
-  },
-  plugins: plugins
+    externals: {
+        
+        'form-data'     : 'form-data',
+        'isomorphic-ws' : 'isomorphic-ws'
+    }
 };
 
-module.exports = config;
+module.exports = (env, argv) => {
+    if (argv.mode === "production") {
+        config.output.filename = `${LIB_NAME.toLowerCase()}.min.js`;
+        config.plugins.push(new UglifyJSPlugin({sourceMap: true}));
+    } else {
+        config.output.filename = `${LIB_NAME.toLowerCase()}.js`;
+    }
+
+    return config;
+};

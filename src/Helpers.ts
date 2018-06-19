@@ -2,7 +2,7 @@ import * as FormDataShim from 'form-data';
 import ImposiumEvents from './ImposiumEvents';
 
 export const isNode = ():boolean => {
-	return (typeof process === 'object' && process + '' === '[object process]');
+	return (typeof process === 'object' && process + '' === '[object Object]');
 }
 
 export const InventoryToFormData = (s:string, i:any):any => {

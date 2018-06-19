@@ -1,6 +1,6 @@
 import Analytics from './Analytics';
 import {create} from 'apisauce';
-import {InventoryToFormData, getContentLength, isNode} from './Helpers';
+import {InventoryToFormData, isNode} from './Helpers';
 import * as jwt_decode from 'jwt-decode';
 
 export default class API {
@@ -33,12 +33,12 @@ export default class API {
 		return new Promise((resolve, reject) => {
 			get(`/experience/${expId}`)
 			.then((res) => {
-				const {ok, data} = res;
+				const {ok, data, status} = res;
 
 				if (ok) {
 					resolve(data);
 				} else {
-					reject();
+					throw new Error(`Error reaching Imposium API. Status code: ${status}`);
 				}
 			})
 			.catch((err) => {
@@ -77,7 +77,7 @@ export default class API {
 			post('/experience', formData, config)
 			.then((res) => {
 				const {ok, data, status} = res;
-
+				
 				if (ok) {
 					const {send} = Analytics;
 					const {id} = data;
