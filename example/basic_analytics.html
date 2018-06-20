@@ -69,7 +69,8 @@
 			});
 
 			imposium.on(events.GOT_EXPERIENCE, function(data) {
-				console.log(data);
+				vid.src = data.experience.video_url_mp4_720;
+				vid.style.display = 'block';
 			})
 
 			//If there is a deeplink to an experience, connect to that experience

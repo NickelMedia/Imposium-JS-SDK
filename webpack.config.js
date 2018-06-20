@@ -7,6 +7,17 @@ const LIB_NAME = 'Imposium';
 config = {
     entry: __dirname + '/src/ImposiumClient.ts',
     devtool: 'source-map',
+    target: 'node',
+    node: {
+        process: false
+    },
+    resolve: {
+        extensions: ['.ts', '.js']
+    },
+    externals: {
+        'form-data'     : 'form-data',
+        'isomorphic-ws' : 'isomorphic-ws'
+    },
     module: {
         rules: [{
             test    : /\.ts$/,
@@ -14,29 +25,22 @@ config = {
             exclude : /node_modules/
         }]
     },
-    resolve: {
-        extensions: ['.ts', '.js']
-    },
+    plugins: [
+        new webpack.BannerPlugin({
+            banner    : `// Version: ${package.version}`, 
+            raw       : true, 
+            entryOnly : true
+        }),
+        new webpack.DefinePlugin({
+          'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
+        })
+    ],
     output: {
         library        : LIB_NAME,
         libraryTarget  : 'umd',
         umdNamedDefine : true,
         path           : __dirname + '/lib',
         globalObject   : 'this'
-    },
-    plugins: [
-        new webpack.BannerPlugin({
-            banner    : `// Version: ${package.version}`, 
-            raw       : true, 
-            entryOnly : true
-        })
-    ],
-    externals: {
-        'form-data'     : 'form-data',
-        'isomorphic-ws' : 'isomorphic-ws'
-    },
-    node: {
-        process: false
     }
 };
 
