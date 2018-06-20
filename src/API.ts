@@ -65,6 +65,7 @@ export default class API {
 			config.headers = formData.getHeaders();
 			return doPostExperience(formData, config);
 		}
+		return null;
 	}
 
 	/*
@@ -77,7 +78,7 @@ export default class API {
 			post('/experience', formData, config)
 			.then((res) => {
 				const {ok, data, status} = res;
-				
+
 				if (ok) {
 					const {send} = Analytics;
 					const {id} = data;

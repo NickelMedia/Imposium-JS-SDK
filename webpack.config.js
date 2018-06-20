@@ -34,6 +34,9 @@ config = {
     externals: {
         'form-data'     : 'form-data',
         'isomorphic-ws' : 'isomorphic-ws'
+    },
+    node: {
+        process: false
     }
 };
 
