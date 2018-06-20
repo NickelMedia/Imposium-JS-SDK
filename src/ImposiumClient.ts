@@ -6,7 +6,7 @@ import VideoPlayer from './VideoPlayer';
 import ImposiumEvents from './ImposiumEvents';
 import MessageConsumer from './MessageConsumer';
 
-import {errorHandler} from './Helpers';
+import {errorHandler, isNode} from './Helpers';
 
 export class Events {
 	public static EXPERIENCE_CREATED:string = 'experienceCreated';
@@ -47,11 +47,13 @@ export class ImposiumClient {
 			if (GARegExp.test(trackingId)) {
 				Analytics.setup(trackingId);
 
-				this.pageView();
-				window.addEventListener('popstate', () => this.pageView());
+				if (!isNode()) {
+					this.pageView();
+					window.addEventListener('popstate', () => this.pageView());
 
-				if (playerRef) {
-					VideoPlayer.setup(playerRef);
+					if (playerRef) {
+						VideoPlayer.setup(playerRef);
+					}
 				}
 			} else {
 				throw new Error(`Tracking ID ${trackingId} is not a valid Google Analytics property.`);

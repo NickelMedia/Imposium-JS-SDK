@@ -1,4 +1,4 @@
-import axios from 'axios';
+import API from './API';
 import Queue from './Queue';
 
 /*
@@ -278,8 +278,8 @@ export default class Analytics {
 	private static makeRequest(url:string):void {
 		const {retry, broker, emitter} = Analytics;
 
-		axios.get(url)
-		.then((res) => {
+		API.getGATrackingPixel(url)
+		.then(() => {
 			const {active} = broker;
 
 			if (active.isEmpty()) {
@@ -299,13 +299,13 @@ export default class Analytics {
 	private static retry(url:string):void {
 		const {setRequestUrl, emit, retryTimeout} = Analytics;
 		const {active} = Analytics.broker;
-		let {current, max, delay} = Analytics.retries;
+		const {current, max, delay} = Analytics.retries;
 
 		Analytics.retryTimeout = setTimeout(
 			() => {
 				if (current < max) {
-					delay *= 2;
-					current++;
+					Analytics.retries.delay *= 2;
+					Analytics.retries.current++;
 					setRequestUrl(url);
 				} else {
 					clearTimeout(retryTimeout);

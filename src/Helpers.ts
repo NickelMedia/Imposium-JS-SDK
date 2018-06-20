@@ -1,6 +1,16 @@
 import * as FormDataShim from 'form-data';
 import ImposiumEvents from './ImposiumEvents';
 
+export const errorHandler = (error:Error):void => {
+	const {onError} = ImposiumEvents;
+
+	if (onError) {
+		onError(error);
+	}
+
+	console.error('[IMPOSIUM-JS-SDK]\n', error);
+}
+
 export const isNode = ():boolean => {
 	return (
 		typeof process !== 'undefined' &&
@@ -11,16 +21,6 @@ export const isNode = ():boolean => {
 
 export const InventoryToFormData = (s:string, i:any):any => {
 	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
-}
-
-export const errorHandler = (error:Error):void => {
-	const {onError} = ImposiumEvents;
-
-	if (onError) {
-		onError(error);
-	}
-
-	console.error('[IMPOSIUM-JS-SDK]\n', error);
 }
 
 // Uses browser based FormData library to prep POST data
