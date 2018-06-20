@@ -2,10 +2,17 @@ import * as FormDataShim from 'form-data';
 import ImposiumEvents from './ImposiumEvents';
 
 export const isNode = ():boolean => {
-	return (typeof process === 'object' && process + '' === '[object Object]');
+	if (typeof process === 'object') {
+		if (typeof process.versions === 'object') {
+			return (typeof process.versions.node !== 'undefined');
+		}
+	}
+
+	return false;
 }
 
 export const InventoryToFormData = (s:string, i:any):any => {
+	console.log('is node: ', isNode());
 	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
 }
 
