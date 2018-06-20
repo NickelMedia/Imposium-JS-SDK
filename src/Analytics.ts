@@ -39,7 +39,6 @@ interface Retries {
 
 export default class Analytics {
 	public static isSetup:boolean = false;
-	public static forcePageview:boolean = true;
 	private static emitter:any = null;
 	private static retryTimeout:any = null;
 
@@ -69,11 +68,16 @@ export default class Analytics {
 		Analytics.request.appId = trackingId;
 		Analytics.request.clientId = Analytics.checkCache();
 
-		if (Analytics.forcePageview) {
+		if (!Analytics.isSetup) {
+			Analytics.isSetup = true;
 
+			Analytics.pageView();
+
+			window.addEventListener(
+				'popstate', 
+				() => Analytics.pageView()
+			);
 		}
-		
-		Analytics.isSetup = true;
 	}
 
 	/*
@@ -92,6 +96,18 @@ export default class Analytics {
 
 			addToQueue(concatParams(event));
 		}
+	}
+
+	/*
+		Record page view metric
+	 */
+	private static pageView = ():void => {
+		const {send} = Analytics;
+
+		send({
+			t: 'pageview', 
+			dp: window.location.pathname
+		});
 	}
 
 	/*

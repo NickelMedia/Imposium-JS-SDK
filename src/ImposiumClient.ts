@@ -44,19 +44,18 @@ export class ImposiumClient {
 		const {GARegExp} = ImposiumClient;
 
 		try {
-			if (GARegExp.test(trackingId)) {
-				Analytics.setup(trackingId);
-
-				if (!isNode()) {
-					this.pageView();
-					window.addEventListener('popstate', () => this.pageView());
+			if (!isNode()) {
+				if (GARegExp.test(trackingId)) {
+					Analytics.setup(trackingId);
 
 					if (playerRef) {
 						VideoPlayer.setup(playerRef);
 					}
+				} else {
+					throw new Error(`Tracking ID ${trackingId} is not a valid Google Analytics property.`);
 				}
 			} else {
-				throw new Error(`Tracking ID ${trackingId} is not a valid Google Analytics property.`);
+				console.warn('Sorry, analytics are not currently available in NodeJS.');
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -224,15 +223,5 @@ export class ImposiumClient {
 		} catch (e) {
 			errorHandler(e)
 		}
-	}
-
-	/*
-		Record page view metric
-	 */
-	private pageView = ():void => {
-		Analytics.send({
-			t: 'pageview', 
-			dp: window.location.pathname
-		});
 	}
 }
