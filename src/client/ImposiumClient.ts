@@ -5,7 +5,10 @@ import ImposiumEvents from './ImposiumEvents';
 import MessageConsumer from './MessageConsumer';
 import Analytics from '../util/Analytics';
 import VideoPlayer from '../util/VideoPlayer';
-import {errorHandler, isNode} from '../util/Helpers';
+import {warnHandler, formatError, errorHandler, isNode} from '../util/Helpers';
+
+const errors = require('../conf/errors.json').client;
+const warnings = require('../conf/warnings.json').client;
 
 export class Events {
 	public static EXPERIENCE_CREATED:string = 'experienceCreated';
@@ -49,10 +52,12 @@ export class ImposiumClient {
 						VideoPlayer.setup(playerRef);
 					}
 				} else {
-					throw new Error(`Tracking ID ${trackingId} is not a valid Google Analytics property.`);
+					const {bad_ga_prop} = errors;
+					throw new Error(formatError(bad_ga_prop, trackingId));
 				}
 			} else {
-				console.warn('Sorry, analytics are not currently available in NodeJS.');
+				const {node_analytics} = warnings;
+				warnHandler(node_analytics);
 			}
 		} catch (e) {
 			errorHandler(e, false);
@@ -70,10 +75,12 @@ export class ImposiumClient {
 				if (~validEvents.indexOf(eventName)) {
 					ImposiumEvents[eventName] = callback;
 				} else {
-					throw new Error(`${eventName} is not a valid Imposium event.`);
+					const {invalid_event} = errors;
+					throw new Error(formatError(invalid_event, eventName));
 				}
 			} else {
-				throw new Error(`The callback reference passed to ${eventName} was not of type Function.`);
+				const {bad_event_ref} = errors;
+				throw new Error(formatError(bad_event_ref, eventName));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -91,7 +98,8 @@ export class ImposiumClient {
 				if (~validEvents.indexOf(eventName)) {
 					ImposiumEvents[eventName] = null;
 				} else {
-					throw new Error(`${eventName} is not a valid Imposium event.`);
+					const {invalid_event} = errors;
+					throw new Error(formatError(invalid_event, eventName));
 				}
 			} else {
 				validEvents.forEach((event) => {
@@ -121,7 +129,8 @@ export class ImposiumClient {
 					errorHandler(e);
 				});
 			} else {
-				throw new Error('Please set the following callback: experienceCreated to call createExperience');
+				const {no_callback_set} = errors;
+				throw new Error(formatError(no_callback_set, 'experienceCreated'));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -132,7 +141,7 @@ export class ImposiumClient {
 	/*
 		Get experience data
 	 */
-	public getVideo = (expId:string):void => {
+	public getExperience = (expId:string):void => {
 		const {gotExperience} = ImposiumEvents;
 
 		try {
@@ -145,7 +154,8 @@ export class ImposiumClient {
 					errorHandler(e)
 				});
 			} else {
-				throw new Error('Please set the following callback: gotExperience to call getExperience.');
+				const {no_callback_set} = errors;
+				throw new Error(formatError(no_callback_set, 'gotExperience'));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -185,7 +195,8 @@ export class ImposiumClient {
 					errorHandler(e);
 				});
 			} else {
-				throw new Error('Please set the following callback: gotScene to call renderExperience.');
+				const {no_callback_set} = errors;
+				throw new Error(formatError(no_callback_set, 'gotScene'));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -212,7 +223,8 @@ export class ImposiumClient {
 					MessageConsumer.reconnect(job);
 				}
 			} else {
-				throw new Error('Please set the following callback: gotScene to call getVideo.');
+				const {no_callback_set} = errors;
+				throw new Error(formatError(no_callback_set, 'gotScene'));
 			}
 		} catch (e) {
 			errorHandler(e)

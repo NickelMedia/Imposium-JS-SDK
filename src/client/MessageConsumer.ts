@@ -1,7 +1,10 @@
 import API from './API';
 import Stomp from './Stomp';
 import ImposiumEvents from './ImposiumEvents';
-import {warnHandler, errorHandler} from '../util/Helpers';
+import {warnHandler, formatError, errorHandler} from '../util/Helpers';
+
+const errors = require('../conf/errors.json').message_consumer;
+const warnings = require('../conf/warnings.json').message_consumer;
 
 class Messages {
 	public static readonly ACT_COMPLETE:string = 'actComplete';
@@ -106,7 +109,8 @@ export default class MessageConsumer {
 
 		try {
 			if (msg === 'Server failure.') {
-				throw new Error('Something went wrong processing your experience. Try reviewing your configuration.');
+				const {server_failed} = errors;
+				throw new Error(server_failed);
 			}
 
 			if (gotMessage) {
@@ -139,10 +143,12 @@ export default class MessageConsumer {
 					delete sceneData.id;
 					gotScene(sceneData);
 				} else {
-					throw new Error(`Imposium failed to prepare your experience:\n${JSON.stringify(experienceData, null, 2)}`);
+					const {parse_failed} = errors;
+					throw new Error(formatError(parse_failed, JSON.stringify(experienceData, null, 2)));
 				}
 			} else {
-				throw new Error('Your experience was rejected.');
+				const {rejected} = errors;
+				throw new Error(rejected);
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -160,8 +166,10 @@ export default class MessageConsumer {
 			++MessageConsumer.retried;
 
 			if (retried < maxRetries) {
+				const {tcp_failure} = warnings;
+
 				Stomp.reconnect(expId);
-				warnHandler(`Stomp over TCP failed (${retried}): Attempting to reconnect...`);
+				warnHandler(formatError(tcp_failure, retried));
 			} else {
 				errorHandler(e);
 			}

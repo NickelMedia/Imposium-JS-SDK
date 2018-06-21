@@ -1,6 +1,8 @@
 import Analytics from './Analytics';
 import {errorHandler} from './Helpers';
 
+const errors = require('../conf/errors.json').video_player;
+
 export default class VideoPlayer {
 	// Interval data
 	private static readonly evts:number[] = [0.25, 0.5, 0.75];
@@ -28,7 +30,8 @@ export default class VideoPlayer {
 			VideoPlayer.ref.addEventListener('pause',     () => VideoPlayer.onPause());
 			VideoPlayer.ref.addEventListener('ended',     () => VideoPlayer.onEnd());
 		} else {
-			throw new Error('The video player reference passed to ImposiumClient.setupAnalytics is not of type HTMLVideoElement');
+			const {bad_ref} = errors;
+			throw new Error(bad_ref);
 		}
 	}
 

@@ -1,6 +1,10 @@
 import * as FormDataShim from 'form-data';
 import ImposiumEvents from '../client/ImposiumEvents';
 
+export const warnHandler = (message:string):void => {
+	console.warn(`[IMPOSIUM-JS-SDK]\n${message}`);
+}
+
 export const errorHandler = (error:Error, trap:boolean = true):void => {
 	const {onError} = ImposiumEvents;
 
@@ -11,8 +15,8 @@ export const errorHandler = (error:Error, trap:boolean = true):void => {
 	console.error(`[IMPOSIUM-JS-SDK]\n${error}`);
 }
 
-export const warnHandler = (message:string):void => {
-	console.warn(`[IMPOSIUM-JS-SDK]\n${message}`);
+export const formatError = (message:string, prop:any) => {
+	return message.replace('[placeholder]', prop);
 }
 
 export const isNode = ():boolean => {
