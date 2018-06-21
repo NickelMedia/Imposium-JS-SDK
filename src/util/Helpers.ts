@@ -1,10 +1,12 @@
 import * as FormDataShim from 'form-data';
 import ImposiumEvents from '../client/ImposiumEvents';
 
+// Log out warnings
 export const warnHandler = (message:string):void => {
 	console.warn(`[IMPOSIUM-JS-SDK]\n${message}`);
 }
 
+// Log out errors, call user defined err callback if set && critical
 export const errorHandler = (error:Error, trap:boolean = true):void => {
 	const {onError} = ImposiumEvents;
 
@@ -15,10 +17,12 @@ export const errorHandler = (error:Error, trap:boolean = true):void => {
 	console.error(`[IMPOSIUM-JS-SDK]\n${error}`);
 }
 
+// Format error messages 
 export const formatError = (message:string, prop:any) => {
 	return message.replace('[placeholder]', prop);
 }
 
+// Checks for NodeJS process data 
 export const isNode = ():boolean => {
 	return (
 		typeof process !== 'undefined' &&
@@ -27,6 +31,7 @@ export const isNode = ():boolean => {
 	);
 }
 
+// Deal with prepping form data objs in isomporphic way
 export const InventoryToFormData = (s:string, i:any):any => {
 	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
 }

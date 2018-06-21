@@ -207,7 +207,7 @@ export class ImposiumClient {
 		Open TDP connection with Imposium and get event based messages and/or
 		video urls / meta
 	 */
-	private initStomp(job:any):void {
+	private initStomp = (job:any):void => {
 		const {gotScene} = ImposiumEvents;
 
 		try {

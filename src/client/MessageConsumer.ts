@@ -23,7 +23,7 @@ export default class MessageConsumer {
 	/*
 		Initialize WebStomp
 	 */
-	public static init(job:any):void {
+	public static init = (job:any):void => {
 		const {attachStompEvents} = MessageConsumer;
 		const {expId} = job;
 
@@ -38,7 +38,7 @@ export default class MessageConsumer {
 	/*
 		Kills the current stomp connection and initates a new connection on closure
 	 */
-	public static reconnect(job:any):void {
+	public static reconnect = (job:any):void => {
 		Stomp.disconnectAsync()
 		.then(() => {
 			MessageConsumer.init(job);	
@@ -63,7 +63,7 @@ export default class MessageConsumer {
 	/*
 		Initiates the message queueing process on Imposium
 	 */
-	private static invokeStreaming():void {
+	private static invokeStreaming = ():void => {
 		const {job: {expId, sceneId, actId}} = MessageConsumer;
 
 		API.invokeStream(expId, sceneId, actId)
@@ -76,7 +76,7 @@ export default class MessageConsumer {
 		Manage incoming messages. Depending on their state the websocket
 		may be terminated.
 	 */
-	private static routeMessageData(msg:any):void {
+	private static routeMessageData = (msg:any):void => {
 		const {ACT_COMPLETE, GOT_MESSAGE, GOT_SCENE} = Messages;
 		const {emitMessageData, emitSceneData} = MessageConsumer;
 
@@ -103,7 +103,7 @@ export default class MessageConsumer {
 	/*
 		Fire the gotMessage callback if the user is listening for this event
 	 */
-	private static emitMessageData(messageData:any):void {
+	private static emitMessageData = (messageData:any):void => {
 		const {gotMessage} = ImposiumEvents;
 		const {msg} = messageData;
 
@@ -124,7 +124,7 @@ export default class MessageConsumer {
 	/*
 		Parses the experience data into a prop delivered via gotScene
 	 */
-	private static emitSceneData(experienceData:any):void {
+	private static emitSceneData = (experienceData:any):void => {
 		const {gotScene} = ImposiumEvents
 		const rejected = (experienceData || {}).error;
 
@@ -158,7 +158,7 @@ export default class MessageConsumer {
 	/*
 		Called on Stomp errors
 	 */
-	private static stompError(e:any):void {
+	private static stompError = (e:any):void => {
 		const {retried, maxRetries, job: {expId}} = MessageConsumer;
 		const {wasClean} = e;
 
@@ -169,7 +169,7 @@ export default class MessageConsumer {
 				const {tcp_failure} = warnings;
 
 				Stomp.reconnect(expId);
-				warnHandler(formatError(tcp_failure, retried));
+				warnHandler(formatError(tcp_failure, retried + 1));
 			} else {
 				errorHandler(e);
 			}

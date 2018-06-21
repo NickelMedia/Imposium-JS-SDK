@@ -64,7 +64,7 @@ export default class Analytics {
 		delay: 2000
 	};
 
-	public static setup(trackingId:string) {
+	public static setup = (trackingId:string) => {
 		Analytics.request.appId = trackingId;
 		Analytics.request.clientId = Analytics.checkCache();
 
@@ -83,7 +83,7 @@ export default class Analytics {
 	/*
 		Sends events off to the GA collect API
 	 */
-	public static send(event:any):void {
+	public static send = (event:any):void => {
 		const {isSetup} = Analytics;
 
 		if (isSetup) {
@@ -114,7 +114,7 @@ export default class Analytics {
 		Checks to see if a user has a cached GA client id
 		in their localStorage
 	 */
-	private static checkCache():string {
+	private static checkCache = ():string => {
 		const {setCache, generateGuid} = Analytics;
 		const {cacheKey} = Analytics.request;
 
@@ -144,7 +144,7 @@ export default class Analytics {
 	/*
 		Sets new user creds in localStorage
 	 */
-	private static setCache(guid:string):string {
+	private static setCache = (guid:string):string => {
 		try {
 			const {cacheKey} = Analytics.request;
 			const expiry = new Date();
@@ -168,14 +168,14 @@ export default class Analytics {
 	/*
 		Generate random sequence 
 	 */
-	private static s4():string {
+	private static s4 = ():string => {
 		return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
 	}
 
 	/*
 		Concatenate a new guid
 	 */
-	private static generateGuid():string {
+	private static generateGuid = ():string => {
 		const {s4} = Analytics;
 		return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
 	}
@@ -183,7 +183,7 @@ export default class Analytics {
 	/*
 		Get a random number to supply the caching buster parameter
 	 */
-	private static getRandom():string {
+	private static getRandom = ():string => {
 		return Math.round(new Date().getTime() / 1000).toString();
 	}
 
@@ -192,7 +192,7 @@ export default class Analytics {
 		can be digested by the GA collect API. Any event provided params need to be
 		url encoded to prevent errors.
 	 */
-	private static concatParams(event:any):string {
+	private static concatParams = (event:any):string => {
 		const {getRandom} = Analytics;
 		const {baseUrl, appId, clientId} = Analytics.request;
 
@@ -208,7 +208,7 @@ export default class Analytics {
 	/*
 		Set request emitting interval
 	 */
-	private static emit() {
+	private static emit = () => {
 		const {setRequestUrl} = Analytics;
 		const {frequency} = Analytics.broker;
 
@@ -221,7 +221,7 @@ export default class Analytics {
 	/*
 		Determine if request needs to be deferred during a burst
 	 */
-	private static addToQueue(url:string):void {
+	private static addToQueue = (url:string):void => {
 		let {concurrency, defer, active, deferred} = Analytics.broker;
 
 		if (!defer) {
@@ -236,7 +236,7 @@ export default class Analytics {
 		If the deferral queue has urls in it, take 10 or queue length
 		and pass them to the active queue
 	 */
-	private static scrapeDeferred():void {
+	private static scrapeDeferred = ():void => {
 		const {emit} = Analytics;
 		let {concurrency, enqueued, defer, active, deferred} = Analytics.broker;
 
@@ -269,7 +269,7 @@ export default class Analytics {
 		Failed urls can also be passed as an optional param to
 		enable retries. 
 	 */
-	private static setRequestUrl(failedUrl:any = null) {
+	private static setRequestUrl = (failedUrl:any = null) => {
 		const {makeRequest, scrapeDeferred, broker, emitter} = Analytics;
 
 		if (failedUrl) {
@@ -291,7 +291,7 @@ export default class Analytics {
 	/*
 		Makes GET request to GA collect API with formatted query string
 	 */
-	private static makeRequest(url:string):void {
+	private static makeRequest = (url:string):void => {
 		const {retry, broker, emitter} = Analytics;
 
 		API.getGATrackingPixel(url)
@@ -312,7 +312,7 @@ export default class Analytics {
 		Retry requests recursively based on settings defined in 
 		Retry interface.
 	 */
-	private static retry(url:string):void {
+	private static retry = (url:string):void => {
 		const {setRequestUrl, emit, retryTimeout} = Analytics;
 		const {current, max, delay} = Analytics.retries;
 		const {active} = Analytics.broker;

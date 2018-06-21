@@ -1,0 +1,79 @@
+<!doctype html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Imposium Web Example</title>
+		<link rel="stylesheet" href="./css/styles.css">
+	</head>
+
+	<body>
+		<div class="example-wrapper">
+			<div class="content">
+				<div class="header">
+					<img 
+						class="logo" 
+						src="./img/imposium_logo@2x.png"/>
+				</div>
+
+				<div class="info">
+					You can try out Imposium by filling out this form:
+				</div>
+
+				<div class="inputs">
+					<div class="input-wrapper">
+						<label for="caption">
+							Enter Caption:
+						</label>
+						<br/>
+
+						<input 
+							id="caption" 
+							name="caption" 
+							type="text" 
+							placeholder="Write some text"/>
+					</div>
+
+					<div class="input-wrapper">
+						<label for="image">
+							Pick Image:
+						</label>
+						<br/>
+
+						<input 
+							id="image" 
+							name="image" 
+							type="file" 
+							accept=".jpg, .jpeg, .png, .gif" 
+							placeholder="caption"/>
+					</div>
+
+					<div class="submit-bar">
+						<button 
+							id="submit-btn" 
+							class="submit">
+
+							submit
+						</button>
+
+						<div 
+							id="status" 
+							class="status">
+						</div>
+					</div>
+				</div>
+
+				<div class="player-wrapper">
+					<video 
+						id="dynamicVideo"
+						controls 
+						autoplay>
+					</video>
+				</div>
+			</div>
+		</div>
+
+		<script type = "text/javascript" src = "../../lib/imposium.min.js"></script>
+		<script src="./example.js"></script>
+	</body>
+</html>
