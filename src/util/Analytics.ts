@@ -1,4 +1,4 @@
-import API from './API';
+import API from '../client/API';
 import Queue from './Queue';
 
 /*
@@ -38,7 +38,7 @@ interface Retries {
 }
 
 export default class Analytics {
-	public static isSetup:boolean = false;
+	private static isSetup:boolean = false;
 	private static emitter:any = null;
 	private static retryTimeout:any = null;
 
@@ -314,8 +314,8 @@ export default class Analytics {
 	 */
 	private static retry(url:string):void {
 		const {setRequestUrl, emit, retryTimeout} = Analytics;
-		const {active} = Analytics.broker;
 		const {current, max, delay} = Analytics.retries;
+		const {active} = Analytics.broker;
 
 		Analytics.retryTimeout = setTimeout(
 			() => {

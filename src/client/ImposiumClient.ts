@@ -1,12 +1,11 @@
 import "babel-polyfill";
 
 import API from './API';
-import Analytics from './Analytics';
-import VideoPlayer from './VideoPlayer';
 import ImposiumEvents from './ImposiumEvents';
 import MessageConsumer from './MessageConsumer';
-
-import {errorHandler, isNode} from './Helpers';
+import Analytics from '../util/Analytics';
+import VideoPlayer from '../util/VideoPlayer';
+import {errorHandler, isNode} from '../util/Helpers';
 
 export class Events {
 	public static EXPERIENCE_CREATED:string = 'experienceCreated';
@@ -27,8 +26,6 @@ export class ImposiumClient {
 		'gotMessage',
 		'onError'
 	];
-
-	private messageConsumer:MessageConsumer;
 
 	/*
 		Initialize Imposium client
@@ -58,7 +55,7 @@ export class ImposiumClient {
 				console.warn('Sorry, analytics are not currently available in NodeJS.');
 			}
 		} catch (e) {
-			errorHandler(e);
+			errorHandler(e, false);
 		}
 	}
 
@@ -104,7 +101,6 @@ export class ImposiumClient {
 		} catch (e) {
 			errorHandler(e);
 		}
-
 	}
 
 	/*
@@ -205,17 +201,15 @@ export class ImposiumClient {
 
 		try {
 			if (gotScene) {
-				const {updateId, updateExperienceID} = VideoPlayer;
-
-				if (updateId) {
+				if (VideoPlayer.updateId) {
 					const {expId} = job;
-					updateExperienceID(expId);
+					VideoPlayer.updateExperienceID(expId);
 				}
 
-				if (!this.messageConsumer) {
-					this.messageConsumer = new MessageConsumer(job);		
+				if (!MessageConsumer.job) {
+					MessageConsumer.init(job);		
 				} else {
-					this.messageConsumer.reconnect(job);
+					MessageConsumer.reconnect(job);
 				}
 			} else {
 				throw new Error('Please set the following callback: gotScene to call getVideo.');

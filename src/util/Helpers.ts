@@ -1,14 +1,18 @@
 import * as FormDataShim from 'form-data';
-import ImposiumEvents from './ImposiumEvents';
+import ImposiumEvents from '../client/ImposiumEvents';
 
-export const errorHandler = (error:Error):void => {
+export const errorHandler = (error:Error, trap:boolean = true):void => {
 	const {onError} = ImposiumEvents;
 
-	if (onError) {
+	if (onError && trap) {
 		onError(error);
 	}
 
-	console.error('[IMPOSIUM-JS-SDK]\n', error);
+	console.error(`[IMPOSIUM-JS-SDK]\n${error}`);
+}
+
+export const warnHandler = (message:string):void => {
+	console.warn(`[IMPOSIUM-JS-SDK]\n${message}`);
 }
 
 export const isNode = ():boolean => {

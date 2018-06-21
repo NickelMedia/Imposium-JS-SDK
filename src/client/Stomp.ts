@@ -1,5 +1,5 @@
 import * as WebStomp from 'webstomp-client';
-import {isNode} from './Helpers';
+import {isNode} from '../util/Helpers';
 
 const WebSocketShim = require('isomorphic-ws');
 
@@ -11,16 +11,19 @@ class SocketEvents {
 
 export default class Stomp {
 	// RabbitMQ creds
-	static readonly endpoint:string = 'wss://stomp.prod.k8s.nickel.media/ws';
-	static readonly exchange:string = '/exchange/imposium/';
-	static readonly username:string = 'imposium_stomp';
-	static readonly password:string = 'Teehe1ceeMe7Pe1d';
+	private static readonly endpoint:string = 'wss://stomp.prod.k8s.nickel.media/ws';
+	private static readonly exchange:string = '/exchange/imposium/';
+	private static readonly username:string = 'imposium_stomp';
+	private static readonly password:string = 'Teehe1ceeMe7Pe1d';
+
+	// Events configuration status
+	public static eventsBound:boolean = false;
 
 	// WS / Stomp objs
-	static expId:string;
-	static socket:WebSocket;
-	static client:WebStomp.Client;
-	static subscription:WebStomp.Subscription;
+	private static expId:string;
+	private static socket:WebSocket;
+	private static client:WebStomp.Client;
+	private static subscription:WebStomp.Subscription;
 
 	/*
 		Setup callbacks
@@ -29,6 +32,7 @@ export default class Stomp {
 		SocketEvents.triggerEmit = t;
 		SocketEvents.onMessage = m;
 		SocketEvents.onError = e;
+		Stomp.eventsBound = true;
 	}
 
 	/*

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import * as jwt_decode from 'jwt-decode';
-import Analytics from './Analytics';
-import {InventoryToFormData, isNode} from './Helpers';
+import Analytics from '../util/Analytics';
+import {InventoryToFormData, isNode} from '../util/Helpers';
 
 export default class API {
 	public static http:any = null;

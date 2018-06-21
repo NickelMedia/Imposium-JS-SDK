@@ -1,8 +1,7 @@
 import API from './API';
 import Stomp from './Stomp';
 import ImposiumEvents from './ImposiumEvents';
-
-import {errorHandler} from './Helpers';
+import {warnHandler, errorHandler} from '../util/Helpers';
 
 class Messages {
 	public static readonly ACT_COMPLETE:string = 'actComplete';
@@ -12,49 +11,57 @@ class Messages {
 
 // Wraps around the Stomp client, providing the message handling
 export default class MessageConsumer {
-	private job:any = null;
-	private retried:number = 0;
-	private maxRetries:number = 5;
-
-	public constructor(job:any) {
-		this.job = job;
-		this.init();
-	}
+	// Current imposium render job
+	public static job:any = null;
+	
+	private static readonly maxRetries:number = 5;
+	private static retried:number = 0;
 
 	/*
 		Initialize WebStomp
 	 */
-	public init():void {
-		const {expId} = this.job;
+	public static init(job:any):void {
+		const {attachStompEvents} = MessageConsumer;
+		const {expId} = job;
 
-		Stomp.setEvents(
-			()        => this.invokeStreaming(),
-			(msg:any) => this.routeMessageData(msg),
-			(e:any)   => this.stompError(e)
-		);
+		if (!Stomp.eventsBound) {
+			attachStompEvents();
+		}
 
+		MessageConsumer.job = job;
 		Stomp.init(expId);
 	}
 
 	/*
 		Kills the current stomp connection and initates a new connection on closure
 	 */
-	public reconnect(job:any):void {
-		this.job = job;
-
+	public static reconnect(job:any):void {
 		Stomp.disconnectAsync()
 		.then(() => {
-			this.init();	
+			MessageConsumer.init(job);	
 		}).catch(e => {
 			errorHandler(e);
 		});
 	}
 
 	/*
+		Bind the web stomp handlers on first job
+	 */
+	private static attachStompEvents = ():void => {
+		const {invokeStreaming, routeMessageData, stompError} = MessageConsumer;
+
+		Stomp.setEvents(
+			()        => invokeStreaming(),
+			(msg:any) => routeMessageData(msg),
+			(e:any)   => stompError(e)
+		);
+	}
+
+	/*
 		Initiates the message queueing process on Imposium
 	 */
-	private invokeStreaming():void {
-		const {expId, sceneId, actId} = this.job;
+	private static invokeStreaming():void {
+		const {job: {expId, sceneId, actId}} = MessageConsumer;
 
 		API.invokeStream(expId, sceneId, actId)
 		.catch((e) => {
@@ -66,26 +73,22 @@ export default class MessageConsumer {
 		Manage incoming messages. Depending on their state the websocket
 		may be terminated.
 	 */
-	private routeMessageData(msg:any):void {
+	private static routeMessageData(msg:any):void {
+		const {ACT_COMPLETE, GOT_MESSAGE, GOT_SCENE} = Messages;
+		const {emitMessageData, emitSceneData} = MessageConsumer;
+
 		try {
 			const payload = JSON.parse(msg.body);
 
-			const {
-				ACT_COMPLETE,
-				GOT_MESSAGE,
-				GOT_SCENE
-			} = Messages;
-
 			switch(payload.event) {
 				case ACT_COMPLETE:
-					// Kills the Stomp connection without handlers
 					Stomp.disconnect();
 					break;
 				case GOT_MESSAGE:
-					this.emitMessageData(payload);
+					emitMessageData(payload);
 					break;
 				case GOT_SCENE:
-					this.emitSceneData(payload);
+					emitSceneData(payload);
 					break;
 				default: break;
 			}
@@ -97,7 +100,7 @@ export default class MessageConsumer {
 	/*
 		Fire the gotMessage callback if the user is listening for this event
 	 */
-	private emitMessageData(messageData:any):void {
+	private static emitMessageData(messageData:any):void {
 		const {gotMessage} = ImposiumEvents;
 		const {msg} = messageData;
 
@@ -117,7 +120,7 @@ export default class MessageConsumer {
 	/*
 		Parses the experience data into a prop delivered via gotScene
 	 */
-	private emitSceneData(experienceData:any):void {
+	private static emitSceneData(experienceData:any):void {
 		const {gotScene} = ImposiumEvents
 		const rejected = (experienceData || {}).error;
 
@@ -149,17 +152,16 @@ export default class MessageConsumer {
 	/*
 		Called on Stomp errors
 	 */
-	private stompError(e:any):void {
+	private static stompError(e:any):void {
+		const {retried, maxRetries, job: {expId}} = MessageConsumer;
 		const {wasClean} = e;
 
 		if (!e.wasClean) {
-			++this.retried;
+			++MessageConsumer.retried;
 
-			if (this.retried < this.maxRetries) {
-				const {expId} = this.job;
-
+			if (retried < maxRetries) {
 				Stomp.reconnect(expId);
-				console.warn(`Stomp over TCP failed (${this.retried}): Attempting to reconnect...`);
+				warnHandler(`Stomp over TCP failed (${retried}): Attempting to reconnect...`);
 			} else {
 				errorHandler(e);
 			}

@@ -2,16 +2,19 @@ import Analytics from './Analytics';
 import {errorHandler} from './Helpers';
 
 export default class VideoPlayer {
-	static readonly evts:number[] = [0.25, 0.5, 0.75];
-	static readonly checkDelay:number = 100;
+	// Interval data
+	private static readonly evts:number[] = [0.25, 0.5, 0.75];
+	private static readonly checkDelay:number = 100;
 
-	static ref:HTMLVideoElement = null;
-	static currExp:string = '';
-	static lastEvtFired:number = 0;
-	static updateId:boolean = false;
-	static startSent:boolean = false;
-	static finishedSent:boolean = false;
-	static progressCheckInterval:any;
+	// Allows playback events to be recorded
+	public static updateId:boolean = false;
+
+	private static ref:HTMLVideoElement = null;
+	private static currExp:string = '';
+	private static lastEvtFired:number = 0;
+	private static startSent:boolean = false;
+	private static finishedSent:boolean = false;
+	private static progressCheckInterval:any;
 
 	/*
 		Assign the tracking events to a video player reference
