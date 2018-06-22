@@ -12,31 +12,34 @@ var statusField  = document.getElementById('status'),
 
 var imposium = new Imposium.ImposiumClient(ACCESS_KEY);
 
+// Executes when a status message is delivered via web socket
 imposium.on(Imposium.Events.GOT_MESSAGE, function(data) {
 	setStatus(data.msg, 'steelblue');
 });
 
+// Executes when a message containing experience data is delivered via web socket
 imposium.on(Imposium.Events.GOT_SCENE, function(data) {
 	setStatus('Got Scene', 'green');
 	window.location.hash = '#' + data.experience_id;
 	videoPlayer.src = data.mp4Url;
 });
 
+// Executes when a response from our API returns experience data
 imposium.on(Imposium.Events.GOT_EXPERIENCE, function(data) {
 	setStatus('Got Scene', 'green');
 	videoPlayer.src = data.experience.video_url_mp4_720;
 });
 
+// Executes when errors occur
 imposium.on(Imposium.Events.ERROR, function(err) {
 	setStatus('Something went wrong processing your experience.', 'red');
 });
 
-// Creates an experience on Imposium, passing in the caption and/or image 
+// Click handler for the form button, creates a new Imposium experience
 function createExperience() {
     if (!captionInput.value || imageInput.files.length < 1) {
         setStatus('Please finish filling in the form.', 'red');
     } else {
-        // here you can specify a callback URL to hit once the video has rendered
         var inventory = {
             text         : captionInput.value,
             image        : imageInput,
@@ -44,7 +47,6 @@ function createExperience() {
         };
         
         imposium.renderVideo(STORY_ID, SCENE_ID, ACT_ID, inventory);
-
         setStatus('Creating Experience', 'steelblue');
     }
 
@@ -56,20 +58,14 @@ function setStatus(status, color) {
 	this.statusField.style.color = color;
 }
 
-// Bind the click event to the generate button
-submitBtn.addEventListener('click', createExperience);
-
-//If there is a deeplink to an experience, connect to that experience
+// If there is a deeplink to an experience, connect to that experience
 if (window.location.hash !== '') {
     var expId = window.location.hash.replace('#', '');
 
     if (expId) {
-        var job = {
-        	sceneId : SCENE_ID, 
-        	actId   : ACT_ID,
-        	expId   : expId
-        };
-
         imposium.getExperience(expId);
     }                   
 }
+
+// Bind the click event to the generate button
+submitBtn.addEventListener('click', createExperience);
