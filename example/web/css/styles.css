@@ -69,6 +69,7 @@ input[type="text"] {
 	width: 100%;
 	box-sizing: border-box;
 	border: 1px solid rgba(0, 0, 0, 0.15);
+	border-radius: 3px;
 }
 
 .submit-bar {
