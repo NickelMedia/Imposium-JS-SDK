@@ -56,7 +56,7 @@ export default class Stomp {
 		Stomp.socket = (!isNode()) ? new WebSocket(endpoint) : new WebSocketShim(endpoint);
 		Stomp.client = WebStomp.over(Stomp.socket);
 		Stomp.client.debug = () => {};
-
+		
 		Stomp.client.connect
 		(
 			username,

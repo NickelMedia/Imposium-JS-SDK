@@ -17,7 +17,7 @@ class Messages {
 // Wraps around the Stomp client, providing the message handling
 export default class MessageConsumer {
 	// Current imposium render job
-	public static job:any = {};
+	public static job:any = null;
 	
 	// Settings for retrying rabbitMQ connections
 	private static readonly maxRetries:number = settings.max_reconnect_attempts;
