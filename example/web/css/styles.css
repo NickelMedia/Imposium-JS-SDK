@@ -57,15 +57,23 @@ label {
 }
 
 input[type="text"] {
-	padding: 5px;
+	margin:0;
+	border:0;
+	padding:0;
+	display:inline-block;
+	vertical-align:middle;
+	white-space:normal;
+	background:none;
+	line-height:1;
+	padding: 7.5px 5px;
 	width: 100%;
 	box-sizing: border-box;
+	border: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 .submit-bar {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 }
 
 .submit {
@@ -79,19 +87,19 @@ input[type="text"] {
 	color: white;
 	font-size: 12px;
 	font-weight: 600;
-	letter-spacing: 1.1px;
+	letter-spacing: 0.8px;
 	text-transform: uppercase;
 	cursor: pointer;
-	transition: transform 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
+	transition: background-color 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
 }
 
 .submit:hover {
-	transform: scale(1.025);
+	background-color: #0099cc;
 }
 
 .status {
 	height: 30px;
-	margin: 10px 0px 0px 0px;
+	margin: 10px 0px 0px 10px;
 	font-size: 14px;
 	padding: 0px 3px 0px 0px;
 	display: flex;
