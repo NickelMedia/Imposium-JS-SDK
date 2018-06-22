@@ -1,11 +1,12 @@
 import axios from 'axios';
 import * as jwt_decode from 'jwt-decode';
-import Analytics from '../util/Analytics';
-import {InventoryToFormData, isNode} from '../util/Helpers';
+import Analytics from '../../analytics/Analytics';
+import {InventoryToFormData, isNode} from '../../scaffolding/Helpers';
+
+const settings = require('../../conf/settings.json').api;
 
 export default class API {
-	public static http:any = null;
-	private static readonly baseURL:string = 'https://api.imposium.com';
+	private static readonly baseURL:string = settings.base_url;
 	
 	/*
 		Setup HTTP client defaults
@@ -14,9 +15,9 @@ export default class API {
 		// Attempt to decode JWT format from authToken, fallback to hmac if call fails
 		try {
 			jwt_decode(authToken);
-			axios.defaults.headers.common['Authorization'] = authToken;
+			axios.defaults.headers.common[settings.jwt] = authToken;
 		} catch (e) {
-			axios.defaults.headers.common['X-Imposium-Access-Key'] = authToken;
+			axios.defaults.headers.common[settings.hmac] = authToken;
 		}
 	}
 
@@ -118,8 +119,8 @@ export default class API {
 				url: url,
 				method: 'GET',
 				transformRequest: [(data, headers) => {
-					delete headers.common['Authorization'];
-					delete headers.common['X-Imposium-Access-Key'];
+					delete headers.common[settings.jwt];
+					delete headers.common[settings.hmac];
 
 					return data;
 				}]

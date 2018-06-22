@@ -1,0 +1,32 @@
+{
+	"api": {
+		"base_url": "https://api.imposium.com",
+		"hmac": "X-Imposium-Access-Key",
+		"jwt": "Authorization"
+	},
+	"message_consumer": {
+		"max_reconnect_attempts": 5,
+		"min_reconnects": 0,
+		"error_over_tcp": "Server failure.",
+		"video_scene": "VideoScene01"
+	},
+	"stomp": {
+		"endpoint": "wss://stomp.prod.k8s.nickel.media/ws",
+		"exchange": "/exchange/imposium/",
+		"username": "imposium_stomp",
+		"password": "Teehe1ceeMe7Pe1d"
+	},
+	"analytics": {
+		"base_url": "https://ssl.google-analytics.com/collect",
+		"ls_lookup": "imposium_js_ga_cid",
+		"concurrency": 10,
+		"frequency": 50,
+		"min_retries": 0,
+		"max_retries": 3,
+		"min_delay": 2000
+	},
+	"video_player": {
+		"playback_events": [0.25, 0.5, 0.75],
+		"check_playback_rate": 100
+	}
+}

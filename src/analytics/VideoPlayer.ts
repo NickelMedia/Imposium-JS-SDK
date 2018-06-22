@@ -1,16 +1,17 @@
 import Analytics from './Analytics';
-import {errorHandler} from './Helpers';
+import {errorHandler} from '../scaffolding/Helpers';
 
 const errors = require('../conf/errors.json').video_player;
+const settings = require('../conf/settings.json').video_player;
 
 export default class VideoPlayer {
-	// Interval data
-	private static readonly evts:number[] = [0.25, 0.5, 0.75];
-	private static readonly checkDelay:number = 100;
-
 	// Allows playback events to be recorded
 	public static updateId:boolean = false;
 
+	// Interval data
+	private static readonly evts:number[] = settings.playback_events;
+	private static readonly checkDelay:number = settings.check_playback_rate;
+	
 	private static ref:HTMLVideoElement = null;
 	private static currExp:string = '';
 	private static lastEvtFired:number = 0;

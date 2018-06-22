@@ -1,5 +1,8 @@
-import API from '../client/API';
+import API from '../client/http/API';
 import Queue from './Queue';
+
+const settings = require('../conf/settings.json').analytics;
+
 
 /*
 	Manually handles calls to GA, Analytics was developed to avoid having to ask
@@ -43,15 +46,15 @@ export default class Analytics {
 	private static retryTimeout:any = null;
 
 	private static request:Request = {
-		baseUrl: 'https://ssl.google-analytics.com/collect',
-		cacheKey: 'imposium_js_ga_cid',
+		baseUrl: settings.base_url,
+		cacheKey: settings.ls_lookup,
 		appId: null,
 		clientId: null
 	}
 
 	private static broker:Broker = {
-		concurrency: 10, 
-		frequency: 50, 
+		concurrency: settings.concurrency, 
+		frequency: settings.frequency, 
 		enqueued: 0, 
 		defer: false, 
 		active: new Queue(), 
@@ -59,9 +62,9 @@ export default class Analytics {
 	};
 
 	private static retries:Retries = {
-		current: 0, 
-		max: 3,  
-		delay: 2000
+		current: settings.min_retries, 
+		max: settings.max_retries,  
+		delay: settings.min_delay
 	};
 
 	public static setup = (trackingId:string) => {
@@ -322,11 +325,16 @@ export default class Analytics {
 				if (current < max) {
 					Analytics.retries.delay *= 2;
 					Analytics.retries.current++;
+
 					setRequestUrl(url);
 				} else {
 					clearTimeout(retryTimeout);
+
 					active.pop();
 					emit();
+
+					Analytics.retries.delay = settings.min_delay;
+					Analytics.retries.current = settings.min_retries;
 					// add a check here to do a long poll if 
 					// n number of requests fail after retrying
 				}

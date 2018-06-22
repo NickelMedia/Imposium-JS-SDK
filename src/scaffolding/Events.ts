@@ -1,3 +1,6 @@
+/*
+	Placeholders user defined callbacks
+ */
 export default class ImposiumEvents {
 	public static experienceCreated:(data:any)=>any = null;
 	public static uploadProgress:(data:any)=>any = null;

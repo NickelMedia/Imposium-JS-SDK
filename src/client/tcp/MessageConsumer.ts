@@ -1,11 +1,13 @@
-import API from './API';
+import API from '../http/API';
 import Stomp from './Stomp';
-import ImposiumEvents from './ImposiumEvents';
-import {warnHandler, formatError, errorHandler} from '../util/Helpers';
+import ImposiumEvents from '../../scaffolding/Events';
+import {warnHandler, formatError, errorHandler} from '../../scaffolding/Helpers';
 
-const errors = require('../conf/errors.json').message_consumer;
-const warnings = require('../conf/warnings.json').message_consumer;
+const errors = require('../../conf/errors.json').message_consumer;
+const warnings = require('../../conf/warnings.json').message_consumer;
+const settings = require('../../conf/settings.json').message_consumer;
 
+// Distinct message keys to listen for over RabbitMQ
 class Messages {
 	public static readonly ACT_COMPLETE:string = 'actComplete';
 	public static readonly GOT_MESSAGE:string = 'gotMessage';
@@ -15,10 +17,11 @@ class Messages {
 // Wraps around the Stomp client, providing the message handling
 export default class MessageConsumer {
 	// Current imposium render job
-	public static job:any = null;
+	public static job:any = {};
 	
-	private static readonly maxRetries:number = 5;
-	private static retried:number = 0;
+	// Settings for retrying rabbitMQ connections
+	private static readonly maxRetries:number = settings.max_reconnect_attempts;
+	private static retried:number = settings.min_reconnects;
 
 	/*
 		Initialize WebStomp
@@ -108,7 +111,7 @@ export default class MessageConsumer {
 		const {msg} = messageData;
 
 		try {
-			if (msg === 'Server failure.') {
+			if (msg === settings.error_over_tcp) {
 				const {server_failed} = errors;
 				throw new Error(server_failed);
 			}
@@ -133,7 +136,7 @@ export default class MessageConsumer {
 				// Shorthand idioms for checking if required nested JSON data exists
 				const sceneId = ((  experienceData || {}).sceneData || {}).id;
 				const hasUrls = ((( experienceData || {}).output    || {})[sceneId] || {}).mp4Url;
-				const isVideo = ((( experienceData || {}).sceneData || {}).type === 'VideoScene01');
+				const isVideo = ((( experienceData || {}).sceneData || {}).type === settings.video_scene);
 
 				if (isVideo && hasUrls) {
 					// Merge up the scene data and the experience ID 
@@ -171,6 +174,7 @@ export default class MessageConsumer {
 				Stomp.reconnect(expId);
 				warnHandler(formatError(tcp_failure, retried + 1));
 			} else {
+				MessageConsumer.retried = settings.min_reconnects;
 				errorHandler(e);
 			}
 		}

@@ -1,35 +1,26 @@
 import "babel-polyfill";
 
-import API from './API';
-import ImposiumEvents from './ImposiumEvents';
-import MessageConsumer from './MessageConsumer';
-import Analytics from '../util/Analytics';
-import VideoPlayer from '../util/VideoPlayer';
-import {warnHandler, formatError, errorHandler, isNode} from '../util/Helpers';
+import API from './http/API';
+import MessageConsumer from './tcp/MessageConsumer';
+import Analytics from '../analytics/Analytics';
+import VideoPlayer from '../analytics/VideoPlayer';
+import ImposiumEvents from '../scaffolding/Events';
+import {warnHandler, formatError, errorHandler, isNode} from '../scaffolding/Helpers';
 
 const errors = require('../conf/errors.json').client;
 const warnings = require('../conf/warnings.json').client;
 
-export class Events {
-	public static EXPERIENCE_CREATED:string = 'experienceCreated';
-	public static UPLOAD_PROGRESS:string = 'uploadProgress';
-	public static GOT_EXPERIENCE:string = 'gotExperience';
-	public static GOT_SCENE:string = 'gotScene';
-	public static GOT_MESSAGE:string = 'gotMessage';
-	public static ERROR:string = 'onError';
-}
+export const Events = {
+	EXPERIENCE_CREATED : 'experienceCreated',
+	UPLOAD_PROGRESS    : 'uploadProgress',
+	GOT_EXPERIENCE     : 'gotExperience',
+	GOT_SCENE          : 'gotScene',
+	GOT_MESSAGE        : 'gotMessage',
+	ERROR              : 'onError'
+};
 
 export class ImposiumClient {
-	private static readonly GARegExp:RegExp = RegExp(/^ua-\d{4,9}-\d{1,4}$/i);
-	private static readonly validEvents:string[] = [
-		'experienceCreated',
-		'uploadProgress',
-		'gotExperience',
-		'gotScene',
-		'gotMessage',
-		'onError'
-	];
-
+	private static readonly validEvents:string[] = Object.keys(Events).map(e => Events[e]);
 	/*
 		Initialize Imposium client
 	 */
@@ -41,11 +32,9 @@ export class ImposiumClient {
 		Set up the analytics client and video tracking events
 	 */
 	public setupAnalytics = (trackingId:string = '', playerRef:HTMLVideoElement = null):void => {
-		const {GARegExp} = ImposiumClient;
-
 		try {
 			if (!isNode()) {
-				if (GARegExp.test(trackingId)) {
+				if (RegExp(/^ua-\d{4,9}-\d{1,4}$/i).test(trackingId)) {
 					Analytics.setup(trackingId);
 
 					if (playerRef) {
@@ -130,7 +119,7 @@ export class ImposiumClient {
 				});
 			} else {
 				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, 'experienceCreated'));
+				throw new Error(formatError(no_callback_set, Events.EXPERIENCE_CREATED));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -155,7 +144,7 @@ export class ImposiumClient {
 				});
 			} else {
 				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, 'gotExperience'));
+				throw new Error(formatError(no_callback_set, Events.GOT_EXPERIENCE));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -196,7 +185,7 @@ export class ImposiumClient {
 				});
 			} else {
 				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, 'gotScene'));
+				throw new Error(formatError(no_callback_set, Events.GOT_SCENE));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -224,7 +213,7 @@ export class ImposiumClient {
 				}
 			} else {
 				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, 'gotScene'));
+				throw new Error(formatError(no_callback_set, Events.GOT_SCENE));
 			}
 		} catch (e) {
 			errorHandler(e)
