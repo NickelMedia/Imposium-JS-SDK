@@ -1,6 +1,6 @@
 body {
 	background-color: #3f3f3f;
-	font-family: helvetica, arial, sans-serif;
+	font-family: Roboto Condensed, helvetica, arial, sans-serif;
 }
 
 .example-wrapper {
@@ -17,6 +17,7 @@ body {
 .content {
 	background-color: #fff;
 	border-radius: 5px;
+	box-shadow: 0px 1px 100px 5px rgba(0,0,0,0.5);
 }
 
 .header {
@@ -64,25 +65,33 @@ input[type="text"] {
 .submit-bar {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 }
 
 .submit {
-	background-color: #449d44;
+	border: none;
+	outline: none;
+	background-color: deepskyblue;
 	border-radius:5px;
-	width: 100px;
+	width: 125px;
 	height: 30px;
 	margin: 10px 0px 0px 0px;
 	color: white;
 	font-size: 12px;
 	text-transform: uppercase;
 	cursor: pointer;
+	transition: transform 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.submit:hover {
+	transform: scale(1.025);
 }
 
 .status {
 	height: 30px;
 	margin: 10px 0px 0px 0px;
 	font-size: 14px;
-	padding-left: 10px;
+	padding: 0px 3px 0px 0px;
 	display: flex;
 	align-items: center;
 }

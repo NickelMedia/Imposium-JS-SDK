@@ -33,21 +33,21 @@ imposium.on(Imposium.Events.ERROR, function(err) {
 
 // Creates an experience on Imposium, passing in the caption and/or image 
 function createExperience() {
-    // here you can specify a callback URL to hit once the video has rendered
-    var inventory = {
-        text         : captionInput.value,
-        image        : imageInput,
-        callback_url : ''
-    };
-    
-    imposium.renderVideo(
-        STORY_ID, 
-        SCENE_ID,
-        ACT_ID,
-        inventory
-    );
+    if (!captionInput.value || imageInput.files.length < 1) {
+        setStatus('Please finish filling in the form.', 'red');
+    } else {
+        // here you can specify a callback URL to hit once the video has rendered
+        var inventory = {
+            text         : captionInput.value,
+            image        : imageInput,
+            callback_url : ''
+        };
+        
+        imposium.renderVideo(STORY_ID, SCENE_ID, ACT_ID, inventory);
 
-    setStatus('Creating Experience', 'steelblue');
+        setStatus('Creating Experience', 'steelblue');
+    }
+
 }
 
 // Helper that updates statusField div with incoming messages
