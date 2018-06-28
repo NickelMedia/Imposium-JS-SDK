@@ -26,6 +26,7 @@ export class ImposiumClient {
 	 */
 	constructor(token:string, config:any = null) {
 		API.setupAuth(token);
+		console.log(document.querySelectorAll('video'));
 	}
 
 	/*
@@ -124,7 +125,6 @@ export class ImposiumClient {
 		} catch (e) {
 			errorHandler(e);
 		}
-
 	}
 
 	/*
