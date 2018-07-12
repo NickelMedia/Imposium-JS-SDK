@@ -125,32 +125,6 @@ export class ImposiumClient {
 	}
 
 	/*
-		Create new experience & return relevant meta
-	 */
-	public createExperience = (storyId:string, inventory:any, render:boolean):void => {
-		const {experienceCreated, uploadProgress} = ImposiumEvents;
-
-		try {
-			if (experienceCreated) {
-				const {postExperience} = API;
-
-				postExperience(storyId, inventory, uploadProgress)
-				.then((data) => {
-					experienceCreated(data);
-				})
-				.catch((e) => {
-					errorHandler(e);
-				});
-			} else {
-				const {noCallbackSet} = errors;
-				throw new Error(formatError(noCallbackSet, Events.EXPERIENCE_CREATED));
-			}
-		} catch (e) {
-			errorHandler(e);
-		}
-	}
-
-	/*
 		Get experience data
 	 */
 	public getExperience = (expId:string):void => {
@@ -175,39 +149,51 @@ export class ImposiumClient {
 	}
 
 	/*
-		Create a new experience and start listening for messages
+		Create new experience & return relevant meta
 	 */
-	public renderVideo = (storyId:string, sceneId:string, actId:string, inventory:any) => {
-		const {
-			experienceCreated,
-			uploadProgress, 
-			gotExperience
-		} = ImposiumEvents;
+	public createExperience = (inventory:any, render:boolean):void => {
+		const {gotExperience, experienceCreated, uploadProgress} = ImposiumEvents;
+		const permitRender = (render && experienceCreated);
+		const permitCreate = (!render && gotExperience);
 
 		try {
-			if (gotExperience) {
+			if (permitRender || permitCreate) {
+				const {activeConfig: {storyId}} = settings;
 				const {postExperience} = API;
 
 				postExperience(storyId, inventory, uploadProgress)
 				.then((data) => {
 					const {id} = data;
+					const {activeConfig: {sceneId, actId}} = settings;
 
 					if (experienceCreated) {
 						experienceCreated(data);
 					}
-
-					this.initStomp({
-						expId: id,
-						sceneId: sceneId,
-						actId: actId
-					});
+					
+					if (render) {
+						this.invokeMessaging({
+							expId   : id,
+							sceneId : sceneId,
+							actId   : actId
+						});
+					}
 				})
 				.catch((e) => {
 					errorHandler(e);
 				});
 			} else {
 				const {noCallbackSet} = errors;
-				throw new Error(formatError(noCallbackSet, Events.GOT_EXPERIENCE));
+				let eventType = null;
+
+				if (render && !gotExperience) {
+					eventType = Events.GOT_EXPERIENCE;
+				} 
+
+				if (!render && !experienceCreated) {
+					eventType = Events.EXPERIENCE_CREATED;
+				}
+
+				throw new Error(formatError(noCallbackSet, eventType));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -215,30 +201,19 @@ export class ImposiumClient {
 	}
 
 	/*
-		Open TDP connection with Imposium and get event based messages and/or
+		Open TCP connection with Imposium and get event based messages and/or
 		video urls / meta
 	 */
-	private initStomp = (job:any):void => {
-		const {gotExperience} = ImposiumEvents;
+	private invokeMessaging = (job:any):void => {
+		if (VideoPlayer.updateId) {
+			const {expId} = job;
+			VideoPlayer.updateExperienceID(expId);
+		}
 
-		try {
-			if (gotExperience) {
-				if (VideoPlayer.updateId) {
-					const {expId} = job;
-					VideoPlayer.updateExperienceID(expId);
-				}
-
-				if (!MessageConsumer.job) {
-					MessageConsumer.init(job);		
-				} else {
-					MessageConsumer.reconnect(job);
-				}
-			} else {
-				const {noCallbackSet} = errors;
-				throw new Error(formatError(noCallbackSet, Events.GOT_EXPERIENCE));
-			}
-		} catch (e) {
-			errorHandler(e)
+		if (!MessageConsumer.job) {
+			MessageConsumer.init(job);		
+		} else {
+			MessageConsumer.reconnect(job);
 		}
 	}
 }

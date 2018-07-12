@@ -26,6 +26,7 @@ imposium.on(Imposium.Events.STATUS_UPDATE, function(data) {
 
 // Executes when a fresh experience was created 
 imposium.on(Imposium.Events.EXPERIENCE_CREATED, function(data) {
+    setStatus('Experience created', 'green');
     window.location.hash = '#' + data.id;
 });
 
@@ -51,7 +52,7 @@ function createExperience() {
             callback_url : ''
         };
         
-        imposium.renderVideo(STORY_ID, SCENE_ID, ACT_ID, inventory);
+        imposium.createExperience(inventory, true);
         setStatus('Creating Experience', 'steelblue');
     }
 
