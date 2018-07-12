@@ -6,12 +6,14 @@ import {InventoryToFormData, isNode} from '../../scaffolding/Helpers';
 const settings = require('../../conf/settings.json').api;
 
 export default class API {
-	private static readonly baseURL:string = settings.baseUrl;
-	
+	private static baseURL:string = '';
+
 	/*
 		Setup HTTP client defaults
 	 */
-	public static setupAuth = (authToken:string):void => {
+	public static setup = (authToken:string, env:string):void => {
+		API.baseURL = (env === 'production') ? settings.prodBaseUrl : settings.stagingBaseUrl;
+
 		// Attempt to decode JWT format from authToken, fallback to hmac if call fails
 		try {
 			jwt_decode(authToken);
@@ -22,7 +24,7 @@ export default class API {
 	}
 
 	/*
-		Get story meta data, GA tracking property in particular (PLACEHOLDER)
+		Wait async for story meta data, GA tracking property in particular (PLACEHOLDER)
 	 */
 	public static getStory = (storyId:string):Promise<any> => {
 		const {get} = axios;

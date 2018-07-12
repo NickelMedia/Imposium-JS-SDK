@@ -10,7 +10,8 @@
 		"activeConfig": {}
 	},
 	"api": {
-		"baseUrl": "https://api.imposium.com",
+		"prodBaseUrl": "https://api.imposium.com",
+		"stagingBaseUrl": "https://api.staging.imposium.com",
 		"hmac": "X-Imposium-Access-Key",
 		"jwt": "Authorization"
 	},

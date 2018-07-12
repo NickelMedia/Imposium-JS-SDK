@@ -45,7 +45,8 @@ export class ImposiumClient {
 		prepConfig(config);
 		settings.activeConfig = {...defaultConfig, ...config};
 
-		API.setupAuth(settings.activeConfig.accessToken);
+
+		API.setup(settings.activeConfig.accessToken, settings.activeConfig.environment);
 	}
 
 	/*
