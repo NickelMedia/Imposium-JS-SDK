@@ -13,21 +13,20 @@ var statusField  = document.getElementById('status'),
 var imposium = new Imposium.ImposiumClient(ACCESS_KEY);
 
 // Executes when a status message is delivered via web socket
-imposium.on(Imposium.Events.GOT_MESSAGE, function(data) {
+imposium.on(Imposium.Events.STATUS_UPDATE, function(data) {
 	setStatus(data.msg, 'steelblue');
 });
 
-// Executes when a message containing experience data is delivered via web socket
-imposium.on(Imposium.Events.GOT_SCENE, function(data) {
-	setStatus('Got Scene', 'green');
-	window.location.hash = '#' + data.experience_id;
-	videoPlayer.src = data.mp4Url;
+// Executes when a fresh experience was created 
+imposium.on(Imposium.Events.EXPERIENCE_CREATED, function(data) {
+    console.log(data);
+    window.location.hash = '#' + data.id;
 });
 
-// Executes when a response from our API returns experience data
+// Executes when experience data is received
 imposium.on(Imposium.Events.GOT_EXPERIENCE, function(data) {
 	setStatus('Got Scene', 'green');
-	videoPlayer.src = data.experience.video_url_mp4_720;
+	videoPlayer.src = data.mp4Url || data.experience.video_url_mp4_720;;
 });
 
 // Executes when errors occur

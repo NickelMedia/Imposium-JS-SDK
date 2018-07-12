@@ -107,7 +107,7 @@ export default class MessageConsumer {
 		Fire the gotMessage callback if the user is listening for this event
 	 */
 	private static emitMessageData = (messageData:any):void => {
-		const {gotMessage} = ImposiumEvents;
+		const {statusUpdate} = ImposiumEvents;
 		const {msg} = messageData;
 
 		try {
@@ -116,8 +116,8 @@ export default class MessageConsumer {
 				throw new Error(server_failed);
 			}
 
-			if (gotMessage) {
-				gotMessage(messageData);
+			if (statusUpdate) {
+				statusUpdate(messageData);
 			} 
 		} catch (e) {
 			errorHandler(e);
@@ -128,7 +128,7 @@ export default class MessageConsumer {
 		Parses the experience data into a prop delivered via gotScene
 	 */
 	private static emitSceneData = (experienceData:any):void => {
-		const {gotScene} = ImposiumEvents
+		const {gotExperience} = ImposiumEvents
 		const rejected = (experienceData || {}).error;
 
 		try {
@@ -144,7 +144,7 @@ export default class MessageConsumer {
 					const sceneData = {...output[sceneId], experience_id: id};
 
 					delete sceneData.id;
-					gotScene(sceneData);
+					gotExperience(sceneData);
 				} else {
 					const {parse_failed} = errors;
 					throw new Error(formatError(parse_failed, JSON.stringify(experienceData, null, 2)));

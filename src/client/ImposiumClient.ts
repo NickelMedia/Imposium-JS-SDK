@@ -14,8 +14,7 @@ export const Events = {
 	EXPERIENCE_CREATED : 'experienceCreated',
 	UPLOAD_PROGRESS    : 'uploadProgress',
 	GOT_EXPERIENCE     : 'gotExperience',
-	GOT_SCENE          : 'gotScene',
-	GOT_MESSAGE        : 'gotMessage',
+	STATUS_UPDATE      : 'statusUpdate',
 	ERROR              : 'onError'
 };
 
@@ -26,7 +25,13 @@ export class ImposiumClient {
 	 */
 	constructor(token:string, config:any = null) {
 		API.setupAuth(token);
-		console.log(document.querySelectorAll('video'));
+	}
+
+	/*
+		Allows users to redeclare a 
+	 */
+	public setup = (config:any) => {
+
 	}
 
 	/*
@@ -158,12 +163,11 @@ export class ImposiumClient {
 		const {
 			experienceCreated,
 			uploadProgress, 
-			gotScene, 
-			gotMessage
+			gotExperience
 		} = ImposiumEvents;
 
 		try {
-			if (gotScene) {
+			if (gotExperience) {
 				const {postExperience} = API;
 
 				postExperience(storyId, inventory, uploadProgress)
@@ -185,7 +189,7 @@ export class ImposiumClient {
 				});
 			} else {
 				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, Events.GOT_SCENE));
+				throw new Error(formatError(no_callback_set, Events.GOT_EXPERIENCE));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -197,10 +201,10 @@ export class ImposiumClient {
 		video urls / meta
 	 */
 	private initStomp = (job:any):void => {
-		const {gotScene} = ImposiumEvents;
+		const {gotExperience} = ImposiumEvents;
 
 		try {
-			if (gotScene) {
+			if (gotExperience) {
 				if (VideoPlayer.updateId) {
 					const {expId} = job;
 					VideoPlayer.updateExperienceID(expId);
@@ -213,7 +217,7 @@ export class ImposiumClient {
 				}
 			} else {
 				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, Events.GOT_SCENE));
+				throw new Error(formatError(no_callback_set, Events.GOT_EXPERIENCE));
 			}
 		} catch (e) {
 			errorHandler(e)
