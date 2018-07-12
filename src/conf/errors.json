@@ -1,16 +1,16 @@
 {
 	"client": {
-		"bad_ga_prop": "Tracking ID [placeholder] is not a valid Google Analytics property.",
-		"invalid_event": "[placeholder] is not a valid Imposium event.",
-		"bad_event_ref": "The callback reference passed to [placeholder] was not of type Function.",
-		"no_callback_set": "Please set the following callback: [placeholder]."
+		"badGaProp": "Tracking ID [placeholder] is not a valid Google Analytics property.",
+		"invalidEvent": "[placeholder] is not a valid Imposium event.",
+		"badEventRef": "The callback reference passed to [placeholder] was not of type Function.",
+		"noCallbackSet": "Please set the following callback: [placeholder]."
 	},
 	"message_consumer": {
-		"server_failed": "Something went wrong processing your experience. Try reviewing your configuration.",
-		"parse_failed": "Imposium failed to prepare your experience:\n[placeholder]",
+		"serverFailed": "Something went wrong processing your experience. Try reviewing your configuration.",
+		"parseFailed": "Imposium failed to prepare your experience:\n[placeholder]",
 		"rejected": "Your experience was rejected."
 	},
 	"video_player": {
-		"bad_ref": "The video player reference passed to ImposiumClient.setupAnalytics is not of type HTMLVideoElement"
+		"badRef": "The video player reference passed to ImposiumClient.setupAnalytics is not of type HTMLVideoElement"
 	}
 }

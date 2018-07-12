@@ -62,12 +62,12 @@ export class ImposiumClient {
 						VideoPlayer.setup(playerRef);
 					}
 				} else {
-					const {bad_ga_prop} = errors;
-					throw new Error(formatError(bad_ga_prop, trackingId));
+					const {badGaProp} = errors;
+					throw new Error(formatError(badGaProp, trackingId));
 				}
 			} else {
-				const {node_analytics} = warnings;
-				warnHandler(node_analytics);
+				const {nodeAnalytics} = warnings;
+				warnHandler(nodeAnalytics);
 			}
 		} catch (e) {
 			errorHandler(e, false);
@@ -85,12 +85,12 @@ export class ImposiumClient {
 				if (~validEvents.indexOf(eventName)) {
 					ImposiumEvents[eventName] = callback;
 				} else {
-					const {invalid_event} = errors;
-					throw new Error(formatError(invalid_event, eventName));
+					const {invalidEvent} = errors;
+					throw new Error(formatError(invalidEvent, eventName));
 				}
 			} else {
-				const {bad_event_ref} = errors;
-				throw new Error(formatError(bad_event_ref, eventName));
+				const {badEventRef} = errors;
+				throw new Error(formatError(badEventRef, eventName));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -108,8 +108,8 @@ export class ImposiumClient {
 				if (~validEvents.indexOf(eventName)) {
 					ImposiumEvents[eventName] = null;
 				} else {
-					const {invalid_event} = errors;
-					throw new Error(formatError(invalid_event, eventName));
+					const {invalidEvent} = errors;
+					throw new Error(formatError(invalidEvent, eventName));
 				}
 			} else {
 				validEvents.forEach((event) => {
@@ -139,8 +139,8 @@ export class ImposiumClient {
 					errorHandler(e);
 				});
 			} else {
-				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, Events.EXPERIENCE_CREATED));
+				const {noCallbackSet} = errors;
+				throw new Error(formatError(noCallbackSet, Events.EXPERIENCE_CREATED));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -163,8 +163,8 @@ export class ImposiumClient {
 					errorHandler(e)
 				});
 			} else {
-				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, Events.GOT_EXPERIENCE));
+				const {noCallbackSet} = errors;
+				throw new Error(formatError(noCallbackSet, Events.GOT_EXPERIENCE));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -203,8 +203,8 @@ export class ImposiumClient {
 					errorHandler(e);
 				});
 			} else {
-				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, Events.GOT_EXPERIENCE));
+				const {noCallbackSet} = errors;
+				throw new Error(formatError(noCallbackSet, Events.GOT_EXPERIENCE));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -231,8 +231,8 @@ export class ImposiumClient {
 					MessageConsumer.reconnect(job);
 				}
 			} else {
-				const {no_callback_set} = errors;
-				throw new Error(formatError(no_callback_set, Events.GOT_EXPERIENCE));
+				const {noCallbackSet} = errors;
+				throw new Error(formatError(noCallbackSet, Events.GOT_EXPERIENCE));
 			}
 		} catch (e) {
 			errorHandler(e)

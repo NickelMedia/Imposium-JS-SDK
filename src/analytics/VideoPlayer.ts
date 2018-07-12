@@ -31,8 +31,8 @@ export default class VideoPlayer {
 			VideoPlayer.ref.addEventListener('pause',     () => VideoPlayer.onPause());
 			VideoPlayer.ref.addEventListener('ended',     () => VideoPlayer.onEnd());
 		} else {
-			const {bad_ref} = errors;
-			throw new Error(bad_ref);
+			const {badRef} = errors;
+			throw new Error(badRef);
 		}
 	}
 

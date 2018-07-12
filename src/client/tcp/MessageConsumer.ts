@@ -112,8 +112,8 @@ export default class MessageConsumer {
 
 		try {
 			if (msg === settings.errorOverTcp) {
-				const {server_failed} = errors;
-				throw new Error(server_failed);
+				const {serverFailed} = errors;
+				throw new Error(serverFailed);
 			}
 
 			if (statusUpdate) {
@@ -146,8 +146,8 @@ export default class MessageConsumer {
 					delete sceneData.id;
 					gotExperience(sceneData);
 				} else {
-					const {parse_failed} = errors;
-					throw new Error(formatError(parse_failed, JSON.stringify(experienceData, null, 2)));
+					const {parseFailed} = errors;
+					throw new Error(formatError(parseFailed, JSON.stringify(experienceData)));
 				}
 			} else {
 				const {rejected} = errors;
@@ -169,10 +169,10 @@ export default class MessageConsumer {
 			++MessageConsumer.retried;
 
 			if (retried < maxRetries) {
-				const {tcp_failure} = warnings;
+				const {tcpFailure} = warnings;
 
 				Stomp.reconnect(expId);
-				warnHandler(formatError(tcp_failure, retried + 1));
+				warnHandler(formatError(tcpFailure, retried + 1));
 			} else {
 				MessageConsumer.retried = settings.min_reconnects;
 				errorHandler(e);
