@@ -1,6 +1,8 @@
 import * as FormDataShim from 'form-data';
 import ImposiumEvents from './Events';
 
+const clientSettings = require('../conf/settings.json').client;
+
 // Log out warnings
 export const warnHandler = (message:string):void => {
 	console.warn(`[IMPOSIUM-JS-SDK]\n${message}`);
@@ -29,6 +31,18 @@ export const isNode = ():boolean => {
 		process + '' === '[object process]' &&
 		typeof (((process || {}) as any).versions || {}).node !== 'undefined' 
 	);
+}
+
+// Pull out unneeded keys 
+export const prepConfig = (config:any) => {
+	const {defaultConfig} = clientSettings;
+	const validKeys = Object.keys(defaultConfig);
+
+	for (const key in config) {
+		if (validKeys.indexOf(key) === -1) {
+			delete config[key];
+		}
+	}
 }
 
 // Deal with prepping form data objs in isomporphic way

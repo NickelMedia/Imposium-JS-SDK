@@ -5,9 +5,10 @@ import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
 import VideoPlayer from '../analytics/VideoPlayer';
 import ImposiumEvents from '../scaffolding/Events';
-import {warnHandler, formatError, errorHandler, isNode} from '../scaffolding/Helpers';
+import {prepConfig, warnHandler, formatError, errorHandler, isNode} from '../scaffolding/Helpers';
 
-const errors = require('../conf/errors.json').client;
+const errors   = require('../conf/errors.json').client;
+const settings = require('../conf/settings.json').client;
 const warnings = require('../conf/warnings.json').client;
 
 export const Events = {
@@ -20,18 +21,31 @@ export const Events = {
 
 export class ImposiumClient {
 	private static readonly validEvents:string[] = Object.keys(Events).map(e => Events[e]);
+	
 	/*
 		Initialize Imposium client
 	 */
-	constructor(token:string, config:any = null) {
-		API.setupAuth(token);
+	constructor(config:any) {
+		this.assignConfigOpts(config);
 	}
 
 	/*
-		Allows users to redeclare a 
+		Exposed for users who may want to re-use a client for n stories
 	 */
 	public setup = (config:any) => {
+		this.assignConfigOpts(config);
+	}
 
+	/*
+		Copies supplied config object to settings for sharing with sub components
+	 */
+	assignConfigOpts = (config:any) => {
+		const {defaultConfig} = settings;
+
+		prepConfig(config);
+		settings.activeConfig = {...defaultConfig, ...config};
+
+		API.setupAuth(settings.activeConfig.accessToken);
 	}
 
 	/*

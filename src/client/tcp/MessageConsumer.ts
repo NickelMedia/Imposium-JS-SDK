@@ -20,8 +20,8 @@ export default class MessageConsumer {
 	public static job:any = null;
 	
 	// Settings for retrying rabbitMQ connections
-	private static readonly maxRetries:number = settings.max_reconnect_attempts;
-	private static retried:number = settings.min_reconnects;
+	private static readonly maxRetries:number = settings.maxReconnects;
+	private static retried:number = settings.minReconnects;
 
 	/*
 		Initialize WebStomp
@@ -111,7 +111,7 @@ export default class MessageConsumer {
 		const {msg} = messageData;
 
 		try {
-			if (msg === settings.error_over_tcp) {
+			if (msg === settings.errorOverTcp) {
 				const {server_failed} = errors;
 				throw new Error(server_failed);
 			}
@@ -136,7 +136,7 @@ export default class MessageConsumer {
 				// Shorthand idioms for checking if required nested JSON data exists
 				const sceneId = ((  experienceData || {}).sceneData || {}).id;
 				const hasUrls = ((( experienceData || {}).output    || {})[sceneId] || {}).mp4Url;
-				const isVideo = ((( experienceData || {}).sceneData || {}).type === settings.video_scene);
+				const isVideo = ((( experienceData || {}).sceneData || {}).type === settings.videoSceneKey);
 
 				if (isVideo && hasUrls) {
 					// Merge up the scene data and the experience ID 

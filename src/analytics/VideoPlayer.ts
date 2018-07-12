@@ -9,8 +9,8 @@ export default class VideoPlayer {
 	public static updateId:boolean = false;
 
 	// Interval data
-	private static readonly evts:number[] = settings.playback_events;
-	private static readonly checkDelay:number = settings.check_playback_rate;
+	private static readonly evts:number[] = settings.playbackEvents;
+	private static readonly checkRate:number = settings.checkPlaybackRateMs;
 	
 	private static ref:HTMLVideoElement = null;
 	private static currExp:string = '';
@@ -62,7 +62,7 @@ export default class VideoPlayer {
 	 */
 	private static onPlay = ():void => {
 		const {
-			checkDelay,
+			checkRate,
 			checkProgress,
 			progressCheckInterval
 		} = VideoPlayer;
@@ -71,7 +71,7 @@ export default class VideoPlayer {
 
 		VideoPlayer.progressCheckInterval = setInterval(
 			() => checkProgress(), 
-			checkDelay
+			checkRate
 		);
 	}
 

@@ -10,7 +10,14 @@ var statusField  = document.getElementById('status'),
 	submitBtn    = document.getElementById('submit-btn'),
 	videoPlayer  = document.getElementById('dynamicVideo');
 
-var imposium = new Imposium.ImposiumClient(ACCESS_KEY);
+var config = {
+    accessToken : 'zooch5ja8fiejoojoo6AeQuahmex1wes',
+    storyId     : '295a80d0-871c-4def-a579-8a375d6942fc',
+    sceneId     : 'f7a20d1f-96f2-4672-a7e3-3891b4a8ed25',
+    actId       : '295a80d0-871c-4def-a579-8a375d6942fc'
+};
+
+var imposium = new Imposium.ImposiumClient(config);
 
 // Executes when a status message is delivered via web socket
 imposium.on(Imposium.Events.STATUS_UPDATE, function(data) {
@@ -19,7 +26,6 @@ imposium.on(Imposium.Events.STATUS_UPDATE, function(data) {
 
 // Executes when a fresh experience was created 
 imposium.on(Imposium.Events.EXPERIENCE_CREATED, function(data) {
-    console.log(data);
     window.location.hash = '#' + data.id;
 });
 

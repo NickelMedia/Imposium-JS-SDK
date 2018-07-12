@@ -46,8 +46,8 @@ export default class Analytics {
 	private static retryTimeout:any = null;
 
 	private static request:Request = {
-		baseUrl: settings.base_url,
-		cacheKey: settings.ls_lookup,
+		baseUrl: settings.baseUrl,
+		cacheKey: settings.lsLookup,
 		appId: null,
 		clientId: null
 	}
@@ -62,9 +62,9 @@ export default class Analytics {
 	};
 
 	private static retries:Retries = {
-		current: settings.min_retries, 
-		max: settings.max_retries,  
-		delay: settings.min_delay
+		current: settings.minRetries, 
+		max: settings.maxRetries,  
+		delay: settings.minDelay
 	};
 
 	public static setup = (trackingId:string) => {
@@ -333,8 +333,8 @@ export default class Analytics {
 					active.pop();
 					emit();
 
-					Analytics.retries.delay = settings.min_delay;
-					Analytics.retries.current = settings.min_retries;
+					Analytics.retries.delay = settings.minDelay;
+					Analytics.retries.current = settings.minRetries;
 					// add a check here to do a long poll if 
 					// n number of requests fail after retrying
 				}

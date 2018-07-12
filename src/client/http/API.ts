@@ -6,7 +6,7 @@ import {InventoryToFormData, isNode} from '../../scaffolding/Helpers';
 const settings = require('../../conf/settings.json').api;
 
 export default class API {
-	private static readonly baseURL:string = settings.base_url;
+	private static readonly baseURL:string = settings.baseUrl;
 	
 	/*
 		Setup HTTP client defaults
