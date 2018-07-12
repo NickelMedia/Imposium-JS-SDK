@@ -22,6 +22,24 @@ export default class API {
 	}
 
 	/*
+		Get story meta data, GA tracking property in particular (PLACEHOLDER)
+	 */
+	public static getStory = (storyId:string):Promise<any> => {
+		const {get} = axios;
+
+		return new Promise((resolve, reject) => {
+			get(`${API.baseURL}/story/${storyId}`)
+			.then((res) => {
+				const {data} = res;
+				resolve(data);
+			})
+			.catch((e) => {
+				reject(e)
+			});
+		});
+	}
+
+	/*
 		Wait async for GET /experience, resolve response data
 	 */
 	public static getExperience = (expId:string):Promise<any> => {
