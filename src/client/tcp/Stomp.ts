@@ -12,7 +12,7 @@ class SocketEvents {
 
 export default class Stomp {
 	// RabbitMQ creds
-	private static readonly endpoint:string = settings.endpoint;
+	private static endpoint:string = '';
 	private static readonly exchange:string = settings.exchange;
 	private static readonly username:string = settings.username;
 	private static readonly password:string = settings.password;
@@ -25,6 +25,10 @@ export default class Stomp {
 	private static socket:WebSocket;
 	private static client:WebStomp.Client;
 	private static subscription:WebStomp.Subscription;
+
+	public static setEndpoint = (env:string):void => {
+		Stomp.endpoint = (env === 'production') ? settings.prodEndpoint : settings.stagingEndpoint;
+	}
 
 	/*
 		Setup callbacks

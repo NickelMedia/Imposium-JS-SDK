@@ -1,6 +1,7 @@
 import "babel-polyfill";
 
 import API from './http/API';
+import Stomp from './tcp/Stomp';
 import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
 import VideoPlayer from '../analytics/VideoPlayer';
@@ -45,8 +46,10 @@ export class ImposiumClient {
 		prepConfig(config);
 		settings.activeConfig = {...defaultConfig, ...config};
 
+		const {activeConfig: {accessToken, environment}} = settings;
 
-		API.setup(settings.activeConfig.accessToken, settings.activeConfig.environment);
+		API.setup(accessToken, environment);
+		Stomp.setEndpoint(environment);
 	}
 
 	/*
