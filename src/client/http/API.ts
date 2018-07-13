@@ -88,17 +88,7 @@ export default class API {
 		return new Promise((resolve, reject) => {
 			post(`${API.baseURL}/experience`, formData, config)
 			.then((res) => {
-				const {send} = Analytics;
 				const {data} = res;
-				const {id} = data;
-
-				send({
-					t: 'event',
-					ec: 'experience',
-					ea: 'created',
-					el: id
-				});
-
 				resolve(data);
 			})
 			.catch((e) => {
