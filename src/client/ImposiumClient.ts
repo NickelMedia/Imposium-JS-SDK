@@ -43,38 +43,13 @@ export class ImposiumClient {
 	assignConfigOpts = (config:any) => {
 		const {defaultConfig} = settings;
 
-		prepConfig(config);
+		prepConfig(config, defaultConfig);
 		settings.activeConfig = {...defaultConfig, ...config};
 
 		const {activeConfig: {accessToken, environment}} = settings;
 
 		API.setup(accessToken, environment);
 		Stomp.setEndpoint(environment);
-	}
-
-	/*
-		Set up the analytics client and video tracking events
-	 */
-	public setupAnalytics = (trackingId:string = '', playerRef:HTMLVideoElement = null):void => {
-		try {
-			if (!isNode()) {
-				if (RegExp(/^ua-\d{4,9}-\d{1,4}$/i).test(trackingId)) {
-					Analytics.setup(trackingId);
-
-					if (playerRef) {
-						VideoPlayer.setup(playerRef);
-					}
-				} else {
-					const {badGaProp} = errors;
-					throw new Error(formatError(badGaProp, trackingId));
-				}
-			} else {
-				const {nodeAnalytics} = warnings;
-				warnHandler(nodeAnalytics);
-			}
-		} catch (e) {
-			errorHandler(e, false);
-		}
 	}
 
 	/*
@@ -171,7 +146,7 @@ export class ImposiumClient {
 					}
 					
 					if (render) {
-						this.invokeMessaging({
+						this.renderExperience({
 							expId   : id,
 							sceneId : sceneId,
 							actId   : actId
@@ -201,10 +176,9 @@ export class ImposiumClient {
 	}
 
 	/*
-		Open TCP connection with Imposium and get event based messages and/or
-		video urls / meta
+		Invokes rendering processes and starts listening for messages 
 	 */
-	private invokeMessaging = (job:any):void => {
+	public renderExperience = (job:any):void => {
 		if (VideoPlayer.updateId) {
 			const {expId} = job;
 			VideoPlayer.updateExperienceID(expId);
@@ -214,6 +188,31 @@ export class ImposiumClient {
 			MessageConsumer.init(job);		
 		} else {
 			MessageConsumer.reconnect(job);
+		}
+	}
+
+	/*
+		Sets up analytics using 
+	 */
+	public captureAnalytics = (trackingId:string = '', playerRef:HTMLVideoElement = null):void => {
+		try {
+			if (!isNode()) {
+				if (RegExp(/^ua-\d{4,9}-\d{1,4}$/i).test(trackingId)) {
+					Analytics.setup(trackingId);
+
+					if (playerRef) {
+						VideoPlayer.setup(playerRef);
+					}
+				} else {
+					const {badGaProp} = errors;
+					throw new Error(formatError(badGaProp, trackingId));
+				}
+			} else {
+				const {nodeAnalytics} = warnings;
+				warnHandler(nodeAnalytics);
+			}
+		} catch (e) {
+			errorHandler(e, false);
 		}
 	}
 }

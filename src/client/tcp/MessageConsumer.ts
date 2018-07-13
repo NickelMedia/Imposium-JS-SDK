@@ -3,9 +3,9 @@ import Stomp from './Stomp';
 import ImposiumEvents from '../../scaffolding/Events';
 import {warnHandler, formatError, errorHandler} from '../../scaffolding/Helpers';
 
-const errors = require('../../conf/errors.json').message_consumer;
-const warnings = require('../../conf/warnings.json').message_consumer;
-const settings = require('../../conf/settings.json').message_consumer;
+const errors = require('../../conf/errors.json').messageConsumer;
+const warnings = require('../../conf/warnings.json').messageConsumer;
+const settings = require('../../conf/settings.json').messageConsumer;
 
 // Distinct message keys to listen for over RabbitMQ
 class Messages {

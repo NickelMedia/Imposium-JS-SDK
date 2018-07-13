@@ -2,7 +2,7 @@
 	"client": {
 		"nodeAnalytics": "Sorry, analytics are not currently available in NodeJS."
 	},
-	"message_consumer": {
+	"messageConsumer": {
 		"tcpFailure": "Stomp over TCP failed ([placeholder]): Attempting to reconnect..."
 	}
 }

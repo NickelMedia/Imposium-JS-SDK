@@ -1,8 +1,6 @@
 import * as FormDataShim from 'form-data';
 import ImposiumEvents from './Events';
 
-const clientSettings = require('../conf/settings.json').client;
-
 // Log out warnings
 export const warnHandler = (message:string):void => {
 	console.warn(`[IMPOSIUM-JS-SDK]\n${message}`);
@@ -34,15 +32,19 @@ export const isNode = ():boolean => {
 }
 
 // Pull out unneeded keys 
-export const prepConfig = (config:any) => {
-	const {defaultConfig} = clientSettings;
-	const validKeys = Object.keys(defaultConfig);
+export const prepConfig = (config:any, defaults:any) => {
+	const validKeys = Object.keys(defaults);
 
 	for (const key in config) {
 		if (validKeys.indexOf(key) === -1) {
 			delete config[key];
 		}
 	}
+}
+
+// Validates if a number is within a range of min -> max
+export const inRangeNumeric = (n:number, min:number, max:number):boolean => {
+	return ((n - min) * (n - max) <= 0);
 }
 
 // Deal with prepping form data objs in isomporphic way

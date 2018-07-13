@@ -5,12 +5,12 @@
 		"badEventRef": "The callback reference passed to [placeholder] was not of type Function.",
 		"noCallbackSet": "Please set the following callback: [placeholder]."
 	},
-	"message_consumer": {
+	"messageConsumer": {
 		"serverFailed": "Something went wrong processing your experience. Try reviewing your configuration.",
 		"parseFailed": "Imposium failed to prepare your experience:\n[placeholder]",
 		"rejected": "Your experience was rejected."
 	},
-	"video_player": {
+	"videoPlayer": {
 		"badRef": "The video player reference passed to ImposiumClient.setupAnalytics is not of type HTMLVideoElement"
 	}
 }

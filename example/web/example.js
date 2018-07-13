@@ -55,7 +55,6 @@ function createExperience() {
         imposium.createExperience(inventory, true);
         setStatus('Creating Experience', 'steelblue');
     }
-
 }
 
 // Helper that updates statusField div with incoming messages

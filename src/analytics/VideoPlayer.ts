@@ -1,8 +1,8 @@
 import Analytics from './Analytics';
 import {errorHandler} from '../scaffolding/Helpers';
 
-const errors = require('../conf/errors.json').video_player;
-const settings = require('../conf/settings.json').video_player;
+const errors = require('../conf/errors.json').videoPlayer;
+const settings = require('../conf/settings.json').videoPlayer;
 
 export default class VideoPlayer {
 	// Allows playback events to be recorded

@@ -37,8 +37,20 @@
 		"maxRetries": 3,
 		"minDelay": 2000
 	},
-	"video_player": {
+	"videoPlayer": {
+		"defaultConfig": {
+			"volume": 1,
+			"preload": "metadata",
+			"loop": false,
+			"muted": false,
+			"autoLoad": true,
+			"autoPlay": true,
+			"controls": true
+		},
+		"activeConfig": {},
 		"playbackEvents": [0.25, 0.5, 0.75],
-		"checkPlaybackRateMs": 100
+		"checkPlaybackRateMs": 100,
+		"volumeMin": 0,
+		"volumeMax": 1
 	}
 }
