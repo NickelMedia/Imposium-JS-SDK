@@ -137,7 +137,7 @@ export class Player {
 		TO DO: Clarify what this is with Greg
 	 */
 	public getPlaybackState = ():string => {
-		return '';
+		return (Player.node.paused) ? 'paused' : 'playing';
 	}
 
 	/*
@@ -245,14 +245,7 @@ export class Player {
 		this.pauseIfPlaying();
 
 		for (const key in PlayerEvents) {
-			const event = PlayerEvents[key];
-
-			if (event.native) {
-				Player.node.removeEventListener(event.name, () => {});
-				// clear ref in placeholder class
-			} else {
-				// clear ref in placeholder class, no need to clear browser event
-			}
+			this.off(PlayerEvents[key]);
 		}
 
 		Player.playerConfig = {...defaultConfig};
