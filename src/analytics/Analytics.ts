@@ -17,87 +17,77 @@ const settings = require('../conf/settings.json').analytics;
 
 // Holds default request settings
 interface Request {
- 	baseUrl: string;
- 	cacheKey: string;
- 	appId: string;
- 	clientId: string;
+ 	baseUrl  : string;
+ 	cacheKey : string;
+ 	appId    : string;
+ 	clientId : string;
  }
 
 // Holds settings related to rate limiting
 interface Broker {
-	concurrency: number;
-	frequency: number;
-	enqueued: number;
-	defer: boolean;
-	active: Queue;
-	deferred: Queue;
+	concurrency : number;
+	frequency   : number;
+	enqueued    : number;
+	defer       : boolean;
+	active      : Queue;
+	deferred    : Queue;
+	preLoaded   : Queue;
 }
 
 // Holds request retry settings
 interface Retries {
-	current: number;
-	max: number;
-	delay: number;
+	current : number;
+	max     : number;
+	delay   : number;
 }
 
 export default class Analytics {
-	private static isSetup:boolean = false;
 	private static emitter:any = null;
+	private static isSetup:boolean = false;
 	private static retryTimeout:any = null;
 
 	private static request:Request = {
-		baseUrl: settings.baseUrl,
-		cacheKey: settings.lsLookup,
-		appId: null,
-		clientId: null
+		baseUrl  : settings.baseUrl,
+		cacheKey : settings.lsLookup,
+		appId    : settings.gaPropPlaceholder,
+		clientId : settings.cidPlaceholder
 	}
 
 	private static broker:Broker = {
-		concurrency: settings.concurrency, 
-		frequency: settings.frequency, 
-		enqueued: 0, 
-		defer: false, 
-		active: new Queue(), 
-		deferred: new Queue()
+		concurrency : settings.concurrency, 
+		frequency   : settings.frequency, 
+		enqueued    : 0, 
+		defer       : false, 
+		active      : new Queue(), 
+		deferred    : new Queue(),
+		preLoaded   : new Queue()
 	};
 
 	private static retries:Retries = {
-		current: settings.minRetries, 
-		max: settings.maxRetries,  
-		delay: settings.minDelay
+		current : settings.minRetries, 
+		max     : settings.maxRetries,  
+		delay   : settings.minDelay
 	};
 
+	/*
+		Enable GA calls
+	 */
 	public static setup = (trackingId:string) => {
 		Analytics.request.appId = trackingId;
 		Analytics.request.clientId = Analytics.checkCache();
 
 		if (!Analytics.isSetup) {
+			const {preLoaded} = Analytics.broker;
+
 			Analytics.isSetup = true;
 
 			Analytics.pageView();
+			window.addEventListener('popstate', () => Analytics.pageView());
 
-			window.addEventListener(
-				'popstate', 
-				() => Analytics.pageView()
-			);
-		}
-	}
-
-	/*
-		Sends events off to the GA collect API
-	 */
-	public static send = (event:any):void => {
-		const {isSetup} = Analytics;
-
-		if (isSetup) {
-			const {emit, addToQueue, concatParams} = Analytics;
-			const {defer, active} = Analytics.broker;
-
-			if (active.isEmpty() && !defer) {
-				emit();
-			} 
-
-			addToQueue(concatParams(event));
+			while (preLoaded.peek()) {
+				Analytics.send(preLoaded.peek());
+				preLoaded.pop();
+			}
 		}
 	}
 
@@ -105,12 +95,29 @@ export default class Analytics {
 		Record page view metric
 	 */
 	private static pageView = ():void => {
-		const {send} = Analytics;
-
-		send({
+		Analytics.send({
 			t: 'pageview', 
 			dp: window.location.pathname
 		});
+	}
+
+	/*
+		Sends events off to the GA collect API
+	 */
+	public static send = (event:any):void => {
+		if (Analytics.isSetup) {
+			const {emit, addToQueue, concatParams} = Analytics;
+			const {defer, active} = Analytics.broker;
+
+			if (active.isEmpty() && !defer) {
+				emit();
+			}
+
+			addToQueue(concatParams(event));
+		} else {
+			const {preLoaded} = Analytics.broker;
+			preLoaded.enqueue(event);
+		}
 	}
 
 	/*
@@ -227,7 +234,7 @@ export default class Analytics {
 	private static addToQueue = (url:string):void => {
 		let {concurrency, defer, active, deferred} = Analytics.broker;
 
-		if (!defer) {
+		if (!defer && Analytics.isSetup) {
 			active.enqueue(url);
 			defer = !active.isFull(concurrency);
 		} else {

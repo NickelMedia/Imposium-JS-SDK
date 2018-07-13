@@ -15,7 +15,7 @@
 		"hmac": "X-Imposium-Access-Key",
 		"jwt": "Authorization"
 	},
-	"message_consumer": {
+	"messageConsumer": {
 		"maxReconnects": 5,
 		"minReconnects": 0,
 		"errorOverTcp": "Server failure.",
@@ -31,6 +31,8 @@
 	"analytics": {
 		"baseUrl": "https://ssl.google-analytics.com/collect",
 		"lsLookup": "imposium_js_ga_cid",
+		"gaPropPlaceholder": "[id_placeholder]",
+		"cidPlaceholder": "[cid_placeholder]",
 		"concurrency": 10,
 		"frequency": 50,
 		"minRetries": 0,

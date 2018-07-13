@@ -6,7 +6,7 @@ import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
 import VideoPlayer from '../analytics/VideoPlayer';
 import ImposiumEvents from '../scaffolding/Events';
-import {prepConfig, warnHandler, formatError, errorHandler, isNode} from '../scaffolding/Helpers';
+import {prepConfig, warnHandler, isFunc, keyExists, isNode, formatError, errorHandler} from '../scaffolding/Helpers';
 
 const errors   = require('../conf/errors.json').client;
 const settings = require('../conf/settings.json').client;
@@ -21,8 +21,6 @@ export const Events = {
 };
 
 export class ImposiumClient {
-	private static readonly validEvents:string[] = Object.keys(Events).map(e => Events[e]);
-	
 	/*
 		Initialize Imposium client
 	 */
@@ -46,10 +44,24 @@ export class ImposiumClient {
 		prepConfig(config, defaultConfig);
 		settings.activeConfig = {...defaultConfig, ...config};
 
-		const {activeConfig: {accessToken, environment}} = settings;
+		const {activeConfig: {accessToken, environment, storyId}} = settings;
 
 		API.setup(accessToken, environment);
 		Stomp.setEndpoint(environment);
+
+		// Prep for analytics in browser
+		if (!isNode()) {
+			API.getStory(storyId)
+			.then((story) => {
+				// GA prop regExp
+				// RegExp(/^ua-\d{4,9}-\d{1,4}$/i) 
+				const GaProp = 'UA-113079866-1';
+				Analytics.setup(GaProp);
+			})
+			.catch((e) => {
+				console.error(e);
+			});
+		}
 	}
 
 	/*
@@ -57,10 +69,8 @@ export class ImposiumClient {
 	 */
 	public on = (eventName:string, callback:any):void => {
 		try {
-			if (Object.prototype.toString.call(callback) === '[object Function]') {
-				const {validEvents} = ImposiumClient;
-
-				if (~validEvents.indexOf(eventName)) {
+			if (isFunc(callback)) {
+				if (keyExists(Events, eventName)) {
 					ImposiumEvents[eventName] = callback;
 				} else {
 					const {invalidEvent} = errors;
@@ -79,18 +89,16 @@ export class ImposiumClient {
 		Turns off a specific event or all events
 	 */
 	public off = (eventName:string = ''):void => {
-		const {validEvents} = ImposiumClient;
-
 		try {
 			if (eventName !== '') {
-				if (~validEvents.indexOf(eventName)) {
+				if (keyExists(Events, eventName)) {
 					ImposiumEvents[eventName] = null;
 				} else {
 					const {invalidEvent} = errors;
 					throw new Error(formatError(invalidEvent, eventName));
 				}
 			} else {
-				validEvents.forEach((event) => {
+				Object.keys(Events).forEach((event) => {
 					ImposiumEvents[event] = null;
 				});
 			}
@@ -109,6 +117,8 @@ export class ImposiumClient {
 			if (gotExperience) {
 				API.getExperience(expId)
 				.then((data) => {
+					// This is placeholder code for now
+					VideoPlayer.updateExperienceID(data.experience.id);
 					gotExperience(data);
 				})
 				.catch((e) => {
@@ -194,18 +204,13 @@ export class ImposiumClient {
 	/*
 		Sets up analytics using 
 	 */
-	public captureAnalytics = (trackingId:string = '', playerRef:HTMLVideoElement = null):void => {
+	public captureAnalytics = (playerRef:HTMLVideoElement = null):void => {
 		try {
 			if (!isNode()) {
-				if (RegExp(/^ua-\d{4,9}-\d{1,4}$/i).test(trackingId)) {
-					Analytics.setup(trackingId);
-
-					if (playerRef) {
-						VideoPlayer.setup(playerRef);
-					}
+				if (playerRef) {
+					VideoPlayer.setup(playerRef);
 				} else {
-					const {badGaProp} = errors;
-					throw new Error(formatError(badGaProp, trackingId));
+					// throw no ref err
 				}
 			} else {
 				const {nodeAnalytics} = warnings;

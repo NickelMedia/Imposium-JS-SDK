@@ -1,4 +1,4 @@
-import {inRangeNumeric, prepConfig} from '../scaffolding/Helpers';
+import {inRangeNumeric, prepConfig, isFunc, keyExists, warnHandler, errorHandler} from '../scaffolding/Helpers';
 
 const settings = require('../conf/settings.json').videoPlayer;
 
@@ -28,21 +28,32 @@ interface Video {
 }
 
 export const PlayerEvents = {
-	PLAY     : {name: 'play',         native: true},
-	PAUSE    : {name: 'pause',        native: true},
-	COMPLETE : {name: 'ended',        native: true},
-	ERROR    : {name: 'error',        native: true},
-	SEEK     : {name: 'seeked',       native: true},
-	TIME     : {name: 'timeupdate',   native: true},
-	VOLUME   : {name: 'volumechange', native: true},
-	MUTE     : {name: 'muted',        native: false},
-	CONTROLS : {name: 'controlsset',  native: false}
-}
+	play          : {callback: null, native: true},
+	pause         : {callback: null, native: true},
+	ended         : {callback: null, native: true},
+	error         : {callback: null, native: true},
+	seeked        : {callback: null, native: true},
+	timeupdated   : {callback: null, native: true},
+	volumechanged : {callback: null, native: true},
+	muted         : {callback: null, native: false},
+	controlsset   : {callback: null, native: false}
+};
 
 export class Player {
+	public static events = {
+		PLAY     : 'play',
+		PAUSE    : 'pause',
+		COMPLETE : 'ended',
+		ERROR    : 'error',
+		SEEK     : 'seeked',
+		TIME     : 'timeupdate',
+		VOLUME   : 'volumechange',
+		MUTE     : 'muted',
+		CONTROLS : 'controlsset'
+	};
+
 	private static node:HTMLVideoElement = null;
 	private static playerConfig:PlayerConfig = null;
-
 
 	constructor(node:HTMLVideoElement, config:PlayerConfig = settings.defaultConfig) {
 		this.init(config);
@@ -59,34 +70,93 @@ export class Player {
 		}
 	}
 
+	/*
+		Enable native or custom player events
+	 */
 	public on = (eventName:string, callback:any):void => {
-		// add event 
+		try {
+			if (isFunc(callback)) {
+				if (keyExists(Player.events, eventName)) {
+					const event = PlayerEvents[eventName];
+
+					// Add ptr for future removal
+					event.callback = callback;
+
+					// If the event type is a valid media event, assign to player node
+					if (event.native) {
+						Player.node.addEventListener(eventName, event.callback);
+					}
+				} else {
+					// throw invalid evt err
+				}
+			} else {
+				// throw bad func err
+			}
+		} catch (e) {
+			// handle err
+		}
 	}
 
-	public off = (eventName:string, callback:any):void => {
-		// remove event
+	/*
+		Disable native or custom player events
+	 */
+	public off = (eventName:string):void => {
+		try {
+			if (keyExists(Player.events, eventName)) {
+				const event = PlayerEvents[eventName];
+
+				// Remove node based event listener
+				if (event.native) {
+					Player.node.removeEventListener(eventName, event.callback)
+				}
+
+				event.callback = null;
+			} else {
+				// throw invalid evt err
+			}
+		} catch (e) {
+			// handle err
+		}
 	}
 
+	/*
+		Play video
+	 */
 	public play = ():void => {
 		Player.node.play();
 	}
 
+	/*
+		Pause video
+	 */
 	public pause = ():void => {
 		Player.node.pause();
 	}
 
+	/*
+		TO DO: Clarify what this is with Greg
+	 */
 	public getPlaybackState = ():string => {
 		return '';
 	}
 
+	/*
+		Get current playback time (s)
+	 */
 	public getPosition = ():number => {
 		return Player.node.currentTime;
 	}
 
+	/*
+		Get duration of video (s)
+	 */
 	public getDuration = ():number => {
 		return Player.node.duration;
 	}
 
+	/*
+		Seek to a point in the video (s)
+	 */
 	public seek = (seekTo:number):void => {
 		const {node: {duration}} = Player;
 
@@ -97,18 +167,36 @@ export class Player {
 		}
 	}
 
+	/*
+		Get mute state
+	 */
 	public getMute = ():boolean => {
 		return Player.node.muted;
 	}
 
-	public setMute = (toggle:boolean):void => {
-		Player.node.muted = toggle;
+	/*
+		Set mute state
+	 */
+	public setMute = (mute:boolean):void => {
+		const {muted} = PlayerEvents;
+
+		Player.node.muted = mute;
+
+		if (muted) {
+			muted.callback();
+		}
 	}
 
+	/*
+		Get volume state
+	 */
 	public getVolume = ():number => {
 		return Player.node.volume;
 	}
 
+	/*
+		Set volume set, valid range: 0.0 -> 1.0
+	 */
 	public setVolume = (volume:number):void => {
 		const {volumeMin, volumeMax} = settings;
 
@@ -119,21 +207,61 @@ export class Player {
 		}
 	}
 
+	/*
+		Get controls state
+	 */
 	public getControls = ():boolean => {
 		return Player.node.controls;
 	}
 
+	/*
+		Set controls state
+	 */
 	public setControls = (controls:boolean):void => {
+		const {controlsset} = PlayerEvents;
+
 		Player.node.controls = controls;
+
+		if (controlsset) {
+			controlsset.callback();
+		}
 	}
 
+	/*
+		Replay video
+	 */
 	public replay = ():void => {
-		Player.node.pause();
+		this.pauseIfPlaying();
 		Player.node.currentTime = 0;
 		Player.node.play();
 	}
 
+	/*
+		Remove all Imposium player scaffolding and break ref to video node
+	 */
 	public remove = ():void => {
-		// remnove all events // config // refs to player
+		const {defaultConfig} = settings;
+
+		this.pauseIfPlaying();
+
+		for (const key in PlayerEvents) {
+			const event = PlayerEvents[key];
+
+			if (event.native) {
+				Player.node.removeEventListener(event.name, () => {});
+				// clear ref in placeholder class
+			} else {
+				// clear ref in placeholder class, no need to clear browser event
+			}
+		}
+
+		Player.playerConfig = {...defaultConfig};
+		Player.node = null;
+	}
+
+	private pauseIfPlaying = ():void => {
+		if (!Player.node.paused) {
+			Player.node.pause();
+		}
 	}
 }

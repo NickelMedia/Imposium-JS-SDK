@@ -47,6 +47,15 @@ export const inRangeNumeric = (n:number, min:number, max:number):boolean => {
 	return ((n - min) * (n - max) <= 0);
 }
 
+// Validates if object has function type literal
+export const isFunc = (f:any):boolean => {
+	return (Object.prototype.toString.call(f) === '[object Function]')
+}
+
+export const keyExists = (o:any, key:string) => {
+	return (~Object.keys(o).map(i => o[i]).indexOf(key));
+}
+
 // Deal with prepping form data objs in isomporphic way
 export const InventoryToFormData = (s:string, i:any):any => {
 	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);

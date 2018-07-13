@@ -1,9 +1,3 @@
-var STORY_ID    = '295a80d0-871c-4def-a579-8a375d6942fc',
-	SCENE_ID    = 'f7a20d1f-96f2-4672-a7e3-3891b4a8ed25',
-    ACT_ID      = '295a80d0-871c-4def-a579-8a375d6942fc',
-    ACCESS_KEY  = 'zooch5ja8fiejoojoo6AeQuahmex1wes',
-    TRACKING_ID = 'UA-113079866-1';
-
 var statusField  = document.getElementById('status'),
 	captionInput = document.getElementById('caption'),
 	imageInput   = document.getElementById('image'),
@@ -18,6 +12,7 @@ var config = {
 };
 
 var imposium = new Imposium.ImposiumClient(config);
+imposium.captureAnalytics(videoPlayer);
 
 // Executes when a status message is delivered via web socket
 imposium.on(Imposium.Events.STATUS_UPDATE, function(data) {

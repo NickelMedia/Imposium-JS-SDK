@@ -8,7 +8,7 @@ export default class Queue {
 		this.q = [];
 	}
 
-	public enqueue = (item:string):void => {
+	public enqueue = (item:any):void => {
 		this.q.push(item);
 	}
 
