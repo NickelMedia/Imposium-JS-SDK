@@ -4,7 +4,8 @@ import API from './http/API';
 import Stomp from './tcp/Stomp';
 import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
-import VideoPlayer from '../analytics/VideoPlayer';
+import Playback from '../video/Playback';
+import FallbackPlayer from '../video/FallbackPlayer';
 import ImposiumEvents from '../scaffolding/Events';
 import {prepConfig, warnHandler, isFunc, keyExists, isNode, formatError, errorHandler} from '../scaffolding/Helpers';
 
@@ -117,8 +118,8 @@ export class ImposiumClient {
 			if (gotExperience) {
 				API.getExperience(expId)
 				.then((data) => {
-					// This is placeholder code for now
-					VideoPlayer.updateExperienceID(data.experience.id);
+					const {experience: {id}} = data;
+					Playback.updateExperience(id);
 					gotExperience(data);
 				})
 				.catch((e) => {
@@ -189,10 +190,8 @@ export class ImposiumClient {
 		Invokes rendering processes and starts listening for messages 
 	 */
 	public renderExperience = (job:any):void => {
-		if (VideoPlayer.updateId) {
-			const {expId} = job;
-			VideoPlayer.updateExperienceID(expId);
-		}
+		const {expId} = job;
+		Playback.updateExperience(expId);
 
 		if (!MessageConsumer.job) {
 			MessageConsumer.init(job);		
@@ -208,7 +207,7 @@ export class ImposiumClient {
 		try {
 			if (!isNode()) {
 				if (playerRef) {
-					VideoPlayer.setup(playerRef);
+					FallbackPlayer.setup(playerRef);
 				} else {
 					// throw no ref err
 				}
