@@ -1,7 +1,16 @@
 import VideoPlayer from './VideoPlayer';
-import {inRangeNumeric, prepConfig, isFunc, keyExists, warnHandler, errorHandler} from '../scaffolding/Helpers';
+
+import {
+	inRangeNumeric, 
+	prepConfig, 
+	isFunc, 
+	keyExists, 
+	warnHandler, 
+	errorHandler
+} from '../scaffolding/Helpers';
 
 const settings = require('../conf/settings.json').videoPlayer;
+const warnings = require('../conf/warnings.json').videoPlayer;
 
 interface ImposiumPlayerConfig {
 	volume   : number;
@@ -88,13 +97,13 @@ export default class ImposiumPlayer extends VideoPlayer {
 						ImposiumPlayer.node.addEventListener(eventName, event.callback);
 					}
 				} else {
-					// throw invalid evt err
+					
 				}
 			} else {
 				// throw bad func err
 			}
 		} catch (e) {
-			// handle err
+			errorHandler(e);
 		}
 	}
 
@@ -165,10 +174,12 @@ export default class ImposiumPlayer extends VideoPlayer {
 			if (inRangeNumeric(seekTo, 0, duration)) {
 				ImposiumPlayer.node.currentTime = seekTo;
 			} else {
-				// do warning, note that seek time is outside of vid length
+				const {badSeek} = warnings;
+				warnHandler(badSeek);
 			}
 		} else {
-			// do warning, note that duration meta is not ready / existing
+			const {seekNotReady} = warnings;
+			warnHandler(seekNotReady);
 		}
 	}
 

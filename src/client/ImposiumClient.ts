@@ -6,6 +6,7 @@ import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
 import Playback from '../video/Playback';
 import FallbackPlayer from '../video/FallbackPlayer';
+import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import ImposiumEvents from './ImposiumEvents';
 
 import {
@@ -18,9 +19,10 @@ import {
 	warnHandler
 } from '../scaffolding/Helpers';
 
-const errors   = require('../conf/errors.json').client;
-const settings = require('../conf/settings.json').client;
-const warnings = require('../conf/warnings.json').client;
+const settings     = require('../conf/settings.json').client;
+const warnings     = require('../conf/warnings.json').client;
+const errors       = require('../conf/errors.json').client;
+const errorsShared = require('../conf/errors.json').shared;
 
 export default class ImposiumClient {
 	private fallbackPlayer:FallbackPlayer = null;
@@ -85,15 +87,21 @@ export default class ImposiumClient {
 				if (keyExists(this.events, eventName)) {
 					ImposiumEvents[eventName] = callback;
 				} else {
-					const {invalidEvent} = errors;
-					throw new Error(formatError(invalidEvent, eventName));
+					throw ExceptionPipe.createError({
+						type        : 'configuration',
+						messageKey  : 'invalidEventName',
+						runtimeProp : eventName
+					});
 				}
 			} else {
-				const {badEventRef} = errors;
-				throw new Error(formatError(badEventRef, eventName));
+				throw ExceptionPipe.createError({
+					type        : 'configuration',
+					messageKey  : 'invalidCallbackType',
+					runtimeProp : eventName
+				});
 			}
 		} catch (e) {
-			errorHandler(e);
+			ExceptionPipe.routeError(e);
 		}
 	}
 
@@ -106,8 +114,10 @@ export default class ImposiumClient {
 				if (keyExists(this.events, eventName)) {
 					ImposiumEvents[eventName] = null;
 				} else {
-					const {invalidEvent} = errors;
-					throw new Error(formatError(invalidEvent, eventName));
+					throw ExceptionPipe.createError({
+						type       : 'configuration',
+						messageKey : 'invalidEventName' 
+					});
 				}
 			} else {
 				Object.keys(this.events).forEach((event) => {
@@ -115,7 +125,7 @@ export default class ImposiumClient {
 				});
 			}
 		} catch (e) {
-			errorHandler(e);
+			ExceptionPipe.routeError(e);
 		}
 	}
 
@@ -134,14 +144,25 @@ export default class ImposiumClient {
 					gotExperience(data);
 				})
 				.catch((e) => {
-					errorHandler(e)
+					const imposiumError = ExceptionPipe.createError({
+						type         : 'network',
+						messageKey   : 'httpFailure',
+						experienceId : expId,
+						source       : e
+					});
+
+					ExceptionPipe.routeError(e);
 				});
 			} else {
-				const {noCallbackSet} = errors;
-				throw new Error(formatError(noCallbackSet, this.events.GOT_EXPERIENCE));
+				throw ExceptionPipe.createError({
+					type        : 'configuration',
+					messageKey  : 'eventNotConfigured',
+					runtimeProp : this.events.GOT_EXPERIENCE
+				});
 			}
 		} catch (e) {
-			errorHandler(e);
+			console.log()
+			ExceptionPipe.routeError(e);
 		}
 	}
 
@@ -152,7 +173,7 @@ export default class ImposiumClient {
 		const {gotExperience, experienceCreated, uploadProgress} = ImposiumEvents;
 		const permitRender = (render && experienceCreated);
 		const permitCreate = (!render && gotExperience);
-
+ 
 		try {
 			if (permitRender || permitCreate) {
 				const {activeConfig: {storyId}} = settings;
@@ -176,7 +197,13 @@ export default class ImposiumClient {
 					}
 				})
 				.catch((e) => {
-					errorHandler(e);
+					const imposiumError = ExceptionPipe.createError({
+						type         : 'network',
+						messageKey   : 'httpFailure',
+						source       : e
+					});
+
+					ExceptionPipe.routeError(imposiumError);
 				});
 			} else {
 				const {noCallbackSet} = errors;
@@ -190,10 +217,14 @@ export default class ImposiumClient {
 					eventType = this.events.EXPERIENCE_CREATED;
 				}
 
-				throw new Error(formatError(noCallbackSet, eventType));
+				throw ExceptionPipe.createError({
+					type        : 'configuration',
+					messageKey  : 'eventNotConfigured',
+					runtimeProp : eventType
+				});
 			}
 		} catch (e) {
-			errorHandler(e);
+			ExceptionPipe.routeError(e);
 		}
 	}
 
@@ -217,17 +248,15 @@ export default class ImposiumClient {
 	public captureAnalytics = (playerRef:HTMLVideoElement = null):void => {
 		try {
 			if (!isNode()) {
-				if (playerRef) {
-					this.fallbackPlayer = new FallbackPlayer(playerRef);
-				} else {
-					// throw no ref err
-				}
+				this.fallbackPlayer = new FallbackPlayer(playerRef);
 			} else {
-				const {nodeAnalytics} = warnings;
-				warnHandler(nodeAnalytics);
+				throw ExceptionPipe.createError({
+					type        : 'environment',
+					messageKey  : 'node'
+				});
 			}
 		} catch (e) {
-			errorHandler(e, false);
+			ExceptionPipe.routeError(e);
 		}
 	}
 }

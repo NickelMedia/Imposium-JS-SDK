@@ -6,5 +6,5 @@ export default class ImposiumEvents {
 	public static uploadProgress:(data:any)=>any = null;
 	public static gotExperience:(data:any)=>any = null;
 	public static statusUpdate:(data:any)=>any = null;
-	public static onError:(error:Error)=>any = null;
+	public static onError:(error:any)=>any = null;
 }

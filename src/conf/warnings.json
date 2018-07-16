@@ -4,5 +4,9 @@
 	},
 	"messageConsumer": {
 		"tcpFailure": "Stomp over TCP failed ([placeholder]): Attempting to reconnect..."
+	},
+	"videoPlayer": {
+		"seekNotReady": "Video player does not have enough data to seek yet.",
+		"badSeek": "Video player cannot seek to this time."
 	}
 }

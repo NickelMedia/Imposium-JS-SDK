@@ -19,7 +19,6 @@ export default class Playback {
 	private static experienceId:string = '';
 
 	public static setPlayerRef = (ref:HTMLVideoElement) => {
-		console.log('setup');
 		Playback.playerRef = ref;
 
 		for (const key in Playback.mediaEvents) {

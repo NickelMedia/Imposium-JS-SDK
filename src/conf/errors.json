@@ -1,16 +1,20 @@
 {
-	"client": {
-		"badGaProp": "Tracking ID [placeholder] is not a valid Google Analytics property.",
-		"invalidEvent": "[placeholder] is not a valid Imposium event.",
-		"badEventRef": "The callback reference passed to [placeholder] was not of type Function.",
-		"noCallbackSet": "Please set the following callback: [placeholder]."
+	"environment": {
+		"node": "Sorry, this feature is incompatible with NodeJS"
 	},
-	"messageConsumer": {
-		"serverFailed": "Something went wrong processing your experience. Try reviewing your configuration.",
-		"parseFailed": "Imposium failed to prepare your experience:\n[placeholder]",
-		"rejected": "Your experience was rejected."
+	"configuration": {
+		"invalidEventName": "[placeholder] is not a valid Imposium event, please review your configuration.",
+		"invalidCallbackType": "The callback reference set for event [placeholder] is not a function, please review your configuration.",
+		"eventNotConfigured": "Attempted to trigger an event without the required callback: [placeholder], please review your configuration.",
+		"invalidPlayerRef": "No reference to an HTML5 video element was detected, please review your configuration."
 	},
-	"videoPlayer": {
-		"badRef": "The video player reference passed to ImposiumClient.setupAnalytics is not of type HTMLVideoElement"
+	"network": {
+		"httpFailure": "Unable to process request to the Imposium API.",
+		"tcpFailure": "Unable to reach Imposium while processing this experience.",
+		"errorOverTcp": "Something went wrong while processing this experience.",
+		"messageParseFailure": "Message data from Imposium was malformed."
+	},
+	"moderation": {
+		"rejection": "This experience was rejected."
 	}
 }

@@ -1,6 +1,7 @@
 import API from '../http/API';
 import Stomp from './Stomp';
 import ImposiumEvents from '../ImposiumEvents';
+import ExceptionPipe from '../../scaffolding/ExceptionPipe';
 import {warnHandler, formatError, errorHandler} from '../../scaffolding/Helpers';
 
 const errors = require('../../conf/errors.json').messageConsumer;
@@ -45,8 +46,14 @@ export default class MessageConsumer {
 		Stomp.disconnectAsync()
 		.then(() => {
 			MessageConsumer.init(job);	
-		}).catch(e => {
-			errorHandler(e);
+		}).catch((e) => {
+			const imposiumError = ExceptionPipe.createError({
+				type         : 'network',
+				messageKey   : 'tcpFailure',
+				source       : e
+			});
+
+			ExceptionPipe.routeError(imposiumError);
 		});
 	}
 
@@ -71,7 +78,13 @@ export default class MessageConsumer {
 
 		API.invokeStream(expId, sceneId, actId)
 		.catch((e) => {
-			errorHandler(e)
+			const imposiumError = ExceptionPipe.createError({
+				type         : 'network',
+				messageKey   : 'httpFailure',
+				source       : e
+			});
+			
+			ExceptionPipe.routeError(imposiumError);
 		});
 	}
 
@@ -99,7 +112,13 @@ export default class MessageConsumer {
 				default: break;
 			}
 		} catch (e) {
-			errorHandler(e);
+			const imposiumError = ExceptionPipe.createError({
+				type         : 'network',
+				messageKey   : 'messageParseFailure',
+				source       : e
+			});
+
+			ExceptionPipe.routeError(imposiumError);
 		}
 	}
 
@@ -112,15 +131,17 @@ export default class MessageConsumer {
 
 		try {
 			if (msg === settings.errorOverTcp) {
-				const {serverFailed} = errors;
-				throw new Error(serverFailed);
+				throw ExceptionPipe.createError({
+					type         : 'network',
+					messageKey   : 'errorOverTcp'
+				});
 			}
 
 			if (statusUpdate) {
 				statusUpdate(messageData);
 			} 
 		} catch (e) {
-			errorHandler(e);
+			ExceptionPipe.routeError(e);
 		}
 	}
 
@@ -146,12 +167,16 @@ export default class MessageConsumer {
 					delete sceneData.id;
 					gotExperience(sceneData);
 				} else {
-					const {parseFailed} = errors;
-					throw new Error(formatError(parseFailed, JSON.stringify(experienceData)));
+					throw ExceptionPipe.createError({
+						type         : 'network',
+						messageKey   : 'messageParseFailure'
+					});
 				}
 			} else {
-				const {rejected} = errors;
-				throw new Error(rejected);
+				throw ExceptionPipe.createError({
+					type         : 'moderation',
+					messageKey   : 'rejection'
+				});
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -175,7 +200,14 @@ export default class MessageConsumer {
 				warnHandler(formatError(tcpFailure, retried + 1));
 			} else {
 				MessageConsumer.retried = settings.min_reconnects;
-				errorHandler(e);
+
+				const imposiumError = ExceptionPipe.createError({
+					type         : 'network',
+					messageKey   : 'tcpFailure',
+					source       : e
+				});
+
+				ExceptionPipe.routeError(imposiumError);
 			}
 		}
 	}
