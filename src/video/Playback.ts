@@ -19,6 +19,7 @@ export default class Playback {
 	private static experienceId:string = '';
 
 	public static setPlayerRef = (ref:HTMLVideoElement) => {
+		console.log('setup');
 		Playback.playerRef = ref;
 
 		for (const key in Playback.mediaEvents) {
@@ -69,10 +70,10 @@ export default class Playback {
 		clearInterval(playbackInterval);
 
 		Analytics.send({
-			t: 'event',
-			ec: 'video_player',
-			ea: 'playback_1',
-			el: experienceId
+			t  : 'event',
+			ec : 'video_player',
+			ea : 'playback_1',
+			el : experienceId
 		});
 
 		Playback.prevPlaybackEvent = 0;
@@ -96,7 +97,7 @@ export default class Playback {
                 Analytics.send({
                 	t  : 'event',
                 	ec : 'video_player',
-                	ea : 'playback_' + next,
+                	ea : `playback_${next}`,
 					el : experienceId
                 });
 

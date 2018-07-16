@@ -15,24 +15,24 @@ var imposium = new Imposium.ImposiumClient(config);
 imposium.captureAnalytics(videoPlayer);
 
 // Executes when a status message is delivered via web socket
-imposium.on(Imposium.Events.STATUS_UPDATE, function(data) {
+imposium.on(imposium.events.STATUS_UPDATE, function(data) {
 	setStatus(data.msg, 'steelblue');
 });
 
 // Executes when a fresh experience was created 
-imposium.on(Imposium.Events.EXPERIENCE_CREATED, function(data) {
+imposium.on(imposium.events.EXPERIENCE_CREATED, function(data) {
     setStatus('Experience created', 'green');
     window.location.hash = '#' + data.id;
 });
 
 // Executes when experience data is received
-imposium.on(Imposium.Events.GOT_EXPERIENCE, function(data) {
+imposium.on(imposium.events.GOT_EXPERIENCE, function(data) {
 	setStatus('Got Scene', 'green');
 	videoPlayer.src = data.mp4Url || data.experience.video_url_mp4_720;;
 });
 
 // Executes when errors occur
-imposium.on(Imposium.Events.ERROR, function(err) {
+imposium.on(imposium.events.ERROR, function(err) {
 	setStatus('Something went wrong processing your experience.', 'red');
 });
 

@@ -1,5 +1,5 @@
 import * as FormDataShim from 'form-data';
-import ImposiumEvents from './Events';
+import ImposiumEvents from '../client/ImposiumEvents';
 
 // Log out warnings
 export const warnHandler = (message:string):void => {

@@ -1,6 +1,6 @@
 import API from '../http/API';
 import Stomp from './Stomp';
-import ImposiumEvents from '../../scaffolding/Events';
+import ImposiumEvents from '../ImposiumEvents';
 import {warnHandler, formatError, errorHandler} from '../../scaffolding/Helpers';
 
 const errors = require('../../conf/errors.json').messageConsumer;

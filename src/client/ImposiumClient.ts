@@ -6,22 +6,24 @@ import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
 import Playback from '../video/Playback';
 import FallbackPlayer from '../video/FallbackPlayer';
-import ImposiumEvents from '../scaffolding/Events';
+import ImposiumEvents from './ImposiumEvents';
 import {prepConfig, warnHandler, isFunc, keyExists, isNode, formatError, errorHandler} from '../scaffolding/Helpers';
 
 const errors   = require('../conf/errors.json').client;
 const settings = require('../conf/settings.json').client;
 const warnings = require('../conf/warnings.json').client;
 
-export const Events = {
-	EXPERIENCE_CREATED : 'experienceCreated',
-	UPLOAD_PROGRESS    : 'uploadProgress',
-	GOT_EXPERIENCE     : 'gotExperience',
-	STATUS_UPDATE      : 'statusUpdate',
-	ERROR              : 'onError'
-};
+export default class ImposiumClient {
+	private fallbackPlayer:FallbackPlayer = null;
 
-export class ImposiumClient {
+	public events = {
+		EXPERIENCE_CREATED : 'experienceCreated',
+		UPLOAD_PROGRESS    : 'uploadProgress',
+		GOT_EXPERIENCE     : 'gotExperience',
+		STATUS_UPDATE      : 'statusUpdate',
+		ERROR              : 'onError'
+	};
+
 	/*
 		Initialize Imposium client
 	 */
@@ -39,7 +41,7 @@ export class ImposiumClient {
 	/*
 		Copies supplied config object to settings for sharing with sub components
 	 */
-	assignConfigOpts = (config:any) => {
+	private assignConfigOpts = (config:any) => {
 		const {defaultConfig} = settings;
 
 		prepConfig(config, defaultConfig);
@@ -71,7 +73,7 @@ export class ImposiumClient {
 	public on = (eventName:string, callback:any):void => {
 		try {
 			if (isFunc(callback)) {
-				if (keyExists(Events, eventName)) {
+				if (keyExists(this.events, eventName)) {
 					ImposiumEvents[eventName] = callback;
 				} else {
 					const {invalidEvent} = errors;
@@ -92,14 +94,14 @@ export class ImposiumClient {
 	public off = (eventName:string = ''):void => {
 		try {
 			if (eventName !== '') {
-				if (keyExists(Events, eventName)) {
+				if (keyExists(this.events, eventName)) {
 					ImposiumEvents[eventName] = null;
 				} else {
 					const {invalidEvent} = errors;
 					throw new Error(formatError(invalidEvent, eventName));
 				}
 			} else {
-				Object.keys(Events).forEach((event) => {
+				Object.keys(this.events).forEach((event) => {
 					ImposiumEvents[event] = null;
 				});
 			}
@@ -127,7 +129,7 @@ export class ImposiumClient {
 				});
 			} else {
 				const {noCallbackSet} = errors;
-				throw new Error(formatError(noCallbackSet, Events.GOT_EXPERIENCE));
+				throw new Error(formatError(noCallbackSet, this.events.GOT_EXPERIENCE));
 			}
 		} catch (e) {
 			errorHandler(e);
@@ -172,11 +174,11 @@ export class ImposiumClient {
 				let eventType = null;
 
 				if (render && !gotExperience) {
-					eventType = Events.GOT_EXPERIENCE;
+					eventType = this.events.GOT_EXPERIENCE;
 				} 
 
 				if (!render && !experienceCreated) {
-					eventType = Events.EXPERIENCE_CREATED;
+					eventType = this.events.EXPERIENCE_CREATED;
 				}
 
 				throw new Error(formatError(noCallbackSet, eventType));
@@ -207,7 +209,7 @@ export class ImposiumClient {
 		try {
 			if (!isNode()) {
 				if (playerRef) {
-					FallbackPlayer.setup(playerRef);
+					this.fallbackPlayer = new FallbackPlayer(playerRef);
 				} else {
 					// throw no ref err
 				}
