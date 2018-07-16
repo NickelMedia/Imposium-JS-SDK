@@ -158,13 +158,17 @@ export default class ImposiumPlayer extends VideoPlayer {
 	/*
 		Seek to a point in the video (s)
 	 */
-	public seek = (seekTo:number):void => {
+	public seek = (seekTo:number, retry:number = -1):void => {
 		const {node: {duration}} = ImposiumPlayer;
 
-		if (inRangeNumeric(seekTo, 0, duration)) {
-			ImposiumPlayer.node.currentTime = seekTo;
+		if (!isNaN(duration)) {
+			if (inRangeNumeric(seekTo, 0, duration)) {
+				ImposiumPlayer.node.currentTime = seekTo;
+			} else {
+				// do warning, note that seek time is outside of vid length
+			}
 		} else {
-			// do warning
+			// do warning, note that duration meta is not ready / existing
 		}
 	}
 

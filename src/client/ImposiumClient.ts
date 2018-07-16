@@ -7,7 +7,16 @@ import Analytics from '../analytics/Analytics';
 import Playback from '../video/Playback';
 import FallbackPlayer from '../video/FallbackPlayer';
 import ImposiumEvents from './ImposiumEvents';
-import {prepConfig, warnHandler, isFunc, keyExists, isNode, formatError, errorHandler} from '../scaffolding/Helpers';
+
+import {
+	prepConfig,
+	isFunc,
+	keyExists,
+	isNode,
+	formatError,
+	errorHandler,
+	warnHandler
+} from '../scaffolding/Helpers';
 
 const errors   = require('../conf/errors.json').client;
 const settings = require('../conf/settings.json').client;

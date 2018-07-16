@@ -63,11 +63,11 @@ export default class API {
 		Wait async for POST /experience, resolve response data
 	 */
 	public static postExperience = (storyId:string, inventory:any, progress:(e)=>any = null):Promise<any> => {
-		const {doPostExperience} = API;
+		const {doPostExperience, uploadProgress} = API;
 		const formData = InventoryToFormData(storyId, inventory);
 
 		const config = {
-			onUploadProgress: (progress) ? (e) => progress(e) : null,
+			onUploadProgress: (e) => uploadProgress(e, progress),
 			headers: {}
 		};
 
@@ -142,5 +142,15 @@ export default class API {
 				reject(e);
 			})
 		});
+	}
+
+	// Calculate upload progress
+	private static uploadProgress = (e:any, callback:any = null):void => {
+		if (callback) {
+			const {loaded, total} = e;
+			const perc = Math.round(loaded / total * 100);
+
+			callback(perc);
+		}
 	}
 }

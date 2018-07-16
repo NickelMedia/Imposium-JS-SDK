@@ -44,7 +44,7 @@ export const prepConfig = (config:any, defaults:any) => {
 
 // Validates if a number is within a range of min -> max
 export const inRangeNumeric = (n:number, min:number, max:number):boolean => {
-	return ((n - min) * (n - max) <= 0);
+	return (n >= min && n <= max);
 }
 
 // Validates if object has function type literal
