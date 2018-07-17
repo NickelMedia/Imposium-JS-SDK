@@ -57,7 +57,8 @@ export default class MessageConsumer {
 		.then(() => {
 			MessageConsumer.init(job);	
 		}).catch((e) => {
-			const wrappedError = new NetworkError('tcpFailure', e);
+			const {job: {expId}} = MessageConsumer;
+			const wrappedError = new NetworkError('tcpFailure', expId, e);
 			ExceptionPipe.routeError(wrappedError);
 		});
 	}
@@ -83,7 +84,7 @@ export default class MessageConsumer {
 
 		API.invokeStream(expId, sceneId, actId)
 		.catch((e) => {
-			const wrappedError = new NetworkError('httpFailure', e);
+			const wrappedError = new NetworkError('httpFailure', expId, e);
 			ExceptionPipe.routeError(wrappedError);
 		});
 	}
@@ -112,7 +113,8 @@ export default class MessageConsumer {
 				default: break;
 			}
 		} catch (e) {
-			const wrappedError = new NetworkError('messageParseFailed', e);
+			const {job: {expId}} = MessageConsumer;
+			const wrappedError = new NetworkError('messageParseFailed', expId, e);
 			ExceptionPipe.routeError(wrappedError);
 		}
 	}
@@ -126,7 +128,8 @@ export default class MessageConsumer {
 
 		try {
 			if (msg === settings.errorOverTcp) {
-				throw new NetworkError('errorOverTcp', null);
+				const {job: {expId}} = MessageConsumer;
+				throw new NetworkError('errorOverTcp', expId, null);
 			}
 
 			if (statusUpdate) {
@@ -159,7 +162,8 @@ export default class MessageConsumer {
 					delete sceneData.id;
 					gotExperience(sceneData);
 				} else {
-					throw new NetworkError('messageParseFailed', null);
+					const {job: {expId}} = MessageConsumer;
+					throw new NetworkError('messageParseFailed', expId, null);
 				}
 			} else {
 				throw new ModerationError('rejection');
@@ -187,7 +191,7 @@ export default class MessageConsumer {
 			} else {
 				MessageConsumer.retried = settings.min_reconnects;
 
-				const wrappedError = new NetworkError('tcpFailure', e);
+				const wrappedError = new NetworkError('tcpFailure', expId, e);
 				ExceptionPipe.routeError(wrappedError);
 			}
 		}

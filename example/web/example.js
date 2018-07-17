@@ -26,15 +26,15 @@ imposium.on(imposium.events.EXPERIENCE_CREATED, function(data) {
 });
 
 // Executes when experience data is received
-// imposium.on(imposium.events.GOT_EXPERIENCE, function(data) {
-// 	setStatus('Got Scene', 'green');
-// 	videoPlayer.src = data.mp4Url || data.experience.video_url_mp4_720;
+imposium.on(imposium.events.GOT_EXPERIENCE, function(data) {
+	setStatus('Got Scene', 'green');
+	videoPlayer.src = data.mp4Url || data.experience.video_url_mp4_720;
 
-// });
+});
 
 // Executes when errors occur
 imposium.on(imposium.events.ERROR, function(err) {
-	setStatus('Something went wrong processing your experience.', 'red');
+	setStatus('Something went wrong with Imposium.', 'red');
 });
 
 // Click handler for the form button, creates a new Imposium experience
@@ -48,8 +48,9 @@ function createExperience() {
             callback_url : ''
         };
         
+        setStatus('Creating Experience...', 'steelblue');
         imposium.createExperience(inventory, true);
-        setStatus('Creating Experience', 'steelblue');
+
     }
 }
 

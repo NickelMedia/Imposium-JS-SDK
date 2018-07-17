@@ -5,10 +5,12 @@
 	"moderation": {
 		"rejection": "This experience was rejected."
 	},
-	"configuration": {
+	"clientConfiguration": {
 		"invalidEventName": "Invalid Imposium event, please review your configuration.",
 		"invalidCallbackType": "You did not pass in a function reference for this event, please review your configuration.",
-		"eventNotConfigured": "You cannot invoke this event without a callback set, please review your configuration.",
+		"eventNotConfigured": "You cannot invoke this event without a callback set, please review your configuration."
+	},
+	"playerConfiguration": {
 		"invalidPlayerRef": "No reference to an HTML5 video element was detected, please review your configuration."
 	},
 	"network": {

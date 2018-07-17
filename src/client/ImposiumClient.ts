@@ -10,8 +10,8 @@ import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import ImposiumEvents from './ImposiumEvents';
 
 import {
+	ClientConfigurationError,
 	EnvironmentError,
-	ConfigurationError,
 	NetworkError
 } from '../scaffolding/Exceptions';
 
@@ -27,7 +27,6 @@ import {
 
 const settings     = require('../conf/settings.json').client;
 const warnings     = require('../conf/warnings.json').client;
-const errors       = require('../conf/errors.json').client;
 
 export default class ImposiumClient {
 	private fallbackPlayer:FallbackPlayer = null;
@@ -92,10 +91,10 @@ export default class ImposiumClient {
 				if (keyExists(this.events, eventName)) {
 					ImposiumEvents[eventName] = callback;
 				} else {
-					throw new ConfigurationError('invalidEventName', eventName);
+					throw new ClientConfigurationError('invalidEventName', eventName);
 				}
 			} else {
-				throw new ConfigurationError('invalidCallbackType', eventName);
+				throw new ClientConfigurationError('invalidCallbackType', eventName);
 			}
 		} catch (e) {
 			ExceptionPipe.routeError(e);
@@ -111,7 +110,7 @@ export default class ImposiumClient {
 				if (keyExists(this.events, eventName)) {
 					ImposiumEvents[eventName] = null;
 				} else {
-					throw new ConfigurationError('invalidEventName', eventName);
+					throw new ClientConfigurationError('invalidEventName', eventName);
 				}
 			} else {
 				Object.keys(this.events).forEach((event) => {
@@ -126,23 +125,23 @@ export default class ImposiumClient {
 	/*
 		Get experience data
 	 */
-	public getExperience = (expId:string):void => {
+	public getExperience = (experienceId:string):void => {
 		const {gotExperience} = ImposiumEvents;
 
 		try {
 			if (gotExperience) {
-				API.getExperience(expId)
+				API.getExperience(experienceId)
 				.then((data) => {
 					const {experience: {id}} = data;
 					Playback.updateExperience(id);
 					gotExperience(data);
 				})
 				.catch((e) => {
-					const wrappedError = new NetworkError('httpFailure', e);
+					const wrappedError = new NetworkError('httpFailure', experienceId, e);
 					ExceptionPipe.routeError(wrappedError);
 				});
 			} else {
-				throw new ConfigurationError('eventNotConfigured', this.events.GOT_EXPERIENCE);
+				throw new ClientConfigurationError('eventNotConfigured', this.events.GOT_EXPERIENCE);
 			}
 		} catch (e) {
 			ExceptionPipe.routeError(e);
@@ -180,11 +179,10 @@ export default class ImposiumClient {
 					}
 				})
 				.catch((e) => {
-					const wrappedError = new NetworkError('httpFailure', e);
+					const wrappedError = new NetworkError('httpFailure', null, e);
 					ExceptionPipe.routeError(wrappedError);
 				});
 			} else {
-				const {noCallbackSet} = errors;
 				let eventType = null;
 
 				if (render && !gotExperience) {
@@ -195,7 +193,7 @@ export default class ImposiumClient {
 					eventType = this.events.EXPERIENCE_CREATED;
 				}
 
-				throw new ConfigurationError('eventNotConfigured', eventType);
+				throw new ClientConfigurationError('eventNotConfigured', eventType);
 			}
 		} catch (e) {
 			ExceptionPipe.routeError(e);
@@ -210,7 +208,7 @@ export default class ImposiumClient {
 		Playback.updateExperience(expId);
 
 		if (!MessageConsumer.job) {
-			MessageConsumer.init(job);		
+			MessageConsumer.init(job);
 		} else {
 			MessageConsumer.reconnect(job);
 		}

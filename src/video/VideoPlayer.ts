@@ -3,7 +3,7 @@ import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {
 	EnvironmentError,
-	ConfigurationError
+	PlayerConfigurationError
 } from '../scaffolding/Exceptions';
 
 import {
@@ -25,7 +25,7 @@ export default abstract class VideoPlayer {
 				Playback.setPlayerRef(VideoPlayer.node);
 			} else {
 				// Prop passed wasn't of type HTMLVideoElement
-				throw new ConfigurationError('invalidPlayerRef', null);
+				throw new PlayerConfigurationError('invalidPlayerRef', null);
 			}
 		} else {
 			// Cancels out initialization in NodeJS
