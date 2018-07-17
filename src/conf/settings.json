@@ -22,7 +22,7 @@
 		"videoSceneKey": "VideoScene01"
 	},
 	"stomp": {
-		"prodEndpoint": "wss://stomp.prod.k8s.nickel.media/ws",
+		"prodEndpoint": "wss://stomp.prod.k8s.nickel.media/ws/",
 		"stagingEndpoint": "wss://stomp.staging.k8s.nickel.media/ws",
 		"exchange": "/exchange/imposium/",
 		"username": "imposium_stomp",

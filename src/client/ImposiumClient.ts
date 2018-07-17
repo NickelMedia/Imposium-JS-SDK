@@ -17,16 +17,12 @@ import {
 
 import {
 	prepConfig,
-	isFunc,
 	keyExists,
-	isNode,
-	formatError,
-	errorHandler,
-	warnHandler
+	isFunc,
+	isNode
 } from '../scaffolding/Helpers';
 
-const settings     = require('../conf/settings.json').client;
-const warnings     = require('../conf/warnings.json').client;
+const settings = require('../conf/settings.json').client;
 
 export default class ImposiumClient {
 	private fallbackPlayer:FallbackPlayer = null;
@@ -97,7 +93,7 @@ export default class ImposiumClient {
 				throw new ClientConfigurationError('invalidCallbackType', eventName);
 			}
 		} catch (e) {
-			ExceptionPipe.routeError(e);
+			ExceptionPipe.trapError(e);
 		}
 	}
 
@@ -118,7 +114,7 @@ export default class ImposiumClient {
 				});
 			}
 		} catch (e) {
-			ExceptionPipe.routeError(e);
+			ExceptionPipe.trapError(e);
 		}
 	}
 
@@ -138,13 +134,13 @@ export default class ImposiumClient {
 				})
 				.catch((e) => {
 					const wrappedError = new NetworkError('httpFailure', experienceId, e);
-					ExceptionPipe.routeError(wrappedError);
+					ExceptionPipe.trapError(wrappedError);
 				});
 			} else {
 				throw new ClientConfigurationError('eventNotConfigured', this.events.GOT_EXPERIENCE);
 			}
 		} catch (e) {
-			ExceptionPipe.routeError(e);
+			ExceptionPipe.trapError(e);
 		}
 	}
 
@@ -180,7 +176,7 @@ export default class ImposiumClient {
 				})
 				.catch((e) => {
 					const wrappedError = new NetworkError('httpFailure', null, e);
-					ExceptionPipe.routeError(wrappedError);
+					ExceptionPipe.trapError(wrappedError);
 				});
 			} else {
 				let eventType = null;
@@ -196,7 +192,7 @@ export default class ImposiumClient {
 				throw new ClientConfigurationError('eventNotConfigured', eventType);
 			}
 		} catch (e) {
-			ExceptionPipe.routeError(e);
+			ExceptionPipe.trapError(e);
 		}
 	}
 
@@ -225,7 +221,7 @@ export default class ImposiumClient {
 				throw new EnvironmentError('node');
 			}
 		} catch (e) {
-			ExceptionPipe.routeError(e);
+			ExceptionPipe.trapError(e);
 		}
 	}
 }

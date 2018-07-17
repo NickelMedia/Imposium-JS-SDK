@@ -6,12 +6,15 @@
 		"rejection": "This experience was rejected."
 	},
 	"clientConfiguration": {
-		"invalidEventName": "Invalid Imposium event, please review your configuration.",
-		"invalidCallbackType": "You did not pass in a function reference for this event, please review your configuration.",
-		"eventNotConfigured": "You cannot invoke this event without a callback set, please review your configuration."
+		"invalidEventName": "Invalid client event name.",
+		"invalidCallbackType": "The callback reference set for this client event is not of type function.",
+		"eventNotConfigured": "You cannot invoke this client event without a callback set."
 	},
 	"playerConfiguration": {
-		"invalidPlayerRef": "No reference to an HTML5 video element was detected, please review your configuration."
+		"invalidPlayerRef": "No reference to an HTML5 video element was detected.",
+		"invalidEventName": "Invalid player event name.",
+		"invalidCallbackType": "The callback reference set for this player event is not of type function.",
+		"eventNotConfigured": "You cannot invoke this player event without a callback set."
 	},
 	"network": {
 		"httpFailure": "Unable to process request to the Imposium API.",

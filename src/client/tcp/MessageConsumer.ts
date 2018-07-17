@@ -9,20 +9,13 @@ import {
 	NetworkError
 } from '../../scaffolding/Exceptions';
 
-import {
-	warnHandler,
-	formatError,
-	errorHandler
-} from '../../scaffolding/Helpers';
-
-const warnings = require('../../conf/warnings.json').messageConsumer;
 const settings = require('../../conf/settings.json').messageConsumer;
 
 // Distinct message keys to listen for over RabbitMQ
 class Messages {
 	public static readonly ACT_COMPLETE:string = 'actComplete';
-	public static readonly GOT_MESSAGE:string = 'gotMessage';
-	public static readonly GOT_SCENE:string = 'gotScene';
+	public static readonly GOT_MESSAGE:string  = 'gotMessage';
+	public static readonly GOT_SCENE:string    = 'gotScene';
 }
 
 // Wraps around the Stomp client, providing the message handling
@@ -59,7 +52,7 @@ export default class MessageConsumer {
 		}).catch((e) => {
 			const {job: {expId}} = MessageConsumer;
 			const wrappedError = new NetworkError('tcpFailure', expId, e);
-			ExceptionPipe.routeError(wrappedError);
+			ExceptionPipe.trapError(wrappedError);
 		});
 	}
 
@@ -85,7 +78,7 @@ export default class MessageConsumer {
 		API.invokeStream(expId, sceneId, actId)
 		.catch((e) => {
 			const wrappedError = new NetworkError('httpFailure', expId, e);
-			ExceptionPipe.routeError(wrappedError);
+			ExceptionPipe.trapError(wrappedError);
 		});
 	}
 
@@ -115,7 +108,7 @@ export default class MessageConsumer {
 		} catch (e) {
 			const {job: {expId}} = MessageConsumer;
 			const wrappedError = new NetworkError('messageParseFailed', expId, e);
-			ExceptionPipe.routeError(wrappedError);
+			ExceptionPipe.trapError(wrappedError);
 		}
 	}
 
@@ -136,7 +129,7 @@ export default class MessageConsumer {
 				statusUpdate(messageData);
 			} 
 		} catch (e) {
-			ExceptionPipe.routeError(e);
+			ExceptionPipe.trapError(e);
 		}
 	}
 
@@ -169,7 +162,7 @@ export default class MessageConsumer {
 				throw new ModerationError('rejection');
 			}
 		} catch (e) {
-			errorHandler(e);
+			ExceptionPipe.trapError(e);
 		}
 	}
 
@@ -184,15 +177,12 @@ export default class MessageConsumer {
 			++MessageConsumer.retried;
 
 			if (retried < maxRetries) {
-				const {tcpFailure} = warnings;
-
 				Stomp.reconnect(expId);
-				warnHandler(formatError(tcpFailure, retried + 1));
+				ExceptionPipe.logWarning('network', 'tcpFailure');
 			} else {
 				MessageConsumer.retried = settings.min_reconnects;
-
 				const wrappedError = new NetworkError('tcpFailure', expId, e);
-				ExceptionPipe.routeError(wrappedError);
+				ExceptionPipe.trapError(wrappedError);
 			}
 		}
 	}

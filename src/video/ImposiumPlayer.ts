@@ -1,16 +1,19 @@
 import VideoPlayer from './VideoPlayer';
+import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {
 	inRangeNumeric, 
 	prepConfig, 
 	isFunc, 
-	keyExists, 
-	warnHandler, 
-	errorHandler
+	keyExists
 } from '../scaffolding/Helpers';
 
+import {
+	EnvironmentError,
+	PlayerConfigurationError
+} from '../scaffolding/Exceptions';
+
 const settings = require('../conf/settings.json').videoPlayer;
-const warnings = require('../conf/warnings.json').videoPlayer;
 
 interface ImposiumPlayerConfig {
 	volume   : number;
@@ -97,13 +100,13 @@ export default class ImposiumPlayer extends VideoPlayer {
 						ImposiumPlayer.node.addEventListener(eventName, event.callback);
 					}
 				} else {
-					
+					throw new PlayerConfigurationError('invalidEventName', eventName);
 				}
 			} else {
-				// throw bad func err
+				throw new PlayerConfigurationError('invalidCallbackType', eventName);
 			}
 		} catch (e) {
-			errorHandler(e);
+			ExceptionPipe.trapError(e);
 		}
 	}
 
@@ -122,10 +125,10 @@ export default class ImposiumPlayer extends VideoPlayer {
 
 				event.callback = null;
 			} else {
-				// throw invalid evt err
+				throw new PlayerConfigurationError('invalidEventName', eventName);
 			}
 		} catch (e) {
-			// handle err
+			ExceptionPipe.trapError(e);
 		}
 	}
 
@@ -174,12 +177,10 @@ export default class ImposiumPlayer extends VideoPlayer {
 			if (inRangeNumeric(seekTo, 0, duration)) {
 				ImposiumPlayer.node.currentTime = seekTo;
 			} else {
-				const {badSeek} = warnings;
-				warnHandler(badSeek);
+				ExceptionPipe.logWarning('playerFailure', 'invalidSeekTime');
 			}
 		} else {
-			const {seekNotReady} = warnings;
-			warnHandler(seekNotReady);
+			ExceptionPipe.logWarning('playerFailure', 'seekNotReady');
 		}
 	}
 
@@ -219,7 +220,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		if (inRangeNumeric(volume, volumeMin, volumeMax)) {
 			ImposiumPlayer.node.volume = volume;
 		} else {
-			// do warning
+			ExceptionPipe.logWarning('playerFailure', 'invalidVolume');
 		}
 	}
 

@@ -105,6 +105,6 @@ export class NetworkError extends ImposiumError {
 	}
 
 	public log = ():void => {
-		console.error(`${this.prefix}\nReason: Network related error\nMessage: ${this.message}\nNetwork Error:`, this.networkError);
+		console.error(`${this.prefix}\nReason: Network related error\nMessage: ${this.message}\nExperience ID: ${this.experienceId}\nNetwork Error:`, this.networkError);
 	}
 }
