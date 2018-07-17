@@ -3,6 +3,9 @@ import Analytics from '../analytics/Analytics';
 const settings = require('../conf/settings.json').videoPlayer;
 
 export default class Playback {
+	private static readonly intervalRate:number = settings.checkPlaybackRateMs;
+	private static readonly playbackEvents:number[] = settings.playbackEvents;
+
 	private static readonly mediaEvents:any = {
 		loadstart : () => Playback.onLoad(),
 		play      : () => Playback.onPlay(),
@@ -10,13 +13,10 @@ export default class Playback {
 		ended     : () => Playback.onEnd()
 	};
 
-	private static readonly playbackEvents:number[] = settings.playbackEvents;
-	private static readonly intervalRate:number = settings.checkPlaybackRateMs;
-
-	private static prevPlaybackEvent:number = 0;
-	private static playbackInterval:any;
 	private static playerRef:HTMLVideoElement = null;
 	private static experienceId:string = '';
+	private static prevPlaybackEvent:number = 0;
+	private static playbackInterval:any;
 
 	public static setPlayerRef = (ref:HTMLVideoElement) => {
 		Playback.playerRef = ref;

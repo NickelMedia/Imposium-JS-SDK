@@ -2,10 +2,13 @@
 	"environment": {
 		"node": "Sorry, this feature is incompatible with NodeJS"
 	},
+	"moderation": {
+		"rejection": "This experience was rejected."
+	},
 	"configuration": {
-		"invalidEventName": "[placeholder] is not a valid Imposium event, please review your configuration.",
-		"invalidCallbackType": "The callback reference set for event [placeholder] is not a function, please review your configuration.",
-		"eventNotConfigured": "Attempted to trigger an event without the required callback: [placeholder], please review your configuration.",
+		"invalidEventName": "Invalid Imposium event, please review your configuration.",
+		"invalidCallbackType": "You did not pass in a function reference for this event, please review your configuration.",
+		"eventNotConfigured": "You cannot invoke this event without a callback set, please review your configuration.",
 		"invalidPlayerRef": "No reference to an HTML5 video element was detected, please review your configuration."
 	},
 	"network": {
@@ -13,8 +16,5 @@
 		"tcpFailure": "Unable to reach Imposium while processing this experience.",
 		"errorOverTcp": "Something went wrong while processing this experience.",
 		"messageParseFailure": "Message data from Imposium was malformed."
-	},
-	"moderation": {
-		"rejection": "This experience was rejected."
 	}
 }

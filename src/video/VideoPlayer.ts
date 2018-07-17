@@ -1,8 +1,16 @@
 import Playback from './Playback';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
-import {isNode, warnHandler, errorHandler} from '../scaffolding/Helpers';
 
-const errors = require('../conf/errors.json').videoPlayer;
+import {
+	EnvironmentError,
+	ConfigurationError
+} from '../scaffolding/Exceptions';
+
+import {
+	isNode, 
+	warnHandler, 
+	errorHandler
+} from '../scaffolding/Helpers';
 
 export default abstract class VideoPlayer {
 	protected static node:HTMLVideoElement = null;
@@ -17,17 +25,11 @@ export default abstract class VideoPlayer {
 				Playback.setPlayerRef(VideoPlayer.node);
 			} else {
 				// Prop passed wasn't of type HTMLVideoElement
-				throw ExceptionPipe.createError({
-					type        : 'configuration',
-					messageKey  : 'invalidPlayerRef'
-				});
+				throw new ConfigurationError('invalidPlayerRef', null);
 			}
 		} else {
 			// Cancels out initialization in NodeJS
-			throw ExceptionPipe.createError({
-				type        : 'environment',
-				messageKey  : 'node'
-			});
+			throw new EnvironmentError('node');
 		}
 	}
 
