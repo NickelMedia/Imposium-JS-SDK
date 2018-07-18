@@ -11,6 +11,7 @@
 		"eventNotConfigured": "You cannot invoke this client event without a callback set."
 	},
 	"playerConfiguration": {
+		"noClient": "You must provide an Imposium client reference to the player.",
 		"invalidPlayerRef": "No reference to an HTML5 video element was detected.",
 		"invalidEventName": "Invalid player event name.",
 		"invalidCallbackType": "The callback reference set for this player event is not of type function.",

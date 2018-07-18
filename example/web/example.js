@@ -12,7 +12,7 @@ var config = {
 };
 
 var imposium = new Imposium.ImposiumClient(config);
-var player = new Imposium.ImposiumPlayer(videoPlayer, {});
+var player = new Imposium.ImposiumPlayer(videoPlayer, imposium);
 
 // Executes when a status message is delivered via web socket
 imposium.on(imposium.events.STATUS_UPDATE, function(data) {
@@ -28,8 +28,6 @@ imposium.on(imposium.events.EXPERIENCE_CREATED, function(data) {
 // Executes when experience data is received
 imposium.on(imposium.events.GOT_EXPERIENCE, function(data) {
 	setStatus('Got Scene', 'green');
-	videoPlayer.src = data.mp4Url || data.experience.video_url_mp4_720;
-
 });
 
 // Executes when errors occur

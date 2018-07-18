@@ -1,4 +1,5 @@
 import VideoPlayer from './VideoPlayer';
+import ImposiumClient from '../client/ImposiumClient';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {
@@ -13,8 +14,6 @@ import {
 	PlayerConfigurationError
 } from '../scaffolding/Exceptions';
 
-const settings = require('../conf/settings.json').videoPlayer;
-
 interface ImposiumPlayerConfig {
 	volume   : number;
 	preload  : string;
@@ -25,11 +24,6 @@ interface ImposiumPlayerConfig {
 	controls : boolean;
 }
 
-interface VideoConfig {
-	poster : string;
-	videos : any;
-}
-
 interface Video {
 	url      : string;
 	format   : string;
@@ -38,6 +32,11 @@ interface Video {
 	filesize : number;
 	duration : number;
 	rate     : number;
+}
+
+interface VideoConfig {
+	poster : string;
+	videos : Video[];
 }
 
 export const ImposiumPlayerEvents = {
@@ -52,7 +51,10 @@ export const ImposiumPlayerEvents = {
 	controlsset   : {callback: null, native: false}
 };
 
+const settings = require('../conf/settings.json').videoPlayer;
+
 export default class ImposiumPlayer extends VideoPlayer {
+	private clientRef:ImposiumClient = null;
 	private static ImposiumPlayerConfig:ImposiumPlayerConfig = null;
 
 	public events = {
@@ -67,11 +69,29 @@ export default class ImposiumPlayer extends VideoPlayer {
 		CONTROLS : 'controlsset'
 	};
 
-	constructor(node:HTMLVideoElement, config:ImposiumPlayerConfig = settings.defaultConfig) {
+	private videoConfig:VideoConfig = {
+		poster: '',
+		videos: []
+	};
+
+	constructor(node:HTMLVideoElement, client:ImposiumClient, config:ImposiumPlayerConfig = settings.defaultConfig) {
 		super(node);
-		this.init(config);
+
+		try {
+			if (client) {
+				client.cacheVideo = (video:Video, poster?:string) => this.addVideo(video, poster);
+				this.init(config);
+			} else {
+				throw new PlayerConfigurationError("noClient", null);
+			}
+		} catch (e) {
+			ExceptionPipe.trapError(e);
+		}
 	}
 
+	/*
+		Assigns config
+	 */
 	public init = (config:ImposiumPlayerConfig):void => {
 		const {defaultConfig} = settings;
 
@@ -79,8 +99,21 @@ export default class ImposiumPlayer extends VideoPlayer {
 		ImposiumPlayer.ImposiumPlayerConfig = {...defaultConfig, ...config};
 
 		for (const key in ImposiumPlayer.ImposiumPlayerConfig) {
-			ImposiumPlayer.node[key] = ImposiumPlayer.ImposiumPlayerConfig[key];
+			this.node[key] = ImposiumPlayer.ImposiumPlayerConfig[key];
 		}
+	}
+
+	/*
+		Callback that fires when experiences are fetched and automatically handles conf
+	 */
+	private addVideo = (video:Video, poster:string = ''):void => {
+		this.videoConfig.videos.push(video);
+
+		if (poster !== this.videoConfig.poster) {
+			this.videoConfig.poster = poster;
+		}
+
+		this.node.src = video.url;
 	}
 
 	/*
@@ -97,7 +130,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
 					// If the event type is a valid media event, assign to ImposiumPlayer node
 					if (event.native) {
-						ImposiumPlayer.node.addEventListener(eventName, event.callback);
+						this.node.addEventListener(eventName, event.callback);
 					}
 				} else {
 					throw new PlayerConfigurationError('invalidEventName', eventName);
@@ -120,7 +153,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
 				// Remove node based event listener
 				if (event.native) {
-					ImposiumPlayer.node.removeEventListener(eventName, event.callback)
+					this.node.removeEventListener(eventName, event.callback)
 				}
 
 				event.callback = null;
@@ -136,46 +169,46 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Play video
 	 */
 	public play = ():void => {
-		ImposiumPlayer.node.play();
+		this.node.play();
 	}
 
 	/*
 		Pause video
 	 */
 	public pause = ():void => {
-		ImposiumPlayer.node.pause();
+		this.node.pause();
 	}
 
 	/*
 		TO DO: Clarify what this is with Greg
 	 */
 	public getPlaybackState = ():string => {
-		return (ImposiumPlayer.node.paused) ? 'paused' : 'playing';
+		return (this.node.paused) ? 'paused' : 'playing';
 	}
 
 	/*
 		Get current playback time (s)
 	 */
 	public getPosition = ():number => {
-		return ImposiumPlayer.node.currentTime;
+		return this.node.currentTime;
 	}
 
 	/*
 		Get duration of video (s)
 	 */
 	public getDuration = ():number => {
-		return ImposiumPlayer.node.duration;
+		return this.node.duration;
 	}
 
 	/*
 		Seek to a point in the video (s)
 	 */
 	public seek = (seekTo:number, retry:number = -1):void => {
-		const {node: {duration}} = ImposiumPlayer;
+		const {node: {duration}} = this;
 
 		if (!isNaN(duration)) {
 			if (inRangeNumeric(seekTo, 0, duration)) {
-				ImposiumPlayer.node.currentTime = seekTo;
+				this.node.currentTime = seekTo;
 			} else {
 				ExceptionPipe.logWarning('playerFailure', 'invalidSeekTime');
 			}
@@ -188,7 +221,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Get mute state
 	 */
 	public getMute = ():boolean => {
-		return ImposiumPlayer.node.muted;
+		return this.node.muted;
 	}
 
 	/*
@@ -197,7 +230,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 	public setMute = (mute:boolean):void => {
 		const {muted} = ImposiumPlayerEvents;
 
-		ImposiumPlayer.node.muted = mute;
+		this.node.muted = mute;
 
 		if (muted) {
 			muted.callback();
@@ -208,7 +241,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Get volume state
 	 */
 	public getVolume = ():number => {
-		return ImposiumPlayer.node.volume;
+		return this.node.volume;
 	}
 
 	/*
@@ -218,7 +251,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		const {volumeMin, volumeMax} = settings;
 
 		if (inRangeNumeric(volume, volumeMin, volumeMax)) {
-			ImposiumPlayer.node.volume = volume;
+			this.node.volume = volume;
 		} else {
 			ExceptionPipe.logWarning('playerFailure', 'invalidVolume');
 		}
@@ -228,7 +261,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Get controls state
 	 */
 	public getControls = ():boolean => {
-		return ImposiumPlayer.node.controls;
+		return this.node.controls;
 	}
 
 	/*
@@ -237,7 +270,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 	public setControls = (controls:boolean):void => {
 		const {controlsset} = ImposiumPlayerEvents;
 
-		ImposiumPlayer.node.controls = controls;
+		this.node.controls = controls;
 
 		if (controlsset) {
 			controlsset.callback();
@@ -249,8 +282,8 @@ export default class ImposiumPlayer extends VideoPlayer {
 	 */
 	public replay = ():void => {
 		this.pauseIfPlaying();
-		ImposiumPlayer.node.currentTime = 0;
-		ImposiumPlayer.node.play();
+		this.node.currentTime = 0;
+		this.node.play();
 	}
 
 	/*
@@ -266,12 +299,12 @@ export default class ImposiumPlayer extends VideoPlayer {
 		}
 
 		ImposiumPlayer.ImposiumPlayerConfig = {...defaultConfig};
-		ImposiumPlayer.node = null;
+		this.node = null;
 	}
 
 	private pauseIfPlaying = ():void => {
-		if (!ImposiumPlayer.node.paused) {
-			ImposiumPlayer.node.pause();
+		if (!this.node.paused) {
+			this.node.pause();
 		}
 	}
 }

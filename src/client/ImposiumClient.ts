@@ -4,7 +4,6 @@ import API from './http/API';
 import Stomp from './tcp/Stomp';
 import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
-import Playback from '../video/Playback';
 import FallbackPlayer from '../video/FallbackPlayer';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import ImposiumEvents from './ImposiumEvents';
@@ -25,7 +24,7 @@ import {
 const settings = require('../conf/settings.json').client;
 
 export default class ImposiumClient {
-	private fallbackPlayer:FallbackPlayer = null;
+	public cacheVideo:(video:any, poster?:string)=>void = null;
 
 	public events = {
 		EXPERIENCE_CREATED : 'experienceCreated',
@@ -34,6 +33,8 @@ export default class ImposiumClient {
 		STATUS_UPDATE      : 'statusUpdate',
 		ERROR              : 'onError'
 	};
+
+	private fallbackPlayer:FallbackPlayer = null;
 
 	/*
 		Initialize Imposium client
@@ -128,8 +129,20 @@ export default class ImposiumClient {
 			if (gotExperience) {
 				API.getExperience(experienceId)
 				.then((data) => {
-					const {experience: {id}} = data;
-					Playback.updateExperience(id);
+					const {experience: {id, video_url_mp4_720}} = data;
+
+					if (this.cacheVideo) {
+						this.cacheVideo({
+							url      : video_url_mp4_720,
+							format   : 'mp4',
+							width    : 720,
+							height   : 1080,
+							filesize : 1000000,
+							duration : 4,
+							rate     : 23.93
+						}, '');
+					}
+
 					gotExperience(data);
 				})
 				.catch((e) => {
@@ -201,7 +214,6 @@ export default class ImposiumClient {
 	 */
 	public renderExperience = (job:any):void => {
 		const {expId} = job;
-		Playback.updateExperience(expId);
 
 		if (!MessageConsumer.job) {
 			MessageConsumer.init(job);

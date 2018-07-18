@@ -173,8 +173,6 @@ export default class Analytics {
 		return guid;
 	}
 
-	// TO DO: use more robust uuid solution (?) 
-
 	/*
 		Generate random sequence 
 	 */

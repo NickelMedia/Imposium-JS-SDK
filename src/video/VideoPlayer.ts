@@ -17,11 +17,11 @@ export default abstract class VideoPlayer {
 		ended     : () => this.onEnd()
 	};
 
-	protected static node:HTMLVideoElement = null;
+	private experienceId:string = '';
+	private prevPlaybackEvent:number = 0;
+	private playbackInterval:any;
 
-	private static experienceId:string = '';
-	private static prevPlaybackEvent:number = 0;
-	private static playbackInterval:any;
+	protected node:HTMLVideoElement = null;
 
 	/*
 		Basis of Imposum/Fallback video player objects
@@ -29,10 +29,10 @@ export default abstract class VideoPlayer {
 	constructor(node:HTMLVideoElement) {
 		if (!isNode()) {
 			if (node instanceof HTMLVideoElement) {
-				VideoPlayer.node = node;
+				this.node = node;
 
 				for (const key in this.mediaEvents) {
-					VideoPlayer.node.addEventListener(key, this.mediaEvents[key]);
+					this.node.addEventListener(key, this.mediaEvents[key]);
 				}
 			} else {
 				// Prop passed wasn't of type HTMLVideoElement
@@ -45,7 +45,7 @@ export default abstract class VideoPlayer {
 	}
 
 	private onLoad = ():void => {
-		const {experienceId} = VideoPlayer;
+		const {experienceId} = this;
 
 		Analytics.send({
 			t  : 'event',
@@ -56,29 +56,20 @@ export default abstract class VideoPlayer {
 	}
 
 	private onPlay = ():void => {
-		const {
-			intervalRate,
-			playbackInterval
-		} = VideoPlayer;
+		clearInterval(this.playbackInterval);
 
-		clearInterval(playbackInterval);
-
-		VideoPlayer.playbackInterval = setInterval(
+		this.playbackInterval = setInterval(
 			() => this.checkPlayback(), 
-			intervalRate
+			VideoPlayer.intervalRate
 		);
 	}
 
 	private onPause = ():void => {
-		const {playbackInterval} = VideoPlayer;
-		clearInterval(playbackInterval);
+		clearInterval(this.playbackInterval);
 	}
 
 	private onEnd = ():void => {
-		const {
-			experienceId,
-			playbackInterval
-		} = VideoPlayer;
+		const {experienceId, playbackInterval} = this;
 
 		clearInterval(playbackInterval);
 
@@ -89,22 +80,21 @@ export default abstract class VideoPlayer {
 			el : experienceId
 		});
 
-		VideoPlayer.prevPlaybackEvent = 0;
+		this.prevPlaybackEvent = 0;
 	}
 
 	private checkPlayback = ():void => {
 		const {
-			node, 
-			playbackEvents,
+			node,
 			prevPlaybackEvent,
 			experienceId, 
 			playbackInterval
-		} = VideoPlayer;
+		} = this;
 
         if (node) {
         	const {currentTime, duration} = node;
             const perc = currentTime / duration;
-           	const next = playbackEvents[prevPlaybackEvent];
+           	const next = VideoPlayer.playbackEvents[prevPlaybackEvent];
 
             if (perc > next) {                
                 Analytics.send({
@@ -114,7 +104,7 @@ export default abstract class VideoPlayer {
 					el : experienceId
                 });
 
-                VideoPlayer.prevPlaybackEvent++;
+                this.prevPlaybackEvent++;
             }
         } else {
             clearInterval(playbackInterval);

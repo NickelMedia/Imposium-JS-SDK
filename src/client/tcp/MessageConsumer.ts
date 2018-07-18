@@ -26,16 +26,21 @@ export default class MessageConsumer {
 	// Settings for retrying rabbitMQ connections
 	private static readonly maxRetries:number = settings.maxReconnects;
 	private static retried:number = settings.minReconnects;
+	private static cacheVideo:(video:any, poster?:string)=>void = null; 
 
 	/*
 		Initialize WebStomp
 	 */
-	public static init = (job:any):void => {
+	public static init = (job:any, cacheVideo:(video:any, poster:string)=>void = null):void => {
 		const {attachStompEvents} = MessageConsumer;
 		const {expId} = job;
 
 		if (!Stomp.eventsBound) {
 			attachStompEvents();
+		}
+
+		if (!MessageConsumer.cacheVideo) {
+			MessageConsumer.cacheVideo = cacheVideo;
 		}
 
 		MessageConsumer.job = job;
@@ -45,10 +50,10 @@ export default class MessageConsumer {
 	/*
 		Kills the current stomp connection and initates a new connection on closure
 	 */
-	public static reconnect = (job:any):void => {
+	public static reconnect = (job:any, cacheVideo:(video:any, poster:string)=>void = null):void => {
 		Stomp.disconnectAsync()
 		.then(() => {
-			MessageConsumer.init(job);	
+			MessageConsumer.init(job, cacheVideo);	
 		}).catch((e) => {
 			const {job: {expId}} = MessageConsumer;
 			const wrappedError = new NetworkError('tcpFailure', expId, e);
