@@ -6,7 +6,6 @@ const settings = require('../../conf/settings.json').stomp;
 
 export default class Stomp {
 	// RabbitMQ creds
-	private static endpoint:string = '';
 	private static readonly exchange:string = settings.exchange;
 	private static readonly username:string = settings.username;
 	private static readonly password:string = settings.password;
@@ -16,17 +15,15 @@ export default class Stomp {
 	private delegates:any;
 
 	// WS / Stomp objs
-	private socket:WebSocket;
-	private client:WebStomp.Client;
-	private subscription:WebStomp.Subscription;
+	private endpoint:string = '';
+	private socket:WebSocket = null;
+	private client:WebStomp.Client = null;
+	private subscription:WebStomp.Subscription = null;
 
-	constructor(experienceId:string, delegates:any) {
+	constructor(experienceId:string, delegates:any, env:string) {
 		this.experienceId = experienceId;
 		this.delegates = delegates;
-	}
-
-	public static setEndpoint = (env:string):void => {
-		Stomp.endpoint = (env === 'production') ? settings.prodEndpoint : settings.stagingEndpoint;
+		this.endpoint = settings[env];
 	}
 
 	/*
@@ -36,8 +33,8 @@ export default class Stomp {
 		this WebStomp library. 
 	 */
 	private init = ():void => {
-		const {endpoint, username, password,} = Stomp;
-		const {delegates: {error}} = this;
+		const {username, password,} = Stomp;
+		const {endpoint, delegates: {error}} = this;
 
 		this.socket = (!isNode()) ? new WebSocket(endpoint) : new WebSocketShim(endpoint);
 		this.client = WebStomp.over(this.socket);

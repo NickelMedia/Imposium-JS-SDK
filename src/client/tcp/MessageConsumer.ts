@@ -21,19 +21,22 @@ export default class MessageConsumer {
 		complete : 'actComplete'
 	};
 
-	private readonly delegates:any = {
-		start : () => this.invokeStreaming(),
+	private delegates:any = {
+		start : null,
 		route : (m:any) => this.routeMessageData(m),
 		error : (e:any) => this.stompError(e)
 	}
 
 	private job:any = null;
+	private env:string = '';
 	private stomp:Stomp = null;
 	private cacheVideo:(video:any, poster?:string)=>void = null;
 	private retried:number = settings.minReconnects;
 
-	constructor(job:any, doCacheVideo:(video:any, poster:string)=>void = null) {
+	constructor(job:any, env:string, startDelegate:(j:any)=>void, doCacheVideo:(video:any, poster:string)=>void = null) {
 		this.job = job;
+		this.env = env;
+		this.delegates.start = startDelegate;
 
 		if (doCacheVideo) {
 			this.cacheVideo = doCacheVideo;
@@ -54,21 +57,8 @@ export default class MessageConsumer {
 	}
 
 	private establishConnection = ():void => {
-		const {job: {expId}, delegates} = this;
-		this.stomp = new Stomp(expId, delegates);
-	}
-
-	/*
-		Initiates the message queueing process on Imposium related to processing
-	 */
-	private invokeStreaming = ():void => {
-		const {job: {expId, sceneId, actId}} = this;
-
-		API.invokeStream(expId, sceneId, actId)
-		.catch((e) => {
-			const wrappedError = new NetworkError('httpFailure', expId, e);
-			ExceptionPipe.trapError(wrappedError);
-		});
+		const {job: {expId}, env, delegates} = this;
+		this.stomp = new Stomp(expId, delegates, env);
 	}
 
 	/*

@@ -21,7 +21,14 @@ import {
 	isNode
 } from '../scaffolding/Helpers';
 
-export let clientConfig:any = {};
+interface ClientConfig {
+	accessToken : string;
+	storyId     : string;
+	actId       : string;
+	sceneId     : string;
+	environment : string;
+}
+
 const settings = require('../conf/settings.json').client;
 
 export default class ImposiumClient {
@@ -35,8 +42,10 @@ export default class ImposiumClient {
 		ERROR              : 'onError'
 	};
 
+	private api:API = null;
 	private consumer:MessageConsumer = null;
 	private fallbackPlayer:FallbackPlayer = null;
+	private clientConfig:ClientConfig = null;
 
 	/*
 		Initialize Imposium client
@@ -56,21 +65,26 @@ export default class ImposiumClient {
 		Copies supplied config object to settings for sharing with sub components
 	 */
 	private assignConfigOpts = (config:any) => {
+		const prevConfig = this.clientConfig;
 		const {defaultConfig} = settings;
 
 		prepConfig(config, defaultConfig);
-		clientConfig = {...defaultConfig, ...config};
+		this.clientConfig = {...defaultConfig, ...config};
+
+		if (!this.api || (prevConfig.accessToken !== config.accessToken || prevConfig.environment !== config.environment)) {
+			this.api = new API(this.clientConfig.accessToken, this.clientConfig.environment);
+		}
 
 		// Prep for analytics in browser
 		if (!isNode()) {
-
+			this.getAnalyticsProperty();
 		}
 	}
 
 	private getAnalyticsProperty = ():void => {
-		const {storyId} = clientConfig;
+		const {api, clientConfig: {storyId}} = this;
 
-		API.getStory(storyId)
+		api.getStory(storyId)
 		.then((story) => {
 			// GA prop regExp if still needed down the line
 			// RegExp(/^ua-\d{4,9}-\d{1,4}$/i) 
@@ -126,11 +140,12 @@ export default class ImposiumClient {
 		Get experience data
 	 */
 	public getExperience = (experienceId:string):void => {
+		const {api} = this;
 		const {gotExperience} = ImposiumEvents;
 
 		try {
 			if (gotExperience) {
-				API.getExperience(experienceId)
+				api.getExperience(experienceId)
 				.then((data) => {
 					const {experience: {id, video_url_mp4_720}} = data;
 
@@ -170,13 +185,12 @@ export default class ImposiumClient {
  
 		try {
 			if (permitRender || permitCreate) {
-				const {storyId} = clientConfig;
-				const {postExperience} = API;
+				const {api, clientConfig: {storyId}} = this;
 
-				postExperience(storyId, inventory, uploadProgress)
+				api.postExperience(storyId, inventory, uploadProgress)
 				.then((data) => {
 					const {id} = data;
-					const {sceneId, actId} = clientConfig;
+					const {clientConfig: {sceneId, actId}} = this;
 
 					if (experienceCreated) {
 						experienceCreated(data);
@@ -213,17 +227,32 @@ export default class ImposiumClient {
 	}
 
 	/*
+		Invokes the streaming process
+	 */
+	private startMessaging = (job:any):void => {
+		const {api} = this;
+		const {job: {expId, sceneId, actId}} = job;
+
+		api.invokeStream(expId, sceneId, actId)
+		.catch((e) => {
+			const wrappedError = new NetworkError('httpFailure', expId, e);
+			ExceptionPipe.trapError(wrappedError);
+		});
+	}
+
+	/*
 		Invokes rendering processes and starts listening for messages 
 	 */
 	public renderExperience = (job:any):void => {
-		const {consumer, cacheVideo} = this;
+		const {consumer, cacheVideo, clientConfig: {environment}} = this;
+		const startDelegate = (j:any) => this.startMessaging(j);
 
 		if (!consumer) {
-			this.consumer = new MessageConsumer(job, cacheVideo);
+			this.consumer = new MessageConsumer(job, environment, startDelegate, cacheVideo);
 		} else {
 			consumer.kill()
 			.then(() => {
-				this.consumer = new MessageConsumer(job, cacheVideo);
+				this.consumer = new MessageConsumer(job, environment, startDelegate, cacheVideo);
 			});
 		}
 	}
@@ -242,4 +271,5 @@ export default class ImposiumClient {
 			ExceptionPipe.trapError(e);
 		}
 	}
+
 }

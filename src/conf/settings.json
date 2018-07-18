@@ -9,8 +9,8 @@
 		}
 	},
 	"api": {
-		"prodBaseUrl": "https://api.imposium.com",
-		"stagingBaseUrl": "https://api.staging.imposium.com",
+		"production": "https://api.imposium.com",
+		"staging": "https://api.staging.imposium.com",
 		"hmac": "X-Imposium-Access-Key",
 		"jwt": "Authorization"
 	},
@@ -21,8 +21,8 @@
 		"videoSceneKey": "VideoScene01"
 	},
 	"stomp": {
-		"prodEndpoint": "wss://stomp.prod.k8s.nickel.media/ws/",
-		"stagingEndpoint": "wss://stomp.staging.k8s.nickel.media/ws",
+		"production": "wss://stomp.prod.k8s.nickel.media/ws/",
+		"staging": "wss://stomp.staging.k8s.nickel.media/ws",
 		"exchange": "/exchange/imposium/",
 		"username": "imposium_stomp",
 		"password": "Teehe1ceeMe7Pe1d"
@@ -48,7 +48,6 @@
 			"autoPlay": true,
 			"controls": true
 		},
-		"activeConfig": {},
 		"playbackEvents": [0.25, 0.5, 0.75],
 		"checkPlaybackRateMs": 100,
 		"volumeMin": 0,

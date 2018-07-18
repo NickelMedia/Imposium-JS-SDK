@@ -1,36 +1,44 @@
 import axios from 'axios';
 import * as jwt_decode from 'jwt-decode';
+
 import Analytics from '../../analytics/Analytics';
+
 import {InventoryToFormData, isNode} from '../../scaffolding/Helpers';
 
 const settings = require('../../conf/settings.json').api;
 
 export default class API {
-	private static baseURL:string = '';
+	private http:any = null;
+
+	constructor(authToken:string, env:string) {
+		this.http = axios.create({
+			baseURL : settings[env],
+			headers : this.getHeaders(authToken)
+		});
+	}
 
 	/*
-		Setup HTTP client defaults
+		Attempt to decode JWT format from authToken, fallback to hmac if call fails
 	 */
-	public static setup = (authToken:string, env:string):void => {
-		API.baseURL = (env === 'production') ? settings.prodBaseUrl : settings.stagingBaseUrl;
+	private getHeaders = (authToken:string):any => {
+		const {jwt, hmac} = settings;
 
-		// Attempt to decode JWT format from authToken, fallback to hmac if call fails
 		try {
 			jwt_decode(authToken);
-			axios.defaults.headers.common[settings.jwt] = authToken;
+			return {[jwt] : authToken};
 		} catch (e) {
-			axios.defaults.headers.common[settings.hmac] = authToken;
+			return {[hmac] : authToken};
 		}
 	}
 
 	/*
 		Wait async for story meta data, GA tracking property in particular (PLACEHOLDER)
 	 */
-	public static getStory = (storyId:string):Promise<any> => {
-		const {get} = axios;
+	public getStory = (storyId:string):Promise<any> => {
+		const {http: {get}} = this;
 
 		return new Promise((resolve, reject) => {
-			get(`${API.baseURL}/story/${storyId}`)
+			get(`/story/${storyId}`)
 			.then((res) => {
 				const {data} = res;
 				resolve(data);
@@ -44,11 +52,11 @@ export default class API {
 	/*
 		Wait async for GET /experience, resolve response data
 	 */
-	public static getExperience = (expId:string):Promise<any> => {
-		const {get} = axios;
+	public getExperience = (expId:string):Promise<any> => {
+		const {http: {get}} = this;
 
 		return new Promise((resolve, reject) => {
-			get(`${API.baseURL}/experience/${expId}`)
+			get(`/experience/${expId}`)
 			.then((res) => {
 				const {data} = res;
 				resolve(data);
@@ -62,13 +70,13 @@ export default class API {
 	/*
 		Wait async for POST /experience, resolve response data
 	 */
-	public static postExperience = (storyId:string, inventory:any, progress:(e)=>any = null):Promise<any> => {
-		const {doPostExperience, uploadProgress} = API;
+	public postExperience = (storyId:string, inventory:any, progress:(e)=>any = null):Promise<any> => {
+		const {doPostExperience, uploadProgress} = this;
 		const formData = InventoryToFormData(storyId, inventory);
 
 		const config = {
-			onUploadProgress: (e) => uploadProgress(e, progress),
-			headers: {}
+			onUploadProgress : (e) => uploadProgress(e, progress),
+			headers          : {}
 		};
 
 		if (!isNode()) {
@@ -82,11 +90,11 @@ export default class API {
 	/*
 		Make create experience POST request and resolve
 	 */
-	private static doPostExperience = (formData:any, config:any):Promise<any> => {
-		const {post} = axios;
+	private doPostExperience = (formData:any, config:any):Promise<any> => {
+		const {http: {post}} = this;
 
 		return new Promise((resolve, reject) => {
-			post(`${API.baseURL}/experience`, formData, config)
+			post(`/experience`, formData, config)
 			.then((res) => {
 				const {data} = res;
 				resolve(data);
@@ -100,17 +108,17 @@ export default class API {
 	/*
 		Wait async for POST /experience/{expId}/trigger-event, resolve on success
 	 */
-	public static invokeStream = (expId:string, sceneId:string, actId:string):Promise<any> => {
-		const {post} = axios;
+	public invokeStream = (expId:string, sceneId:string, actId:string):Promise<null> => {
+		const {http: {post}} = this;
 
 		return new Promise((resolve, reject) => {
 			const body = {
-				exp_id: expId,
-				scene_id: sceneId,
-				act_id: actId
+				exp_id   : expId,
+				scene_id : sceneId,
+				act_id   : actId
 			};
 
-			post(`${API.baseURL}/experience/${expId}/trigger-event`)
+			post(`/experience/${expId}/trigger-event`)
 			.then((res) => {
 				resolve();
 			})
@@ -123,17 +131,11 @@ export default class API {
 	/*
 		Wait async for GET-ing GA tracking pixel, resolve on success
 	 */
-	public static getGATrackingPixel = (url:string):Promise<any> => {
+	public static getGATrackingPixel = (url:string):Promise<null> => {
 		return new Promise((resolve, reject) => {
 			axios({
-				url: url,
-				method: 'GET',
-				transformRequest: [(data, headers) => {
-					delete headers.common[settings.jwt];
-					delete headers.common[settings.hmac];
-
-					return data;
-				}]
+				url              : url,
+				method           : 'GET',
 			})
 			.then((res) => {
 				resolve();
@@ -144,8 +146,10 @@ export default class API {
 		});
 	}
 
-	// Calculate upload progress
-	private static uploadProgress = (e:any, callback:any = null):void => {
+	/*
+		Emit a rounded upload progress metric
+	 */
+	private uploadProgress = (e:any, callback:any = null):void => {
 		if (callback) {
 			const {loaded, total} = e;
 			const perc = Math.round(loaded / total * 100);
