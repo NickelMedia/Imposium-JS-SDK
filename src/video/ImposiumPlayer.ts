@@ -25,6 +25,7 @@ interface ImposiumPlayerConfig {
 }
 
 interface Video {
+	id       : string;
 	url      : string;
 	format   : string;
 	width    : number;
@@ -108,9 +109,10 @@ export default class ImposiumPlayer extends VideoPlayer {
 	 */
 	private addVideo = (video:Video, poster:string = ''):void => {
 		const {videoConfig, videoConfig: {videos}, node} = this;
-		const {url} = video;
+		const {url, id} = video;
 
 		videos.push(video);
+		this.setExperienceId(id);
 
 		if (poster !== this.videoConfig.poster) {
 			this.videoConfig.poster = poster;

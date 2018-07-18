@@ -149,8 +149,10 @@ export default class ImposiumClient {
 				.then((data) => {
 					const {experience: {id, video_url_mp4_720}} = data;
 
+					// START STUB
 					if (this.cacheVideo) {
 						this.cacheVideo({
+							id       : id,
 							url      : video_url_mp4_720,
 							format   : 'mp4',
 							width    : 720,
@@ -231,7 +233,7 @@ export default class ImposiumClient {
 	 */
 	private startMessaging = (job:any):void => {
 		const {api} = this;
-		const {job: {expId, sceneId, actId}} = job;
+		const {expId, sceneId, actId} = job;
 
 		api.invokeStream(expId, sceneId, actId)
 		.catch((e) => {

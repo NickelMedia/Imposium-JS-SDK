@@ -24,6 +24,8 @@ export default class Stomp {
 		this.experienceId = experienceId;
 		this.delegates = delegates;
 		this.endpoint = settings[env];
+
+		this.init();
 	}
 
 	/*
@@ -54,12 +56,12 @@ export default class Stomp {
 	 */
 	private establishSubscription = ():void => {
 		const {exchange} = Stomp;
-		const {experienceId, client, delegates: {start, message}} = this;
+		const {experienceId, client, delegates: {start, route}} = this;
 
 		this.subscription = client.subscribe
 		(
 			`${exchange}${experienceId}`,
-			message
+			route
 		);
 		
 		start();

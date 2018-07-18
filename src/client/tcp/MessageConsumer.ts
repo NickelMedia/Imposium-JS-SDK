@@ -22,7 +22,7 @@ export default class MessageConsumer {
 	};
 
 	private delegates:any = {
-		start : null,
+		start : ()      => this.startConsuming(),
 		route : (m:any) => this.routeMessageData(m),
 		error : (e:any) => this.stompError(e)
 	}
@@ -30,13 +30,14 @@ export default class MessageConsumer {
 	private job:any = null;
 	private env:string = '';
 	private stomp:Stomp = null;
+	private startDelegate:(j:any)=>void = null;
 	private cacheVideo:(video:any, poster?:string)=>void = null;
 	private retried:number = settings.minReconnects;
 
 	constructor(job:any, env:string, startDelegate:(j:any)=>void, doCacheVideo:(video:any, poster:string)=>void = null) {
 		this.job = job;
 		this.env = env;
-		this.delegates.start = startDelegate;
+		this.startDelegate = startDelegate;
 
 		if (doCacheVideo) {
 			this.cacheVideo = doCacheVideo;
@@ -56,9 +57,20 @@ export default class MessageConsumer {
 		});
 	}
 
+	/*
+		Initializes a stomp connection object
+	 */
 	private establishConnection = ():void => {
 		const {job: {expId}, env, delegates} = this;
 		this.stomp = new Stomp(expId, delegates, env);
+	}
+
+	/*
+		Invoke delegate which starts message queueing on Imposium servers
+	 */
+	private startConsuming = ():void => {
+		const {job, startDelegate} = this;
+		startDelegate(job);
 	}
 
 	/*
@@ -129,9 +141,26 @@ export default class MessageConsumer {
 				if (isVideo && hasUrls) {
 					// Merge up the scene data and the experience ID 
 					const {id, output} = experienceData;
-					const sceneData = {...output[sceneId], experience_id: id};
-
+					const sceneData = {...output[sceneId], experience_id: id}
 					delete sceneData.id;
+
+					// START STUB
+					const {videoUrls: {mp4_720}, experience_id} = sceneData;
+
+					if (this.cacheVideo) {
+						this.cacheVideo({
+							id       : experience_id,
+							url      : mp4_720,
+							format   : 'mp4',
+							width    : 720,
+							height   : 1080,
+							filesize : 1000000,
+							duration : 4,
+							rate     : 23.93
+						}, '');
+					}
+					// END STUB
+					
 					gotExperience(sceneData);
 				} else {
 					const {job: {expId}} = this;
