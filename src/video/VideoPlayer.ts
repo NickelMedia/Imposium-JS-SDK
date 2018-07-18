@@ -7,6 +7,8 @@ import {EnvironmentError, PlayerConfigurationError} from '../scaffolding/Excepti
 const settings = require('../conf/settings.json').videoPlayer;
 
 export default abstract class VideoPlayer {
+	protected node:HTMLVideoElement = null;
+
 	private static readonly intervalRate:number = settings.checkPlaybackRateMs;
 	private static readonly playbackEvents:number[] = settings.playbackEvents;
 
@@ -21,17 +23,17 @@ export default abstract class VideoPlayer {
 	private prevPlaybackEvent:number = 0;
 	private playbackInterval:any;
 
-	protected node:HTMLVideoElement = null;
-
 	/*
 		Basis of Imposum/Fallback video player objects
 	 */
 	constructor(node:HTMLVideoElement) {
 		if (!isNode()) {
 			if (node instanceof HTMLVideoElement) {
+				const {mediaEvents} = this;
+
 				this.node = node;
 
-				for (const key in this.mediaEvents) {
+				for (const key in Object.keys(mediaEvents)) {
 					this.node.addEventListener(key, this.mediaEvents[key]);
 				}
 			} else {
@@ -65,7 +67,8 @@ export default abstract class VideoPlayer {
 	}
 
 	private onPause = ():void => {
-		clearInterval(this.playbackInterval);
+		const {playbackInterval} = this;
+		clearInterval(playbackInterval);
 	}
 
 	private onEnd = ():void => {
@@ -112,6 +115,10 @@ export default abstract class VideoPlayer {
 	}
 
 	public remove = ():void => {
-		// do Remove
+		const {mediaEvents, node} = this;
+
+		for (const key of Object.keys(mediaEvents)) {
+			node.removeEventListener(key, mediaEvents[key]);
+		}
 	}
 }
