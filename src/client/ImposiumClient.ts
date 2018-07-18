@@ -16,6 +16,7 @@ import {
 import {
 	prepConfig,
 	keyExists,
+	cloneWithKeys,
 	isFunc,
 	isNode
 } from '../scaffolding/Helpers';
@@ -39,10 +40,7 @@ export default class ImposiumClient {
 		ERROR              : 'ERROR'
 	};
 
-	private eventDelegateRefs:any = Object.keys(this.events).reduce((p, c) => {
-		p[c] = null;
-		return p;
-	}, {});
+	private eventDelegateRefs:any = cloneWithKeys(this.events);
 
 	private api:API = null;
 	private player:VideoPlayer = null;
@@ -53,7 +51,6 @@ export default class ImposiumClient {
 		Initialize Imposium client
 	 */
 	constructor(config:any) {
-		console.log(this.eventDelegateRefs)
 		this.assignConfigOpts(config);
 	}
 

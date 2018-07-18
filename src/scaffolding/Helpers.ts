@@ -30,8 +30,17 @@ export const isFunc = (f:any):boolean => {
 	return (Object.prototype.toString.call(f) === '[object Function]')
 }
 
+// Check if key exists in an obj
 export const keyExists = (o:any, key:string) => {
 	return (~Object.keys(o).map(i => o[i]).indexOf(key));
+}
+
+// Return a new object containing the same keys as the ref passed in
+export const cloneWithKeys = (o:any) => {
+	return Object.keys(o).reduce((p, c) => {
+		p[c] = null;
+		return p;
+	}, {});
 }
 
 // Deal with prepping form data objs in isomporphic way
