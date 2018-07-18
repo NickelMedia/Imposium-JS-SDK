@@ -132,7 +132,7 @@ export default class ImposiumClient {
 
 		// Merge scoped startMessaging call with client events
 		const delegates:any = {
-			start: (experienceId:string) => this.startMessaging,
+			start: (id:string) => this.startMessaging(id),
 			...eventDelegateRefs
 		};
 
