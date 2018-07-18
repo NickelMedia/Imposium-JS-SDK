@@ -45,7 +45,7 @@ export default class ImposiumClient {
 		gotExperience     : null,
 		statusUpdate      : null,
 		onError           : null
-	}
+	};
 
 	private api:API = null;
 	private player:VideoPlayer = null;
@@ -233,7 +233,7 @@ export default class ImposiumClient {
 	/*
 		Create new experience & return relevant meta
 	 */
-	public createExperience = (inventory:any, render:boolean):void => {
+	public createExperience = (inventory:any, render:boolean = true):void => {
 		const {player, eventDelegateRefs: {gotExperience, experienceCreated, uploadProgress, onError}} = this;
 		const permitRender = (render && (player || experienceCreated));
 		const permitCreate = (!render && gotExperience);
@@ -280,7 +280,7 @@ export default class ImposiumClient {
 	/*
 		Invokes rendering processes and starts listening for messages 
 	 */
-	public renderExperience = (experienceId:string):void => {
+	private renderExperience = (experienceId:string):void => {
 		const {consumer} = this;
 		
 		if (!consumer) {
