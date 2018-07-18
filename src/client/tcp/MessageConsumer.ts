@@ -160,8 +160,10 @@ export default class MessageConsumer {
 						}, '');
 					}
 					// END STUB
-					
-					gotExperience(sceneData);
+
+					if (gotExperience) {
+						gotExperience(sceneData);
+					}
 				} else {
 					throw new NetworkError('messageParseFailed', experienceId, null);
 				}
