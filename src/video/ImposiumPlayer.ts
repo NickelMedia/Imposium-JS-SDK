@@ -1,4 +1,4 @@
-import VideoPlayer from './VideoPlayer';
+import VideoPlayer, {VideoConfig, Video} from './VideoPlayer';
 import ImposiumClient from '../client/ImposiumClient';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
@@ -22,22 +22,6 @@ interface ImposiumPlayerConfig {
 	autoLoad : boolean;
 	autoPlay : boolean;
 	controls : boolean;
-}
-
-interface Video {
-	id       : string;
-	url      : string;
-	format   : string;
-	width    : number;
-	height   : number;
-	filesize : number;
-	duration : number;
-	rate     : number;
-}
-
-interface VideoConfig {
-	poster : string;
-	videos : Video[];
 }
 
 export const ImposiumPlayerEvents = {
@@ -80,7 +64,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
 		try {
 			if (client) {
-				client.cacheVideo = (video:Video, poster?:string) => this.addVideo(video, poster);
+				client.setPlayer(this);
 				this.init(config);
 			} else {
 				throw new PlayerConfigurationError("noClient", null);
@@ -105,9 +89,9 @@ export default class ImposiumPlayer extends VideoPlayer {
 	}
 
 	/*
-		Callback that fires when experiences are fetched and automatically handles conf
+		Caches a video object and also 
 	 */
-	private addVideo = (video:Video, poster:string = ''):void => {
+	public experienceGenerated = (video:Video, poster:string = ''):void => {
 		const {videoConfig, videoConfig: {videos}, node} = this;
 		const {url, id} = video;
 

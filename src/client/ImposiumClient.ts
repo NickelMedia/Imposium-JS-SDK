@@ -4,6 +4,7 @@ import API from './http/API';
 import Stomp from './tcp/Stomp';
 import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
+import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import ImposiumEvents from './ImposiumEvents';
@@ -32,8 +33,6 @@ interface ClientConfig {
 const settings = require('../conf/settings.json').client;
 
 export default class ImposiumClient {
-	public cacheVideo:(video:any, poster?:string)=>void = null;
-
 	public events = {
 		EXPERIENCE_CREATED : 'experienceCreated',
 		UPLOAD_PROGRESS    : 'uploadProgress',
@@ -43,8 +42,8 @@ export default class ImposiumClient {
 	};
 
 	private api:API = null;
+	private player:VideoPlayer = null;
 	private consumer:MessageConsumer = null;
-	private fallbackPlayer:FallbackPlayer = null;
 	private clientConfig:ClientConfig = null;
 
 	/*
@@ -52,6 +51,13 @@ export default class ImposiumClient {
 	 */
 	constructor(config:any) {
 		this.assignConfigOpts(config);
+	}
+
+	/*
+		Set current video player ref
+	 */
+	public setPlayer = (player:VideoPlayer) => {
+		this.player = player;
 	}
 
 	/*
@@ -81,6 +87,9 @@ export default class ImposiumClient {
 		}
 	}
 
+	/*
+		Get the GA property per storyId passed in
+	 */
 	private getAnalyticsProperty = ():void => {
 		const {api, clientConfig: {storyId}} = this;
 
@@ -140,7 +149,7 @@ export default class ImposiumClient {
 		Get experience data
 	 */
 	public getExperience = (experienceId:string):void => {
-		const {api} = this;
+		const {api, player} = this;
 		const {gotExperience} = ImposiumEvents;
 
 		try {
@@ -150,8 +159,8 @@ export default class ImposiumClient {
 					const {experience: {id, video_url_mp4_720}} = data;
 
 					// START STUB
-					if (this.cacheVideo) {
-						this.cacheVideo({
+					if (player) {
+						player.experienceGenerated({
 							id       : id,
 							url      : video_url_mp4_720,
 							format   : 'mp4',
@@ -246,15 +255,15 @@ export default class ImposiumClient {
 		Invokes rendering processes and starts listening for messages 
 	 */
 	public renderExperience = (job:any):void => {
-		const {consumer, cacheVideo, clientConfig: {environment}} = this;
+		const {consumer, player, clientConfig: {environment}} = this;
 		const startDelegate = (j:any) => this.startMessaging(j);
 
 		if (!consumer) {
-			this.consumer = new MessageConsumer(job, environment, startDelegate, cacheVideo);
+			this.consumer = new MessageConsumer(job, environment, startDelegate, player);
 		} else {
 			consumer.kill()
 			.then(() => {
-				this.consumer = new MessageConsumer(job, environment, startDelegate, cacheVideo);
+				this.consumer = new MessageConsumer(job, environment, startDelegate, player);
 			});
 		}
 	}
@@ -265,7 +274,7 @@ export default class ImposiumClient {
 	public captureAnalytics = (playerRef:HTMLVideoElement = null):void => {
 		try {
 			if (!isNode()) {
-				this.fallbackPlayer = new FallbackPlayer(playerRef);
+				this.setPlayer(new FallbackPlayer(playerRef));
 			} else {
 				throw new EnvironmentError('node');
 			}

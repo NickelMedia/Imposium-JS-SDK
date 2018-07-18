@@ -1,6 +1,7 @@
 import API from '../http/API';
 import Stomp from './Stomp';
 import ImposiumEvents from '../ImposiumEvents';
+import VideoPlayer from '../../video/VideoPlayer';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
 
 import {
@@ -30,17 +31,17 @@ export default class MessageConsumer {
 	private job:any = null;
 	private env:string = '';
 	private stomp:Stomp = null;
+	private player:VideoPlayer;
 	private startDelegate:(j:any)=>void = null;
-	private cacheVideo:(video:any, poster?:string)=>void = null;
 	private retried:number = settings.minReconnects;
 
-	constructor(job:any, env:string, startDelegate:(j:any)=>void, doCacheVideo:(video:any, poster:string)=>void = null) {
+	constructor(job:any, env:string, startDelegate:(j:any)=>void, player:VideoPlayer) {
 		this.job = job;
 		this.env = env;
 		this.startDelegate = startDelegate;
 
-		if (doCacheVideo) {
-			this.cacheVideo = doCacheVideo;
+		if (player) {
+			this.player = player;
 		}
 
 		this.establishConnection();
@@ -145,10 +146,11 @@ export default class MessageConsumer {
 					delete sceneData.id;
 
 					// START STUB
+					const {player} = this;
 					const {videoUrls: {mp4_720}, experience_id} = sceneData;
 
-					if (this.cacheVideo) {
-						this.cacheVideo({
+					if (player) {
+						player.experienceGenerated({
 							id       : experience_id,
 							url      : mp4_720,
 							format   : 'mp4',

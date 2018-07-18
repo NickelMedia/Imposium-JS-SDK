@@ -4,6 +4,22 @@ import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import {isNode} from '../scaffolding/Helpers';
 import {EnvironmentError, PlayerConfigurationError} from '../scaffolding/Exceptions';
 
+export interface Video {
+	id       : string;
+	url      : string;
+	format   : string;
+	width    : number;
+	height   : number;
+	filesize : number;
+	duration : number;
+	rate     : number;
+}
+
+export interface VideoConfig {
+	poster : string;
+	videos : Video[];
+}
+
 const settings = require('../conf/settings.json').videoPlayer;
 
 export default abstract class VideoPlayer {
@@ -49,9 +65,16 @@ export default abstract class VideoPlayer {
 	/*
 		Set the current experience id per job that gets passed to analytics calls
 	 */
-	public setExperienceId = (experienceId:string) => {
+	protected setExperienceId = (experienceId:string) => {
 		this.experienceId = experienceId;
 	}
+
+	/*
+		Placeholder, called when experiences get generated if a
+		player ref is set on a client instance
+	 */
+	public experienceGenerated = (v:any, p:string = ''):void => {}
+
 
 	/*
 		Record a video "view" event when the player loads metadata successfully
