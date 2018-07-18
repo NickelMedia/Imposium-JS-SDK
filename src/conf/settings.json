@@ -6,8 +6,7 @@
 			"actId": "",
 			"sceneId": "",
 			"environment": "production"
-		},
-		"activeConfig": {}
+		}
 	},
 	"api": {
 		"prodBaseUrl": "https://api.imposium.com",

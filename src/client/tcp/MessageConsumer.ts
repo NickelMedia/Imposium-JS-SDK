@@ -11,74 +11,58 @@ import {
 
 const settings = require('../../conf/settings.json').messageConsumer;
 
-// Distinct message keys to listen for over RabbitMQ
-class Messages {
-	public static readonly ACT_COMPLETE:string = 'actComplete';
-	public static readonly GOT_MESSAGE:string  = 'gotMessage';
-	public static readonly GOT_SCENE:string    = 'gotScene';
-}
-
 // Wraps around the Stomp client, providing the message handling
 export default class MessageConsumer {
-	// Current imposium render job
-	public static job:any = null;
-	
-	// Settings for retrying rabbitMQ connections
-	private static readonly maxRetries:number = settings.maxReconnects;
-	private static retried:number = settings.minReconnects;
-	private static cacheVideo:(video:any, poster?:string)=>void = null; 
+	private static readonly MAX_RETRIES:number = settings.maxReconnects;
 
-	/*
-		Initialize WebStomp
-	 */
-	public static init = (job:any, cacheVideo:(video:any, poster:string)=>void = null):void => {
-		const {attachStompEvents} = MessageConsumer;
-		const {expId} = job;
+	private static readonly EVENT_NAMES:any = {
+		scene    : 'gotScene',
+		message  : 'gotMessage',
+		complete : 'actComplete'
+	};
 
-		if (!Stomp.eventsBound) {
-			attachStompEvents();
-		}
-
-		if (!MessageConsumer.cacheVideo) {
-			MessageConsumer.cacheVideo = cacheVideo;
-		}
-
-		MessageConsumer.job = job;
-		Stomp.init(expId);
+	private readonly delegates:any = {
+		start : () => this.invokeStreaming(),
+		route : (m:any) => this.routeMessageData(m),
+		error : (e:any) => this.stompError(e)
 	}
 
-	/*
-		Kills the current stomp connection and initates a new connection on closure
-	 */
-	public static reconnect = (job:any, cacheVideo:(video:any, poster:string)=>void = null):void => {
-		Stomp.disconnectAsync()
-		.then(() => {
-			MessageConsumer.init(job, cacheVideo);	
-		}).catch((e) => {
-			const {job: {expId}} = MessageConsumer;
-			const wrappedError = new NetworkError('tcpFailure', expId, e);
-			ExceptionPipe.trapError(wrappedError);
+	private job:any = null;
+	private stomp:Stomp = null;
+	private cacheVideo:(video:any, poster?:string)=>void = null;
+	private retried:number = settings.minReconnects;
+
+	constructor(job:any, doCacheVideo:(video:any, poster:string)=>void = null) {
+		this.job = job;
+
+		if (doCacheVideo) {
+			this.cacheVideo = doCacheVideo;
+		}
+
+		this.establishConnection();
+	}
+
+	public kill = ():Promise<null> => {
+		const {stomp} = this;
+
+		return new Promise((resolve) => {
+			stomp.disconnectAsync()
+			.then(() => {
+				resolve();
+			});
 		});
 	}
 
-	/*
-		Bind the web stomp handlers on first job
-	 */
-	private static attachStompEvents = ():void => {
-		const {invokeStreaming, routeMessageData, stompError} = MessageConsumer;
-
-		Stomp.setEvents(
-			()        => invokeStreaming(),
-			(msg:any) => routeMessageData(msg),
-			(e:any)   => stompError(e)
-		);
+	private establishConnection = ():void => {
+		const {job: {expId}, delegates} = this;
+		this.stomp = new Stomp(expId, delegates);
 	}
 
 	/*
-		Initiates the message queueing process on Imposium
+		Initiates the message queueing process on Imposium related to processing
 	 */
-	private static invokeStreaming = ():void => {
-		const {job: {expId, sceneId, actId}} = MessageConsumer;
+	private invokeStreaming = ():void => {
+		const {job: {expId, sceneId, actId}} = this;
 
 		API.invokeStream(expId, sceneId, actId)
 		.catch((e) => {
@@ -91,27 +75,27 @@ export default class MessageConsumer {
 		Manage incoming messages. Depending on their state the websocket
 		may be terminated.
 	 */
-	private static routeMessageData = (msg:any):void => {
-		const {ACT_COMPLETE, GOT_MESSAGE, GOT_SCENE} = Messages;
-		const {emitMessageData, emitSceneData} = MessageConsumer;
+	private routeMessageData = (msg:any):void => {
+		const {emitMessageData, emitSceneData, stomp} = this;
+		const {EVENT_NAMES: {scene, message, complete}} = MessageConsumer;
 
 		try {
 			const payload = JSON.parse(msg.body);
 
 			switch(payload.event) {
-				case ACT_COMPLETE:
-					Stomp.disconnect();
+				case complete:
+					stomp.disconnectAsync().then(() => {});
 					break;
-				case GOT_MESSAGE:
+				case message:
 					emitMessageData(payload);
 					break;
-				case GOT_SCENE:
+				case scene:
 					emitSceneData(payload);
 					break;
 				default: break;
 			}
 		} catch (e) {
-			const {job: {expId}} = MessageConsumer;
+			const {job: {expId}} = this;
 			const wrappedError = new NetworkError('messageParseFailed', expId, e);
 			ExceptionPipe.trapError(wrappedError);
 		}
@@ -120,13 +104,13 @@ export default class MessageConsumer {
 	/*
 		Fire the gotMessage callback if the user is listening for this event
 	 */
-	private static emitMessageData = (messageData:any):void => {
+	private emitMessageData = (messageData:any):void => {
 		const {statusUpdate} = ImposiumEvents;
 		const {msg} = messageData;
 
 		try {
 			if (msg === settings.errorOverTcp) {
-				const {job: {expId}} = MessageConsumer;
+				const {job: {expId}} = this;
 				throw new NetworkError('errorOverTcp', expId, null);
 			}
 
@@ -141,7 +125,7 @@ export default class MessageConsumer {
 	/*
 		Parses the experience data into a prop delivered via gotScene
 	 */
-	private static emitSceneData = (experienceData:any):void => {
+	private emitSceneData = (experienceData:any):void => {
 		const {gotExperience} = ImposiumEvents
 		const rejected = (experienceData || {}).error;
 
@@ -160,7 +144,7 @@ export default class MessageConsumer {
 					delete sceneData.id;
 					gotExperience(sceneData);
 				} else {
-					const {job: {expId}} = MessageConsumer;
+					const {job: {expId}} = this;
 					throw new NetworkError('messageParseFailed', expId, null);
 				}
 			} else {
@@ -174,18 +158,21 @@ export default class MessageConsumer {
 	/*
 		Called on Stomp errors
 	 */
-	private static stompError = (e:any):void => {
-		const {retried, maxRetries, job: {expId}} = MessageConsumer;
+	private stompError = (e:any):void => {
+		const {retried, job: {expId}, stomp} = this;
 		const {wasClean} = e;
 
 		if (!e.wasClean) {
-			++MessageConsumer.retried;
+			++this.retried;
 
-			if (retried < maxRetries) {
-				Stomp.reconnect(expId);
+			if (retried < MessageConsumer.MAX_RETRIES) {
 				ExceptionPipe.logWarning('network', 'tcpFailure');
+
+				stomp.disconnectAsync()
+				.then(() => {
+					this.establishConnection();
+				});
 			} else {
-				MessageConsumer.retried = settings.min_reconnects;
 				const wrappedError = new NetworkError('tcpFailure', expId, e);
 				ExceptionPipe.trapError(wrappedError);
 			}

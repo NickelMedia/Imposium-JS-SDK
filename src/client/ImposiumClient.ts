@@ -21,6 +21,7 @@ import {
 	isNode
 } from '../scaffolding/Helpers';
 
+export let clientConfig:any = {};
 const settings = require('../conf/settings.json').client;
 
 export default class ImposiumClient {
@@ -34,6 +35,7 @@ export default class ImposiumClient {
 		ERROR              : 'onError'
 	};
 
+	private consumer:MessageConsumer = null;
 	private fallbackPlayer:FallbackPlayer = null;
 
 	/*
@@ -57,26 +59,27 @@ export default class ImposiumClient {
 		const {defaultConfig} = settings;
 
 		prepConfig(config, defaultConfig);
-		settings.activeConfig = {...defaultConfig, ...config};
-
-		const {activeConfig: {accessToken, environment, storyId}} = settings;
-
-		API.setup(accessToken, environment);
-		Stomp.setEndpoint(environment);
+		clientConfig = {...defaultConfig, ...config};
 
 		// Prep for analytics in browser
 		if (!isNode()) {
-			API.getStory(storyId)
-			.then((story) => {
-				// GA prop regExp
-				// RegExp(/^ua-\d{4,9}-\d{1,4}$/i) 
-				const GaProp = 'UA-113079866-1';
-				Analytics.setup(GaProp);
-			})
-			.catch((e) => {
-				console.error(e);
-			});
+
 		}
+	}
+
+	private getAnalyticsProperty = ():void => {
+		const {storyId} = clientConfig;
+
+		API.getStory(storyId)
+		.then((story) => {
+			// GA prop regExp if still needed down the line
+			// RegExp(/^ua-\d{4,9}-\d{1,4}$/i) 
+			const GaProp = 'UA-113079866-1';
+			Analytics.setup(GaProp);
+		})
+		.catch((e) => {
+			console.error(e);
+		});
 	}
 
 	/*
@@ -167,13 +170,13 @@ export default class ImposiumClient {
  
 		try {
 			if (permitRender || permitCreate) {
-				const {activeConfig: {storyId}} = settings;
+				const {storyId} = clientConfig;
 				const {postExperience} = API;
 
 				postExperience(storyId, inventory, uploadProgress)
 				.then((data) => {
 					const {id} = data;
-					const {activeConfig: {sceneId, actId}} = settings;
+					const {sceneId, actId} = clientConfig;
 
 					if (experienceCreated) {
 						experienceCreated(data);
@@ -213,17 +216,20 @@ export default class ImposiumClient {
 		Invokes rendering processes and starts listening for messages 
 	 */
 	public renderExperience = (job:any):void => {
-		const {expId} = job;
+		const {consumer, cacheVideo} = this;
 
-		if (!MessageConsumer.job) {
-			MessageConsumer.init(job);
+		if (!consumer) {
+			this.consumer = new MessageConsumer(job, cacheVideo);
 		} else {
-			MessageConsumer.reconnect(job);
+			consumer.kill()
+			.then(() => {
+				this.consumer = new MessageConsumer(job, cacheVideo);
+			});
 		}
 	}
 
 	/*
-		Sets up analytics using 
+		Sets up analytics using fallback video player wrapper class
 	 */
 	public captureAnalytics = (playerRef:HTMLVideoElement = null):void => {
 		try {
