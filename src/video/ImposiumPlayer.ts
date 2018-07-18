@@ -55,7 +55,7 @@ const settings = require('../conf/settings.json').videoPlayer;
 
 export default class ImposiumPlayer extends VideoPlayer {
 	private clientRef:ImposiumClient = null;
-	private static ImposiumPlayerConfig:ImposiumPlayerConfig = null;
+	private ImposiumPlayerConfig:ImposiumPlayerConfig = null;
 
 	public events = {
 		PLAY     : 'play',
@@ -96,10 +96,10 @@ export default class ImposiumPlayer extends VideoPlayer {
 		const {defaultConfig} = settings;
 
 		prepConfig(config, defaultConfig);
-		ImposiumPlayer.ImposiumPlayerConfig = {...defaultConfig, ...config};
+		this.ImposiumPlayerConfig = {...defaultConfig, ...config};
 
-		for (const key in ImposiumPlayer.ImposiumPlayerConfig) {
-			this.node[key] = ImposiumPlayer.ImposiumPlayerConfig[key];
+		for (const key in this.ImposiumPlayerConfig) {
+			this.node[key] = this.ImposiumPlayerConfig[key];
 		}
 	}
 
@@ -107,13 +107,16 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Callback that fires when experiences are fetched and automatically handles conf
 	 */
 	private addVideo = (video:Video, poster:string = ''):void => {
-		this.videoConfig.videos.push(video);
+		const {videoConfig, videoConfig: {videos}, node} = this;
+		const {url} = video;
+
+		videos.push(video);
 
 		if (poster !== this.videoConfig.poster) {
 			this.videoConfig.poster = poster;
 		}
 
-		this.node.src = video.url;
+		node.src = url;
 	}
 
 	/*
@@ -298,7 +301,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 			this.off(ImposiumPlayerEvents[key]);
 		}
 
-		ImposiumPlayer.ImposiumPlayerConfig = {...defaultConfig};
+		this.ImposiumPlayerConfig = {...defaultConfig};
 		this.node = null;
 	}
 

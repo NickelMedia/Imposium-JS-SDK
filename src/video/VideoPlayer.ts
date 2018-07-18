@@ -33,7 +33,7 @@ export default abstract class VideoPlayer {
 
 				this.node = node;
 
-				for (const key in Object.keys(mediaEvents)) {
+				for (const key of Object.keys(mediaEvents)) {
 					this.node.addEventListener(key, this.mediaEvents[key]);
 				}
 			} else {
@@ -46,6 +46,16 @@ export default abstract class VideoPlayer {
 		}
 	}
 
+	/*
+		Set the current experience id per job that gets passed to analytics calls
+	 */
+	public setExperienceId = (experienceId:string) => {
+		this.experienceId = experienceId;
+	}
+
+	/*
+		Record a video "view" event when the player loads metadata successfully
+	 */
 	private onLoad = ():void => {
 		const {experienceId} = this;
 
@@ -57,6 +67,10 @@ export default abstract class VideoPlayer {
 		});
 	}
 
+	/*
+		Start an interval that runs during playback which triggers playback
+		analytics calls
+	 */
 	private onPlay = ():void => {
 		clearInterval(this.playbackInterval);
 
@@ -66,11 +80,17 @@ export default abstract class VideoPlayer {
 		);
 	}
 
+	/*
+		Clear the interval on pause to ensure no false analytics calls occur
+	 */
 	private onPause = ():void => {
 		const {playbackInterval} = this;
 		clearInterval(playbackInterval);
 	}
 
+	/*
+		Clear the playback interval and emit a final playback analytics call
+	 */
 	private onEnd = ():void => {
 		const {experienceId, playbackInterval} = this;
 
@@ -86,6 +106,11 @@ export default abstract class VideoPlayer {
 		this.prevPlaybackEvent = 0;
 	}
 
+	/*
+		Logic that checks to see what playback event should be fire based
+		on the current playback progress, clears the interval if the node
+		is / becomes un set to prevent bad calls
+	 */
 	private checkPlayback = ():void => {
 		const {
 			node,
@@ -114,6 +139,9 @@ export default abstract class VideoPlayer {
         }
 	}
 
+	/*
+		Remove set events set on the supplied player reference
+	 */
 	public remove = ():void => {
 		const {mediaEvents, node} = this;
 
