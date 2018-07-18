@@ -20,19 +20,19 @@ imposium.on(imposium.events.STATUS_UPDATE, function(data) {
 });
 
 // Executes when a fresh experience was created 
-imposium.on(imposium.events.EXPERIENCE_CREATED, function(data) {
-    setStatus('Experience created', 'green');
-    window.location.hash = '#' + data.id;
-});
+// imposium.on(imposium.events.EXPERIENCE_CREATED, function(data) {
+//     setStatus('Experience created', 'green');
+//     window.location.hash = '#' + data.id;
+// });
 
 // Executes when experience data is received
-imposium.on(imposium.events.GOT_EXPERIENCE, function(data) {
-	setStatus('Got Scene', 'green');
-});
+// imposium.on(imposium.events.GOT_EXPERIENCE, function(data) {
+// 	setStatus('Got Scene', 'green');
+// });
 
 // Executes when errors occur
 imposium.on(imposium.events.ERROR, function(err) {
-	setStatus('Something went wrong with Imposium.', 'red');
+	setStatus('An error occured, please check console.', 'red');
 });
 
 // Click handler for the form button, creates a new Imposium experience

@@ -195,7 +195,7 @@ export default class ImposiumClient {
 		const {api, player, eventDelegateRefs: {gotExperience, onError}} = this;
 
 		try {
-			if (gotExperience) {
+			if (gotExperience || player) {
 				api.getExperience(experienceId)
 				.then((data) => {
 					const {experience: {id, video_url_mp4_720}} = data;
@@ -208,13 +208,15 @@ export default class ImposiumClient {
 							format   : 'mp4',
 							width    : 720,
 							height   : 1080,
-							filesize : 1000000,
+							filesize : 123456789,
 							duration : 4,
 							rate     : 23.93
 						}, '');
 					}
 
-					gotExperience(data);
+					if (gotExperience) {
+						gotExperience(data);
+					}
 				})
 				.catch((e) => {
 					const wrappedError = new NetworkError('httpFailure', experienceId, e);
@@ -232,8 +234,8 @@ export default class ImposiumClient {
 		Create new experience & return relevant meta
 	 */
 	public createExperience = (inventory:any, render:boolean):void => {
-		const {eventDelegateRefs: {gotExperience, experienceCreated, uploadProgress, onError}} = this;
-		const permitRender = (render && experienceCreated);
+		const {player, eventDelegateRefs: {gotExperience, experienceCreated, uploadProgress, onError}} = this;
+		const permitRender = (render && (player || experienceCreated));
 		const permitCreate = (!render && gotExperience);
  
 		try {
