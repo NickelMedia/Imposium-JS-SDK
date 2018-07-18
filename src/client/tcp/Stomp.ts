@@ -5,7 +5,7 @@ const WebSocketShim = require('isomorphic-ws');
 const settings = require('../../conf/settings.json').stomp;
 
 export default class Stomp {
-	// RabbitMQ creds
+	// Static RabbitMQ creds
 	private static readonly exchange:string = settings.exchange;
 	private static readonly username:string = settings.username;
 	private static readonly password:string = settings.password;
@@ -14,7 +14,7 @@ export default class Stomp {
 	private experienceId:string;
 	private delegates:any;
 
-	// WS / Stomp objs
+	// WS / Stomp client refs
 	private endpoint:string = '';
 	private socket:WebSocket = null;
 	private client:WebStomp.Client = null;
@@ -68,7 +68,7 @@ export default class Stomp {
 	}
 
 	/*
-		Kills the current connection gracefully and resolves on closure
+		Ends the current connection gracefully
 	 */
 	public disconnectAsync = ():any => {
 		const {client, client: {connected}, subscription} = this;

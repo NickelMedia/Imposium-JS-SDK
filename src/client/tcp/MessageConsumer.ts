@@ -1,6 +1,5 @@
 import API from '../http/API';
 import Stomp from './Stomp';
-import ImposiumEvents from '../ImposiumEvents';
 import VideoPlayer from '../../video/VideoPlayer';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
 
@@ -22,23 +21,23 @@ export default class MessageConsumer {
 		complete : 'actComplete'
 	};
 
-	private delegates:any = {
+	private stompDelegates:any = {
 		start : ()      => this.startConsuming(),
 		route : (m:any) => this.routeMessageData(m),
 		error : (e:any) => this.stompError(e)
 	}
 
-	private job:any = null;
 	private env:string = '';
+	private experienceId:string = null;
+	private clientDelegates:any = null;
 	private stomp:Stomp = null;
 	private player:VideoPlayer;
-	private startDelegate:(j:any)=>void = null;
 	private retried:number = settings.minReconnects;
 
-	constructor(job:any, env:string, startDelegate:(j:any)=>void, player:VideoPlayer) {
-		this.job = job;
+	constructor(env:string, experienceId:string, clientDelegates:any, player:VideoPlayer) {
 		this.env = env;
-		this.startDelegate = startDelegate;
+		this.experienceId = experienceId;
+		this.clientDelegates = clientDelegates;
 
 		if (player) {
 			this.player = player;
@@ -62,16 +61,16 @@ export default class MessageConsumer {
 		Initializes a stomp connection object
 	 */
 	private establishConnection = ():void => {
-		const {job: {expId}, env, delegates} = this;
-		this.stomp = new Stomp(expId, delegates, env);
+		const {experienceId, env, stompDelegates} = this;
+		this.stomp = new Stomp(experienceId, stompDelegates, env);
 	}
 
 	/*
 		Invoke delegate which starts message queueing on Imposium servers
 	 */
 	private startConsuming = ():void => {
-		const {job, startDelegate} = this;
-		startDelegate(job);
+		const {experienceId, clientDelegates: {start}} = this;
+		start(experienceId);
 	}
 
 	/*
@@ -79,8 +78,9 @@ export default class MessageConsumer {
 		may be terminated.
 	 */
 	private routeMessageData = (msg:any):void => {
-		const {emitMessageData, emitSceneData, stomp} = this;
 		const {EVENT_NAMES: {scene, message, complete}} = MessageConsumer;
+		const {stomp, experienceId, clientDelegates: {onError}} = this;
+
 
 		try {
 			const payload = JSON.parse(msg.body);
@@ -90,17 +90,16 @@ export default class MessageConsumer {
 					stomp.disconnectAsync().then(() => {});
 					break;
 				case message:
-					emitMessageData(payload);
+					this.emitMessageData(payload);
 					break;
 				case scene:
-					emitSceneData(payload);
+					this.emitSceneData(payload);
 					break;
 				default: break;
 			}
 		} catch (e) {
-			const {job: {expId}} = this;
-			const wrappedError = new NetworkError('messageParseFailed', expId, e);
-			ExceptionPipe.trapError(wrappedError);
+			const wrappedError = new NetworkError('messageParseFailed', experienceId, e);
+			ExceptionPipe.trapError(wrappedError, onError);
 		}
 	}
 
@@ -108,20 +107,19 @@ export default class MessageConsumer {
 		Fire the gotMessage callback if the user is listening for this event
 	 */
 	private emitMessageData = (messageData:any):void => {
-		const {statusUpdate} = ImposiumEvents;
+		const {experienceId, clientDelegates: {statusUpdate, onError}} = this;
 		const {msg} = messageData;
 
 		try {
 			if (msg === settings.errorOverTcp) {
-				const {job: {expId}} = this;
-				throw new NetworkError('errorOverTcp', expId, null);
+				throw new NetworkError('errorOverTcp', experienceId, null);
 			}
 
 			if (statusUpdate) {
 				statusUpdate(messageData);
 			} 
 		} catch (e) {
-			ExceptionPipe.trapError(e);
+			ExceptionPipe.trapError(e, onError);
 		}
 	}
 
@@ -129,7 +127,7 @@ export default class MessageConsumer {
 		Parses the experience data into a prop delivered via gotScene
 	 */
 	private emitSceneData = (experienceData:any):void => {
-		const {gotExperience} = ImposiumEvents
+		const {experienceId, clientDelegates: {gotExperience, onError}} = this;
 		const rejected = (experienceData || {}).error;
 
 		try {
@@ -165,14 +163,13 @@ export default class MessageConsumer {
 					
 					gotExperience(sceneData);
 				} else {
-					const {job: {expId}} = this;
-					throw new NetworkError('messageParseFailed', expId, null);
+					throw new NetworkError('messageParseFailed', experienceId, null);
 				}
 			} else {
 				throw new ModerationError('rejection');
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e);
+			ExceptionPipe.trapError(e, onError);
 		}
 	}
 
@@ -180,7 +177,7 @@ export default class MessageConsumer {
 		Called on Stomp errors
 	 */
 	private stompError = (e:any):void => {
-		const {retried, job: {expId}, stomp} = this;
+		const {retried, experienceId, stomp, clientDelegates: {onError}} = this;
 		const {wasClean} = e;
 
 		if (!e.wasClean) {
@@ -194,8 +191,8 @@ export default class MessageConsumer {
 					this.establishConnection();
 				});
 			} else {
-				const wrappedError = new NetworkError('tcpFailure', expId, e);
-				ExceptionPipe.trapError(wrappedError);
+				const wrappedError = new NetworkError('tcpFailure', experienceId, e);
+				ExceptionPipe.trapError(wrappedError, onError);
 			}
 		}
 	}

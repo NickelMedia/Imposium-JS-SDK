@@ -1,13 +1,11 @@
 import "babel-polyfill";
 
 import API from './http/API';
-import Stomp from './tcp/Stomp';
 import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
 import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
-import ImposiumEvents from './ImposiumEvents';
 
 import {
 	ClientConfigurationError,
@@ -41,6 +39,14 @@ export default class ImposiumClient {
 		ERROR              : 'onError'
 	};
 
+	private eventDelegateRefs:any = {
+		experienceCreated : null,
+		uploadProgress    : null,
+		gotExperience     : null,
+		statusUpdate      : null,
+		onError           : null
+	}
+
 	private api:API = null;
 	private player:VideoPlayer = null;
 	private consumer:MessageConsumer = null;
@@ -54,17 +60,17 @@ export default class ImposiumClient {
 	}
 
 	/*
-		Set current video player ref
-	 */
-	public setPlayer = (player:VideoPlayer) => {
-		this.player = player;
-	}
-
-	/*
 		Exposed for users who may want to re-use a client for n stories
 	 */
 	public setup = (config:any) => {
 		this.assignConfigOpts(config);
+	}
+
+	/*
+		Set current video player ref
+	 */
+	public setPlayer = (player:VideoPlayer) => {
+		this.player = player;
 	}
 
 	/*
@@ -106,13 +112,48 @@ export default class ImposiumClient {
 	}
 
 	/*
+		Invokes the streaming process
+	 */
+	private startMessaging = (experienceId):void => {
+		const {api, clientConfig: {actId, sceneId}, eventDelegateRefs: {onError}} = this;
+
+		api.invokeStream(experienceId, actId, sceneId)
+		.catch((e) => {
+			const wrappedError = new NetworkError('httpFailure', experienceId, e);
+			ExceptionPipe.trapError(wrappedError, onError);
+		});
+	}
+
+	/*
+		Make a new consumer w/ delegates
+	 */
+	private makeConsumer = (experienceId:string):void => {
+		const {clientConfig: {environment}, eventDelegateRefs, player} = this;
+
+		// Merge scoped startMessaging call with client events
+		const delegates:any = {
+			start: (experienceId:string) => this.startMessaging,
+			...eventDelegateRefs
+		};
+
+		this.consumer = new MessageConsumer(
+			environment,
+			experienceId,
+			delegates,
+			player
+		);
+	}
+
+	/*
 		Sets a callback for an event
 	 */
 	public on = (eventName:string, callback:any):void => {
+		const {eventDelegateRefs, eventDelegateRefs: {onError}} = this;
+
 		try {
 			if (isFunc(callback)) {
 				if (keyExists(this.events, eventName)) {
-					ImposiumEvents[eventName] = callback;
+					eventDelegateRefs[eventName] = callback;
 				} else {
 					throw new ClientConfigurationError('invalidEventName', eventName);
 				}
@@ -120,7 +161,7 @@ export default class ImposiumClient {
 				throw new ClientConfigurationError('invalidCallbackType', eventName);
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e);
+			ExceptionPipe.trapError(e, onError);
 		}
 	}
 
@@ -128,20 +169,22 @@ export default class ImposiumClient {
 		Turns off a specific event or all events
 	 */
 	public off = (eventName:string = ''):void => {
+		const {eventDelegateRefs, eventDelegateRefs: {onError}} = this;
+
 		try {
 			if (eventName !== '') {
 				if (keyExists(this.events, eventName)) {
-					ImposiumEvents[eventName] = null;
+					eventDelegateRefs[eventName] = null;
 				} else {
 					throw new ClientConfigurationError('invalidEventName', eventName);
 				}
 			} else {
 				Object.keys(this.events).forEach((event) => {
-					ImposiumEvents[event] = null;
+					eventDelegateRefs[event] = null;
 				});
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e);
+			ExceptionPipe.trapError(e, onError);
 		}
 	}
 
@@ -149,8 +192,7 @@ export default class ImposiumClient {
 		Get experience data
 	 */
 	public getExperience = (experienceId:string):void => {
-		const {api, player} = this;
-		const {gotExperience} = ImposiumEvents;
+		const {api, player, eventDelegateRefs: {gotExperience, onError}} = this;
 
 		try {
 			if (gotExperience) {
@@ -176,13 +218,13 @@ export default class ImposiumClient {
 				})
 				.catch((e) => {
 					const wrappedError = new NetworkError('httpFailure', experienceId, e);
-					ExceptionPipe.trapError(wrappedError);
+					ExceptionPipe.trapError(wrappedError, onError);
 				});
 			} else {
 				throw new ClientConfigurationError('eventNotConfigured', this.events.GOT_EXPERIENCE);
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e);
+			ExceptionPipe.trapError(e, onError);
 		}
 	}
 
@@ -190,7 +232,7 @@ export default class ImposiumClient {
 		Create new experience & return relevant meta
 	 */
 	public createExperience = (inventory:any, render:boolean):void => {
-		const {gotExperience, experienceCreated, uploadProgress} = ImposiumEvents;
+		const {eventDelegateRefs: {gotExperience, experienceCreated, uploadProgress, onError}} = this;
 		const permitRender = (render && experienceCreated);
 		const permitCreate = (!render && gotExperience);
  
@@ -200,24 +242,20 @@ export default class ImposiumClient {
 
 				api.postExperience(storyId, inventory, uploadProgress)
 				.then((data) => {
-					const {id} = data;
 					const {clientConfig: {sceneId, actId}} = this;
+					const {id} = data;
 
 					if (experienceCreated) {
 						experienceCreated(data);
 					}
 					
 					if (render) {
-						this.renderExperience({
-							expId   : id,
-							sceneId : sceneId,
-							actId   : actId
-						});
+						this.renderExperience(id);
 					}
 				})
 				.catch((e) => {
 					const wrappedError = new NetworkError('httpFailure', null, e);
-					ExceptionPipe.trapError(wrappedError);
+					ExceptionPipe.trapError(wrappedError, onError);
 				});
 			} else {
 				let eventType = null;
@@ -233,37 +271,22 @@ export default class ImposiumClient {
 				throw new ClientConfigurationError('eventNotConfigured', eventType);
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e);
+			ExceptionPipe.trapError(e, onError);
 		}
-	}
-
-	/*
-		Invokes the streaming process
-	 */
-	private startMessaging = (job:any):void => {
-		const {api} = this;
-		const {expId, sceneId, actId} = job;
-
-		api.invokeStream(expId, sceneId, actId)
-		.catch((e) => {
-			const wrappedError = new NetworkError('httpFailure', expId, e);
-			ExceptionPipe.trapError(wrappedError);
-		});
 	}
 
 	/*
 		Invokes rendering processes and starts listening for messages 
 	 */
-	public renderExperience = (job:any):void => {
-		const {consumer, player, clientConfig: {environment}} = this;
-		const startDelegate = (j:any) => this.startMessaging(j);
-
+	public renderExperience = (experienceId:string):void => {
+		const {consumer} = this;
+		
 		if (!consumer) {
-			this.consumer = new MessageConsumer(job, environment, startDelegate, player);
+			this.makeConsumer(experienceId);
 		} else {
 			consumer.kill()
 			.then(() => {
-				this.consumer = new MessageConsumer(job, environment, startDelegate, player);
+				this.makeConsumer(experienceId);
 			});
 		}
 	}
@@ -272,6 +295,8 @@ export default class ImposiumClient {
 		Sets up analytics using fallback video player wrapper class
 	 */
 	public captureAnalytics = (playerRef:HTMLVideoElement = null):void => {
+		const {eventDelegateRefs: {onError}} = this;
+
 		try {
 			if (!isNode()) {
 				this.setPlayer(new FallbackPlayer(playerRef));
@@ -279,7 +304,7 @@ export default class ImposiumClient {
 				throw new EnvironmentError('node');
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e);
+			ExceptionPipe.trapError(e, onError);
 		}
 	}
 

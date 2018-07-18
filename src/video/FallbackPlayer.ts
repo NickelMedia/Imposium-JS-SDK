@@ -6,6 +6,9 @@ export default class FallbackPlayer extends VideoPlayer {
 		super(node);
 	}
 
+	/*
+		Set the experience id for analytics purposes
+	 */
 	public experienceGenerated = (video:Video, poster:string = ''):void => {
 		const {id} = video;
 		this.setExperienceId(id);

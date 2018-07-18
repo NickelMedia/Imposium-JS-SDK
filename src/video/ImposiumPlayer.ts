@@ -24,24 +24,9 @@ interface ImposiumPlayerConfig {
 	controls : boolean;
 }
 
-export const ImposiumPlayerEvents = {
-	play          : {callback: null, native: true},
-	pause         : {callback: null, native: true},
-	ended         : {callback: null, native: true},
-	error         : {callback: null, native: true},
-	seeked        : {callback: null, native: true},
-	timeupdated   : {callback: null, native: true},
-	volumechanged : {callback: null, native: true},
-	muted         : {callback: null, native: false},
-	controlsset   : {callback: null, native: false}
-};
-
 const settings = require('../conf/settings.json').videoPlayer;
 
 export default class ImposiumPlayer extends VideoPlayer {
-	private clientRef:ImposiumClient = null;
-	private ImposiumPlayerConfig:ImposiumPlayerConfig = null;
-
 	public events = {
 		PLAY     : 'play',
 		PAUSE    : 'pause',
@@ -54,10 +39,25 @@ export default class ImposiumPlayer extends VideoPlayer {
 		CONTROLS : 'controlsset'
 	};
 
+	private eventDelegateRefs:any = {
+		play          : {callback: null, native: true},
+		pause         : {callback: null, native: true},
+		ended         : {callback: null, native: true},
+		error         : {callback: null, native: true},
+		seeked        : {callback: null, native: true},
+		timeupdated   : {callback: null, native: true},
+		volumechanged : {callback: null, native: true},
+		muted         : {callback: null, native: false},
+		controlsset   : {callback: null, native: false}
+	};
+
 	private videoConfig:VideoConfig = {
 		poster: '',
 		videos: []
 	};
+
+	private clientRef:ImposiumClient = null;
+	private ImposiumPlayerConfig:ImposiumPlayerConfig = null;
 
 	constructor(node:HTMLVideoElement, client:ImposiumClient, config:ImposiumPlayerConfig = settings.defaultConfig) {
 		super(node);
@@ -109,10 +109,12 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Enable native or custom ImposiumPlayer events
 	 */
 	public on = (eventName:string, callback:any):void => {
+		const {eventDelegateRefs} = this;
+
 		try {
 			if (isFunc(callback)) {
 				if (keyExists(this.events, eventName)) {
-					const event = ImposiumPlayerEvents[eventName];
+					const event = eventDelegateRefs[eventName];
 
 					// Add ptr for future removal
 					event.callback = callback;
@@ -136,9 +138,11 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Disable native or custom ImposiumPlayer events
 	 */
 	public off = (eventName:string):void => {
+		const {eventDelegateRefs} = this;
+
 		try {
 			if (keyExists(this.events, eventName)) {
-				const event = ImposiumPlayerEvents[eventName];
+				const event = eventDelegateRefs[eventName];
 
 				// Remove node based event listener
 				if (event.native) {
@@ -217,7 +221,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Set mute state
 	 */
 	public setMute = (mute:boolean):void => {
-		const {muted} = ImposiumPlayerEvents;
+		const {eventDelegateRefs: {muted}} = this;
 
 		this.node.muted = mute;
 
@@ -257,7 +261,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Set controls state
 	 */
 	public setControls = (controls:boolean):void => {
-		const {controlsset} = ImposiumPlayerEvents;
+		const {eventDelegateRefs: {controlsset}} = this;
 
 		this.node.controls = controls;
 
@@ -279,12 +283,13 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Remove all Imposium ImposiumPlayer scaffolding and break ref to video node
 	 */
 	public remove = ():void => {
+		const {eventDelegateRefs} = this;
 		const {defaultConfig} = settings;
 
 		this.pauseIfPlaying();
 
-		for (const key in ImposiumPlayerEvents) {
-			this.off(ImposiumPlayerEvents[key]);
+		for (const key of Object.keys(eventDelegateRefs)) {
+			this.off(eventDelegateRefs[key]);
 		}
 
 		this.ImposiumPlayerConfig = {...defaultConfig};
