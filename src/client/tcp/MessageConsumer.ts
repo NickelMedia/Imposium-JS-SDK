@@ -79,7 +79,7 @@ export default class MessageConsumer {
 	 */
 	private routeMessageData = (msg:any):void => {
 		const {EVENT_NAMES: {scene, message, complete}} = MessageConsumer;
-		const {stomp, experienceId, clientDelegates: {onError}} = this;
+		const {stomp, experienceId, clientDelegates: {ERROR}} = this;
 
 
 		try {
@@ -99,7 +99,7 @@ export default class MessageConsumer {
 			}
 		} catch (e) {
 			const wrappedError = new NetworkError('messageParseFailed', experienceId, e);
-			ExceptionPipe.trapError(wrappedError, onError);
+			ExceptionPipe.trapError(wrappedError, ERROR);
 		}
 	}
 
@@ -107,7 +107,7 @@ export default class MessageConsumer {
 		Fire the gotMessage callback if the user is listening for this event
 	 */
 	private emitMessageData = (messageData:any):void => {
-		const {experienceId, clientDelegates: {statusUpdate, onError}} = this;
+		const {experienceId, clientDelegates: {STATUS_UPDATE, ERROR}} = this;
 		const {msg} = messageData;
 
 		try {
@@ -115,11 +115,11 @@ export default class MessageConsumer {
 				throw new NetworkError('errorOverTcp', experienceId, null);
 			}
 
-			if (statusUpdate) {
-				statusUpdate(messageData);
+			if (STATUS_UPDATE) {
+				STATUS_UPDATE(messageData);
 			} 
 		} catch (e) {
-			ExceptionPipe.trapError(e, onError);
+			ExceptionPipe.trapError(e, ERROR);
 		}
 	}
 
@@ -127,7 +127,7 @@ export default class MessageConsumer {
 		Parses the experience data into a prop delivered via gotScene
 	 */
 	private emitSceneData = (experienceData:any):void => {
-		const {experienceId, clientDelegates: {gotExperience, onError}} = this;
+		const {experienceId, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
 		const rejected = (experienceData || {}).error;
 
 		try {
@@ -161,8 +161,8 @@ export default class MessageConsumer {
 					}
 					// END STUB
 
-					if (gotExperience) {
-						gotExperience(sceneData);
+					if (GOT_EXPERIENCE) {
+						GOT_EXPERIENCE(sceneData);
 					}
 				} else {
 					throw new NetworkError('messageParseFailed', experienceId, null);
@@ -171,7 +171,7 @@ export default class MessageConsumer {
 				throw new ModerationError('rejection');
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e, onError);
+			ExceptionPipe.trapError(e, ERROR);
 		}
 	}
 
@@ -179,7 +179,7 @@ export default class MessageConsumer {
 		Called on Stomp errors
 	 */
 	private stompError = (e:any):void => {
-		const {retried, experienceId, stomp, clientDelegates: {onError}} = this;
+		const {retried, experienceId, stomp, clientDelegates: {ERROR}} = this;
 		const {wasClean} = e;
 
 		if (!e.wasClean) {
@@ -194,7 +194,7 @@ export default class MessageConsumer {
 				});
 			} else {
 				const wrappedError = new NetworkError('tcpFailure', experienceId, e);
-				ExceptionPipe.trapError(wrappedError, onError);
+				ExceptionPipe.trapError(wrappedError, ERROR);
 			}
 		}
 	}

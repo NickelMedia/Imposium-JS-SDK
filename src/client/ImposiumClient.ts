@@ -32,20 +32,17 @@ const settings = require('../conf/settings.json').client;
 
 export default class ImposiumClient {
 	public events = {
-		EXPERIENCE_CREATED : 'experienceCreated',
-		UPLOAD_PROGRESS    : 'uploadProgress',
-		GOT_EXPERIENCE     : 'gotExperience',
-		STATUS_UPDATE      : 'statusUpdate',
-		ERROR              : 'onError'
+		EXPERIENCE_CREATED : 'EXPERIENCE_CREATED',
+		UPLOAD_PROGRESS    : 'UPLOAD_PROGRESS',
+		GOT_EXPERIENCE     : 'GOT_EXPERIENCE',
+		STATUS_UPDATE      : 'STATUS_UPDATE',
+		ERROR              : 'ERROR'
 	};
 
-	private eventDelegateRefs:any = {
-		experienceCreated : null,
-		uploadProgress    : null,
-		gotExperience     : null,
-		statusUpdate      : null,
-		onError           : null
-	};
+	private eventDelegateRefs:any = Object.keys(this.events).reduce((p, c) => {
+		p[c] = null;
+		return p;
+	}, {});
 
 	private api:API = null;
 	private player:VideoPlayer = null;
@@ -56,6 +53,7 @@ export default class ImposiumClient {
 		Initialize Imposium client
 	 */
 	constructor(config:any) {
+		console.log(this.eventDelegateRefs)
 		this.assignConfigOpts(config);
 	}
 
@@ -115,12 +113,12 @@ export default class ImposiumClient {
 		Invokes the streaming process
 	 */
 	private startMessaging = (experienceId):void => {
-		const {api, clientConfig: {actId, sceneId}, eventDelegateRefs: {onError}} = this;
+		const {api, clientConfig: {actId, sceneId}, eventDelegateRefs: {ERROR}} = this;
 
 		api.invokeStream(experienceId, actId, sceneId)
 		.catch((e) => {
 			const wrappedError = new NetworkError('httpFailure', experienceId, e);
-			ExceptionPipe.trapError(wrappedError, onError);
+			ExceptionPipe.trapError(wrappedError, ERROR);
 		});
 	}
 
@@ -148,7 +146,7 @@ export default class ImposiumClient {
 		Sets a callback for an event
 	 */
 	public on = (eventName:string, callback:any):void => {
-		const {eventDelegateRefs, eventDelegateRefs: {onError}} = this;
+		const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
 		try {
 			if (isFunc(callback)) {
@@ -161,7 +159,7 @@ export default class ImposiumClient {
 				throw new ClientConfigurationError('invalidCallbackType', eventName);
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e, onError);
+			ExceptionPipe.trapError(e, ERROR);
 		}
 	}
 
@@ -169,7 +167,7 @@ export default class ImposiumClient {
 		Turns off a specific event or all events
 	 */
 	public off = (eventName:string = ''):void => {
-		const {eventDelegateRefs, eventDelegateRefs: {onError}} = this;
+		const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
 		try {
 			if (eventName !== '') {
@@ -184,7 +182,7 @@ export default class ImposiumClient {
 				});
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e, onError);
+			ExceptionPipe.trapError(e, ERROR);
 		}
 	}
 
@@ -192,10 +190,10 @@ export default class ImposiumClient {
 		Get experience data
 	 */
 	public getExperience = (experienceId:string):void => {
-		const {api, player, eventDelegateRefs: {gotExperience, onError}} = this;
+		const {api, player, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
 
 		try {
-			if (gotExperience || player) {
+			if (GOT_EXPERIENCE || player) {
 				api.getExperience(experienceId)
 				.then((data) => {
 					const {experience: {id, video_url_mp4_720}} = data;
@@ -214,19 +212,19 @@ export default class ImposiumClient {
 						}, '');
 					}
 
-					if (gotExperience) {
-						gotExperience(data);
+					if (GOT_EXPERIENCE) {
+						GOT_EXPERIENCE(data);
 					}
 				})
 				.catch((e) => {
 					const wrappedError = new NetworkError('httpFailure', experienceId, e);
-					ExceptionPipe.trapError(wrappedError, onError);
+					ExceptionPipe.trapError(wrappedError, ERROR);
 				});
 			} else {
 				throw new ClientConfigurationError('eventNotConfigured', this.events.GOT_EXPERIENCE);
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e, onError);
+			ExceptionPipe.trapError(e, ERROR);
 		}
 	}
 
@@ -234,21 +232,30 @@ export default class ImposiumClient {
 		Create new experience & return relevant meta
 	 */
 	public createExperience = (inventory:any, render:boolean = true):void => {
-		const {player, eventDelegateRefs: {gotExperience, experienceCreated, uploadProgress, onError}} = this;
-		const permitRender = (render && (player || experienceCreated));
-		const permitCreate = (!render && gotExperience);
+		const {
+			player, 
+			eventDelegateRefs: {
+				GOT_EXPERIENCE,
+				EXPERIENCE_CREATED,
+				UPLOAD_PROGRESS,
+				ERROR
+			}
+		} = this;
+
+		const permitRender = (render && (player || EXPERIENCE_CREATED));
+		const permitCreate = (!render && GOT_EXPERIENCE);
  
 		try {
 			if (permitRender || permitCreate) {
 				const {api, clientConfig: {storyId}} = this;
 
-				api.postExperience(storyId, inventory, uploadProgress)
+				api.postExperience(storyId, inventory, UPLOAD_PROGRESS)
 				.then((data) => {
 					const {clientConfig: {sceneId, actId}} = this;
 					const {id} = data;
 
-					if (experienceCreated) {
-						experienceCreated(data);
+					if (EXPERIENCE_CREATED) {
+						EXPERIENCE_CREATED(data);
 					}
 					
 					if (render) {
@@ -257,23 +264,23 @@ export default class ImposiumClient {
 				})
 				.catch((e) => {
 					const wrappedError = new NetworkError('httpFailure', null, e);
-					ExceptionPipe.trapError(wrappedError, onError);
+					ExceptionPipe.trapError(wrappedError, ERROR);
 				});
 			} else {
 				let eventType = null;
 
-				if (render && !gotExperience) {
+				if (render && !GOT_EXPERIENCE) {
 					eventType = this.events.GOT_EXPERIENCE;
 				} 
 
-				if (!render && !experienceCreated) {
+				if (!render && !EXPERIENCE_CREATED) {
 					eventType = this.events.EXPERIENCE_CREATED;
 				}
 
 				throw new ClientConfigurationError('eventNotConfigured', eventType);
 			}
 		} catch (e) {
-			ExceptionPipe.trapError(e, onError);
+			ExceptionPipe.trapError(e, ERROR);
 		}
 	}
 
