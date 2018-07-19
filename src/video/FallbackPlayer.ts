@@ -9,8 +9,8 @@ export default class FallbackPlayer extends VideoPlayer {
 	/*
 		Set the experience id for analytics purposes
 	 */
-	public experienceGenerated = (video:Video, poster:string = ''):void => {
-		const {id} = video;
+	public experienceGenerated = (experience:any):void => {
+		const {id} = experience;
 		this.setExperienceId(id);
 	}
 }

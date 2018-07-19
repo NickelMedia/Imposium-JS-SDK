@@ -11,16 +11,21 @@ export default class API {
 	private http:any = null;
 
 	constructor(authToken:string, env:string) {
+		const {version, currentVersion} = settings;
+
 		this.http = axios.create({
 			baseURL : settings[env],
-			headers : this.getHeaders(authToken)
+			headers : {
+				...this.getAuthHeader(authToken),
+				[version]: currentVersion 
+			}
 		});
 	}
 
 	/*
 		Attempt to decode JWT format from authToken, fallback to hmac if call fails
 	 */
-	private getHeaders = (authToken:string):any => {
+	private getAuthHeader = (authToken:string):any => {
 		const {jwt, hmac} = settings;
 
 		try {

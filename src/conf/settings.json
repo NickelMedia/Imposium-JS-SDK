@@ -11,6 +11,8 @@
 	"api": {
 		"production": "https://api.imposium.com",
 		"staging": "https://api.staging.imposium.com",
+		"currentVersion": "1.1",
+		"version": "X-Imposium-Api-Version",
 		"hmac": "X-Imposium-Access-Key",
 		"jwt": "Authorization"
 	},

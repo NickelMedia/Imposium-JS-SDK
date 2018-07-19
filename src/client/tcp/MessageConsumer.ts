@@ -107,12 +107,12 @@ export default class MessageConsumer {
 		Fire the gotMessage callback if the user is listening for this event
 	 */
 	private emitMessageData = (messageData:any):void => {
-		const {experienceId, clientDelegates: {STATUS_UPDATE, ERROR}} = this;
-		const {msg} = messageData;
+		const {clientDelegates: {STATUS_UPDATE, ERROR}} = this;
+		const {status, id} = messageData;
 
 		try {
-			if (msg === settings.errorOverTcp) {
-				throw new NetworkError('errorOverTcp', experienceId, null);
+			if (status === settings.errorOverTcp) {
+				throw new NetworkError('errorOverTcp', id, null);
 			}
 
 			if (STATUS_UPDATE) {
@@ -126,46 +126,18 @@ export default class MessageConsumer {
 	/*
 		Parses the experience data into a prop delivered via gotScene
 	 */
-	private emitSceneData = (experienceData:any):void => {
-		const {experienceId, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
-		const rejected = (experienceData || {}).error;
+	private emitSceneData = (experience:any):void => {
+		const {player, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
+		const {moderation_status} = experience;
 
 		try {
-			if (!rejected) {
-				// Shorthand idioms for checking if required nested JSON data exists
-				const sceneId = ((  experienceData || {}).sceneData || {}).id;
-				const hasUrls = ((( experienceData || {}).output    || {})[sceneId] || {}).mp4Url;
-				const isVideo = ((( experienceData || {}).sceneData || {}).type === settings.videoSceneKey);
+			if (moderation_status === 'approved') {
+				if (player) {
+					player.experienceGenerated(experience);
+				}
 
-				if (isVideo && hasUrls) {
-					// Merge up the scene data and the experience ID 
-					const {id, output} = experienceData;
-					const sceneData = {...output[sceneId], experience_id: id}
-					delete sceneData.id;
-
-					// START STUB
-					const {player} = this;
-					const {videoUrls: {mp4_720}, experience_id} = sceneData;
-
-					if (player) {
-						player.experienceGenerated({
-							id       : experience_id,
-							url      : mp4_720,
-							format   : 'mp4',
-							width    : 720,
-							height   : 1080,
-							filesize : 1000000,
-							duration : 4,
-							rate     : 23.93
-						}, '');
-					}
-					// END STUB
-
-					if (GOT_EXPERIENCE) {
-						GOT_EXPERIENCE(sceneData);
-					}
-				} else {
-					throw new NetworkError('messageParseFailed', experienceId, null);
+				if (GOT_EXPERIENCE) {
+					GOT_EXPERIENCE(experience);
 				}
 			} else {
 				throw new ModerationError('rejection');

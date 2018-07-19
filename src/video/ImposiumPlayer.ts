@@ -51,11 +51,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		controlsset   : {callback: null, native: false}
 	};
 
-	private videoConfig:VideoConfig = {
-		poster: '',
-		videos: []
-	};
-
+	private experienceCache:any[] = [];
 	private clientRef:ImposiumClient = null;
 	private ImposiumPlayerConfig:ImposiumPlayerConfig = null;
 
@@ -91,17 +87,17 @@ export default class ImposiumPlayer extends VideoPlayer {
 	/*
 		Caches a video object and also 
 	 */
-	public experienceGenerated = (video:Video, poster:string = ''):void => {
-		const {videoConfig, videoConfig: {videos}, node} = this;
-		const {url, id} = video;
+	public experienceGenerated = (experience:any):void => {
+		const {experienceCache, node} = this;
+		const {id, output: {images: {poster}, videos: {mp4_720: {url}}}} = experience;
 
-		videos.push(video);
+		experienceCache.push(experience);
 		this.setExperienceId(id);
 
-		if (poster !== this.videoConfig.poster) {
-			this.videoConfig.poster = poster;
-		}
+		// TO DO: Some bandwidth checking logic to determine what video gets set as current
+		// for now this will be stubbed @ 720p
 
+		node.poster = poster;
 		node.src = url;
 	}
 

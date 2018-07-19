@@ -5,10 +5,11 @@ var statusField  = document.getElementById('status'),
 	videoPlayer  = document.getElementById('dynamicVideo');
 
 var config = {
-    accessToken : 'zooch5ja8fiejoojoo6AeQuahmex1wes',
-    storyId     : '295a80d0-871c-4def-a579-8a375d6942fc',
-    sceneId     : 'f7a20d1f-96f2-4672-a7e3-3891b4a8ed25',
-    actId       : '295a80d0-871c-4def-a579-8a375d6942fc'
+    accessToken : 'eey6AhJei9tohsoitueQua6MoneYaiqu',
+    storyId     : '6072569c-d4e7-43d8-ec7d-ec336ed8d6a8',
+    actId       : 'ded03f40-ca60-4af5-8db8-8e8166994c02',
+    sceneId     : 'e20f49c3-e036-42b1-8661-8a4e1a43892c',
+    environment : 'staging'
 };
 
 var imposium = new Imposium.ImposiumClient(config);
@@ -16,7 +17,7 @@ var player = new Imposium.ImposiumPlayer(videoPlayer, imposium);
 
 // Executes when a status message is delivered via web socket
 imposium.on(imposium.events.STATUS_UPDATE, function(data) {
-	setStatus(data.msg, 'steelblue');
+	setStatus(data.status, 'steelblue');
 });
 
 // Executes when a fresh experience was created 
@@ -47,7 +48,7 @@ function createExperience() {
         };
         
         setStatus('Creating Experience...', 'steelblue');
-        imposium.createExperience(inventory);
+        imposium.createExperience({});
     }
 }
 

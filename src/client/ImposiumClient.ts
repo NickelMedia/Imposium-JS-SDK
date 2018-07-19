@@ -95,11 +95,9 @@ export default class ImposiumClient {
 		const {api, clientConfig: {storyId}} = this;
 
 		api.getStory(storyId)
-		.then((story) => {
-			// GA prop regExp if still needed down the line
-			// RegExp(/^ua-\d{4,9}-\d{1,4}$/i) 
-			const GaProp = 'UA-113079866-1';
-			Analytics.setup(GaProp);
+		.then((story:any) => {
+			const {gaTrackingId} = story;
+			Analytics.setup(gaTrackingId);
 		})
 		.catch((e) => {
 			console.error(e);
@@ -192,25 +190,19 @@ export default class ImposiumClient {
 		try {
 			if (GOT_EXPERIENCE || player) {
 				api.getExperience(experienceId)
-				.then((data) => {
-					const {experience: {id, video_url_mp4_720}} = data;
+				.then((experience:any) => {
+					const {output, id} = experience;
 
-					// START STUB
-					if (player) {
-						player.experienceGenerated({
-							id       : id,
-							url      : video_url_mp4_720,
-							format   : 'mp4',
-							width    : 720,
-							height   : 1080,
-							filesize : 123456789,
-							duration : 4,
-							rate     : 23.93
-						}, '');
-					}
+					if (Object.keys(output).length > 0) {
+						if (player) {
+							player.experienceGenerated(experience);
+						}
 
-					if (GOT_EXPERIENCE) {
-						GOT_EXPERIENCE(data);
+						if (GOT_EXPERIENCE) {
+							GOT_EXPERIENCE(experience);
+						}
+					} else {
+						this.renderExperience(id);
 					}
 				})
 				.catch((e) => {
@@ -247,12 +239,12 @@ export default class ImposiumClient {
 				const {api, clientConfig: {storyId}} = this;
 
 				api.postExperience(storyId, inventory, UPLOAD_PROGRESS)
-				.then((data) => {
+				.then((experience) => {
 					const {clientConfig: {sceneId, actId}} = this;
-					const {id} = data;
+					const {id} = experience;
 
 					if (EXPERIENCE_CREATED) {
-						EXPERIENCE_CREATED(data);
+						EXPERIENCE_CREATED(experience);
 					}
 					
 					if (render) {

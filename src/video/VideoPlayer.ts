@@ -73,7 +73,7 @@ export default abstract class VideoPlayer {
 		Placeholder, called when experiences get generated if a
 		player ref is set on a client instance
 	 */
-	public experienceGenerated = (v:any, p:string = ''):void => {}
+	public experienceGenerated = (experience:any):void => {}
 
 
 	/*
