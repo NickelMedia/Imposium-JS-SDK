@@ -1,8 +1,10 @@
+import API from '../client/http/API';
 import VideoPlayer, {VideoConfig, Video} from './VideoPlayer';
 import ImposiumClient from '../client/ImposiumClient';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {
+	calculateAverageMbps,
 	inRangeNumeric, 
 	prepConfig, 
 	isFunc, 
@@ -37,6 +39,19 @@ export default class ImposiumPlayer extends VideoPlayer {
 		VOLUME   : 'volumechange',
 		MUTE     : 'muted',
 		CONTROLS : 'controlsset'
+	};
+
+	private static readonly BANDWIDTH_SAMPLES:number = settings.bandwidthSamples;
+
+	private static readonly bandwidthRatings:any = {
+		LOW : settings.bandwidth.low,
+		MID : settings.bandwidth.mid,
+	};
+
+	private static readonly compressionLevels:any = {
+		LOW  : settings.compression.low,
+		MID  : settings.compression.mid,
+		HIGH : settings.compression.high
 	};
 
 	private eventDelegateRefs:any = {
@@ -85,20 +100,39 @@ export default class ImposiumPlayer extends VideoPlayer {
 	}
 
 	/*
-		Caches a video object and also 
+		Test users bandwidth and serve up the video 
 	 */
 	public experienceGenerated = (experience:any):void => {
 		const {experienceCache, node} = this;
-		const {id, output: {images: {poster}, videos: {mp4_720: {url}}}} = experience;
+		const {bandwidthRatings, compressionLevels, BANDWIDTH_SAMPLES} = ImposiumPlayer;
+		const {id, output: {images: {poster}, videos}} = experience;
+
+		const testPromises:Promise<number>[] = [];
+		let compression = compressionLevels.LOW;
 
 		experienceCache.push(experience);
 		this.setExperienceId(id);
 
-		// TO DO: Some bandwidth checking logic to determine what video gets set as current
-		// for now this will be stubbed @ 720p
+		for (let i = 0; i < BANDWIDTH_SAMPLES; i++) {
+			testPromises.push(API.checkBandwidth());
+		}
 
-		node.poster = poster;
-		node.src = url;
+		Promise.all(testPromises)
+		.then((speeds:number[]) => {
+			const speed = calculateAverageMbps(speeds);
+			const has1080 = (experience.hasOwnProperty(compressionLevels.HIGH));
+
+			if (speed >= bandwidthRatings.LOW && speed <= bandwidthRatings.MID) {
+				compression = compressionLevels.MID;
+			} else if (speed >= bandwidthRatings.MID && has1080) {
+				compression = compressionLevels.HIGH;
+			}
+			console.log(compression)
+			this.setPlayerData(poster, videos[compression].url);
+		})
+		.catch((e) => {
+			this.setPlayerData(poster, videos[compression].url);
+		});
 	}
 
 	/*
@@ -290,6 +324,11 @@ export default class ImposiumPlayer extends VideoPlayer {
 
 		this.ImposiumPlayerConfig = {...defaultConfig};
 		this.node = null;
+	}
+
+	private setPlayerData = (posterSrc:string, videoSrc:string):void => {
+		this.node.poster = posterSrc;
+		this.node.src = videoSrc;
 	}
 
 	private pauseIfPlaying = ():void => {

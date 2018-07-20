@@ -53,6 +53,16 @@
 		"playbackEvents": [0.25, 0.5, 0.75],
 		"checkPlaybackRateMs": 100,
 		"volumeMin": 0,
-		"volumeMax": 1
+		"volumeMax": 1,
+		"bandwidth": {
+			"low": 2.4,
+			"mid": 8
+		},
+		"compression": {
+			"low": "mp4_480",
+			"mid": "mp4_720",
+			"high": "mp4_1080"
+		},
+		"bandwidthSamples": 10
 	}
 }

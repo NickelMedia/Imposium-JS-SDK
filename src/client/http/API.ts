@@ -1,13 +1,17 @@
+'use strict'
+
 import axios from 'axios';
 import * as jwt_decode from 'jwt-decode';
 
 import Analytics from '../../analytics/Analytics';
 
-import {InventoryToFormData, isNode} from '../../scaffolding/Helpers';
+import {isNode, InventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
 
 const settings = require('../../conf/settings.json').api;
 
 export default class API {
+	private static readonly testImage ='https://upload.wikimedia.org/wikipedia/commons/1/1b/LythrumSalicaria-flowers-1mb.jpg';
+
 	private http:any = null;
 
 	constructor(authToken:string, env:string) {
@@ -57,11 +61,11 @@ export default class API {
 	/*
 		Wait async for GET /experience, resolve response data
 	 */
-	public getExperience = (expId:string):Promise<any> => {
+	public getExperience = (experienceId:string):Promise<any> => {
 		const {http: {get}} = this;
 
 		return new Promise((resolve, reject) => {
-			get(`/experience/${expId}`)
+			get(`/experience/${experienceId}`)
 			.then((res) => {
 				const {data} = res;
 				resolve(data);
@@ -113,17 +117,11 @@ export default class API {
 	/*
 		Wait async for POST /experience/{expId}/trigger-event, resolve on success
 	 */
-	public invokeStream = (expId:string, sceneId:string, actId:string):Promise<null> => {
+	public invokeStream = (experienceId:string):Promise<null> => {
 		const {http: {post}} = this;
 
 		return new Promise((resolve, reject) => {
-			const body = {
-				exp_id   : expId,
-				scene_id : sceneId,
-				act_id   : actId
-			};
-
-			post(`/experience/${expId}/trigger-event`)
+			post(`/experience/${experienceId}/trigger-event`)
 			.then((res) => {
 				resolve();
 			})
@@ -137,17 +135,42 @@ export default class API {
 		Wait async for GET-ing GA tracking pixel, resolve on success
 	 */
 	public static getGATrackingPixel = (url:string):Promise<null> => {
+		const {get} = axios;
+
 		return new Promise((resolve, reject) => {
-			axios({
-				url              : url,
-				method           : 'GET',
-			})
+			get(url)
 			.then((res) => {
 				resolve();
 			})
 			.catch((e) => {
 				reject(e);
 			})
+		});
+	}
+
+	/*
+		Check users bandwidth 
+	 */
+	public static checkBandwidth = ():Promise<number> => {
+		const {get} = axios;
+		const url = `${API.testImage}?bust=${Math.random()}`;
+		const config = {responseType: 'blob', timeout: 2000};
+
+		return new Promise((resolve, reject) => {
+			const start = new Date().getTime();
+
+			get(url, config)
+			.then((res) => {
+				const {data: {size}} = res;
+				const duration:number = (new Date().getTime() - start) / 1000;
+				const filesizeBits:number = size * 8;
+				const mbps:number = calculateMbps(duration, filesizeBits);
+
+				resolve(mbps);
+			})
+			.catch((e) => {
+				reject(e);
+			});
 		});
 	}
 

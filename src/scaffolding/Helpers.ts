@@ -43,6 +43,17 @@ export const cloneWithKeys = (o:any) => {
 	}, {});
 }
 
+// Calcuate megabits per second based on request duration in s and size of file downloaded
+export const calculateMbps = (durationSeconds:number, filesizeBits:number):number => {
+	return (filesizeBits / durationSeconds) / 1024 ** 2;
+}
+
+// Calculate average mbps rate based on set of download times in mbps 
+export const calculateAverageMbps = (speeds:number[]):number => {
+	const sum:number = speeds.reduce((p, c) => {return p + c});
+	return parseFloat((sum / speeds.length).toFixed(2));
+}
+
 // Deal with prepping form data objs in isomporphic way
 export const InventoryToFormData = (s:string, i:any):any => {
 	return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);

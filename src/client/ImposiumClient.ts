@@ -108,9 +108,9 @@ export default class ImposiumClient {
 		Invokes the streaming process
 	 */
 	private startMessaging = (experienceId):void => {
-		const {api, clientConfig: {actId, sceneId}, eventDelegateRefs: {ERROR}} = this;
+		const {api, eventDelegateRefs: {ERROR}} = this;
 
-		api.invokeStream(experienceId, actId, sceneId)
+		api.invokeStream(experienceId)
 		.catch((e) => {
 			const wrappedError = new NetworkError('httpFailure', experienceId, e);
 			ExceptionPipe.trapError(wrappedError, ERROR);
@@ -239,7 +239,7 @@ export default class ImposiumClient {
 				const {api, clientConfig: {storyId}} = this;
 
 				api.postExperience(storyId, inventory, UPLOAD_PROGRESS)
-				.then((experience) => {
+				.then((experience:any) => {
 					const {clientConfig: {sceneId, actId}} = this;
 					const {id} = experience;
 
