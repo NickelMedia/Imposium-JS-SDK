@@ -1,3 +1,5 @@
+import * as Hls from 'hls.js';
+
 import API from '../client/http/API';
 import VideoPlayer, {VideoConfig, Video} from './VideoPlayer';
 import ImposiumClient from '../client/ImposiumClient';
@@ -41,6 +43,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 		CONTROLS : 'controlsset'
 	};
 
+	private static readonly STREAM_TYPE = settings.streamType;
 	private static readonly BANDWIDTH_SAMPLES:number = settings.bandwidthSamples;
 
 	private static readonly bandwidthRatings:any = {
@@ -49,9 +52,10 @@ export default class ImposiumPlayer extends VideoPlayer {
 	};
 
 	private static readonly compressionLevels:any = {
-		LOW  : settings.compression.low,
-		MID  : settings.compression.mid,
-		HIGH : settings.compression.high
+		STREAM : settings.compression.stream,
+		LOW    : settings.compression.low,
+		MID    : settings.compression.mid,
+		HIGH   : settings.compression.high
 	};
 
 	private eventDelegateRefs:any = {
@@ -66,6 +70,8 @@ export default class ImposiumPlayer extends VideoPlayer {
 		controlsset   : {callback: null, native: false}
 	};
 
+	private hlsSupport:string = '';
+	private hlsPlayer:Hls = null;
 	private experienceCache:any[] = [];
 	private clientRef:ImposiumClient = null;
 	private ImposiumPlayerConfig:ImposiumPlayerConfig = null;
@@ -77,6 +83,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 			if (client) {
 				client.setPlayer(this);
 				this.init(config);
+				this.setupHls();
 			} else {
 				throw new PlayerConfigurationError("noClient", null);
 			}
@@ -103,36 +110,31 @@ export default class ImposiumPlayer extends VideoPlayer {
 		Test users bandwidth and serve up the video 
 	 */
 	public experienceGenerated = (experience:any):void => {
-		const {experienceCache, node} = this;
-		const {bandwidthRatings, compressionLevels, BANDWIDTH_SAMPLES} = ImposiumPlayer;
+		const {experienceCache, hlsSupport, node} = this;
+		const {compressionLevels: {STREAM}} = ImposiumPlayer;
 		const {id, output: {images: {poster}, videos}} = experience;
-
-		const testPromises:Promise<number>[] = [];
-		let compression = compressionLevels.LOW;
+		const hasStream = videos.hasOwnProperty(STREAM);
 
 		experienceCache.push(experience);
 		this.setExperienceId(id);
 
-		for (let i = 0; i < BANDWIDTH_SAMPLES; i++) {
-			testPromises.push(API.checkBandwidth());
-		}
+		if (hasStream && hlsSupport) {
+			this.setPlayerData(poster, videos[STREAM].url);
+		} else {
+			const compressionKeys = Object.keys(videos);
 
-		Promise.all(testPromises)
-		.then((speeds:number[]) => {
-			const speed = calculateAverageMbps(speeds);
-			const has1080 = (experience.hasOwnProperty(compressionLevels.HIGH));
-
-			if (speed >= bandwidthRatings.LOW && speed <= bandwidthRatings.MID) {
-				compression = compressionLevels.MID;
-			} else if (speed >= bandwidthRatings.MID && has1080) {
-				compression = compressionLevels.HIGH;
+			if (compressionKeys.length === 1) {
+				this.setPlayerData(poster, videos[compressionKeys[0]].url);
+			} else {
+				this.checkBandwidth(videos)
+				.then((compression:string) => {
+					this.setPlayerData(poster, videos[compression].url);
+				})
+				.catch((fallbackCompression:string) => {
+					this.setPlayerData(poster, videos[fallbackCompression].url);
+				});
 			}
-			console.log(compression)
-			this.setPlayerData(poster, videos[compression].url);
-		})
-		.catch((e) => {
-			this.setPlayerData(poster, videos[compression].url);
-		});
+		}
 	}
 
 	/*
@@ -326,11 +328,70 @@ export default class ImposiumPlayer extends VideoPlayer {
 		this.node = null;
 	}
 
-	private setPlayerData = (posterSrc:string, videoSrc:string):void => {
-		this.node.poster = posterSrc;
-		this.node.src = videoSrc;
+	/*
+		Determine if browser can natively support media source extensions, if not
+		use hls-js if possible, if hls-js is not supported do nothing.
+	 */
+	private setupHls = ():void => {
+		if (this.node.canPlayType(ImposiumPlayer.STREAM_TYPE)) {
+			this.hlsSupport = 'native';
+		} else if (Hls.isSupported()) {
+			this.hlsSupport = 'hls-js';
+			this.hlsPlayer = new Hls();
+		}
 	}
 
+	/*
+		Adapt quality manually if HLS cannot be supported
+	 */
+	private checkBandwidth = (videos:any):Promise<string> => {
+		const {bandwidthRatings, compressionLevels, BANDWIDTH_SAMPLES} = ImposiumPlayer;
+		const testPromises:Promise<number>[] = [];
+
+		for (let i = 0; i < BANDWIDTH_SAMPLES; i++) {
+			testPromises.push(API.checkBandwidth());
+		}
+
+		return new Promise((resolve, reject) => {
+			Promise.all(testPromises)
+			.then((speeds:number[]) => {
+				const speed = calculateAverageMbps(speeds);
+				const has1080 = (videos.hasOwnProperty(compressionLevels.HIGH));
+
+				if (speed >= bandwidthRatings.LOW && speed <= bandwidthRatings.MID) {
+					resolve(compressionLevels.MID);
+				} else if (speed >= bandwidthRatings.MID && !has1080) {
+					resolve(compressionLevels.MID);
+				} else if (speed >= bandwidthRatings.MID && has1080) {
+					resolve(compressionLevels.HIGH);
+				}
+			})
+			.catch((e) => {
+				reject(compressionLevels.LOW);
+			});
+		});
+
+	}
+
+	/*
+		Set player data once video file was selected
+	 */
+	private setPlayerData = (posterSrc:string, videoSrc:string):void => {
+		const {hlsSupport} = this;
+
+		this.node.poster = posterSrc;
+
+		if (hlsSupport === 'native' || !hlsSupport) {
+			this.node.src = videoSrc;
+		} else if (hlsSupport === 'hls-js') {
+			this.hlsPlayer.loadSource(videoSrc);
+			this.hlsPlayer.attachMedia(this.node);
+		}
+	}
+
+	/*
+		Pause the media stream if playing
+	 */
 	private pauseIfPlaying = ():void => {
 		if (!this.node.paused) {
 			this.node.pause();

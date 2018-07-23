@@ -59,10 +59,12 @@
 			"mid": 8
 		},
 		"compression": {
+			"stream": "m3u8",
 			"low": "mp4_480",
 			"mid": "mp4_720",
 			"high": "mp4_1080"
 		},
-		"bandwidthSamples": 10
+		"bandwidthSamples": 5,
+		"streamType": "application/vnd.apple.mpegurl"
 	}
 }

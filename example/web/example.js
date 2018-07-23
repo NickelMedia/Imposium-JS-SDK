@@ -64,7 +64,7 @@ if (window.location.hash !== '') {
 
     if (expId) {
         imposium.getExperience(expId);
-    }                   
+    }
 }
 
 // Bind the click event to the generate button

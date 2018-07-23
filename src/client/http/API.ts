@@ -154,7 +154,7 @@ export default class API {
 	public static checkBandwidth = ():Promise<number> => {
 		const {get} = axios;
 		const url = `${API.testImage}?bust=${Math.random()}`;
-		const config = {responseType: 'blob', timeout: 2000};
+		const config = {responseType: 'blob', timeout: 1500};
 
 		return new Promise((resolve, reject) => {
 			const start = new Date().getTime();
