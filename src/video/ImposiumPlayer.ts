@@ -58,6 +58,11 @@ export default class ImposiumPlayer extends VideoPlayer {
 		HIGH   : settings.compression.high
 	};
 
+	private static readonly hlsSupportLevels:any = {
+		NATIVE : settings.hlsSupportLevels.native,
+		HLSJS  : settings.hlsSupportLevels.hlsjs
+	};
+
 	private eventDelegateRefs:any = {
 		play          : {callback: null, native: true},
 		pause         : {callback: null, native: true},
@@ -107,7 +112,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 	}
 
 	/*
-		Test users bandwidth and serve up the video 
+		Set a live stream or fallback to bandwidth checking / auto assigning a file
 	 */
 	public experienceGenerated = (experience:any):void => {
 		const {experienceCache, hlsSupport, node} = this;
@@ -333,10 +338,12 @@ export default class ImposiumPlayer extends VideoPlayer {
 		use hls-js if possible, if hls-js is not supported do nothing.
 	 */
 	private setupHls = ():void => {
+		const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
+
 		if (this.node.canPlayType(ImposiumPlayer.STREAM_TYPE)) {
-			this.hlsSupport = 'native';
+			this.hlsSupport = NATIVE;
 		} else if (Hls.isSupported()) {
-			this.hlsSupport = 'hls-js';
+			this.hlsSupport = HLSJS;
 			this.hlsPlayer = new Hls();
 		}
 	}
@@ -378,12 +385,13 @@ export default class ImposiumPlayer extends VideoPlayer {
 	 */
 	private setPlayerData = (posterSrc:string, videoSrc:string):void => {
 		const {hlsSupport} = this;
+		const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
 
 		this.node.poster = posterSrc;
 
-		if (hlsSupport === 'native' || !hlsSupport) {
+		if (hlsSupport === NATIVE || !hlsSupport) {
 			this.node.src = videoSrc;
-		} else if (hlsSupport === 'hls-js') {
+		} else if (hlsSupport === HLSJS) {
 			this.hlsPlayer.loadSource(videoSrc);
 			this.hlsPlayer.attachMedia(this.node);
 		}

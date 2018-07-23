@@ -65,6 +65,10 @@
 			"high": "mp4_1080"
 		},
 		"bandwidthSamples": 5,
+		"hlsSupportLevels": {
+			"native": "native",
+			"hlsjs": "hls-js"
+		},
 		"streamType": "application/vnd.apple.mpegurl"
 	}
 }
