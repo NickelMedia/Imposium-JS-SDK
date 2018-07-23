@@ -1,4 +1,4 @@
-import * as Hls from 'hls.js';
+import Hls from 'hls.js/dist/hls.light.min';
 
 import API from '../client/http/API';
 import VideoPlayer, {VideoConfig, Video} from './VideoPlayer';
