@@ -51,7 +51,11 @@ export default class ImposiumClient {
 		Initialize Imposium client
 	 */
 	constructor(config:any) {
-		this.assignConfigOpts(config);
+		if (config.accessToken && config.storyId) {
+			this.assignConfigOpts(config);
+		} else {
+			// do throw setup err, make new one for this that spits our creds??
+		}
 	}
 
 	/*
@@ -78,8 +82,10 @@ export default class ImposiumClient {
 		prepConfig(config, defaultConfig);
 		this.clientConfig = {...defaultConfig, ...config};
 
-		if (!this.api || (prevConfig.accessToken !== config.accessToken || prevConfig.environment !== config.environment)) {
+		if (!this.api) {
 			this.api = new API(this.clientConfig.accessToken, this.clientConfig.environment);
+		} else {
+			this.api.configureClient(this.clientConfig.accessToken, this.clientConfig.environment);
 		}
 
 		// Prep for analytics in browser
@@ -92,7 +98,7 @@ export default class ImposiumClient {
 		Get the GA property per storyId passed in
 	 */
 	private getAnalyticsProperty = ():void => {
-		const {api, clientConfig: {storyId}} = this;
+		const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
 		api.getStory(storyId)
 		.then((story:any) => {
@@ -100,7 +106,8 @@ export default class ImposiumClient {
 			Analytics.setup(gaTrackingId);
 		})
 		.catch((e) => {
-			console.error(e);
+			const wrappedError = new NetworkError('httpFailure', null, e);
+			ExceptionPipe.trapError(wrappedError, ERROR);
 		});
 	}
 

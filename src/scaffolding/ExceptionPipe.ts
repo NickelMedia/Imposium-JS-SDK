@@ -11,7 +11,7 @@ export default class ExceptionPipe {
 		if (errorEvent) {
 			errorEvent(e);
 		}
-		
+
 		e.log();
 	}
 }

@@ -1,5 +1,3 @@
-import Hls from 'hls.js/dist/hls.light.min';
-
 import API from '../client/http/API';
 import VideoPlayer, {VideoConfig, Video} from './VideoPlayer';
 import ImposiumClient from '../client/ImposiumClient';
@@ -9,7 +7,8 @@ import {
 	calculateAverageMbps,
 	inRangeNumeric, 
 	prepConfig, 
-	isFunc, 
+	isFunc,
+	isNode, 
 	keyExists
 } from '../scaffolding/Helpers';
 
@@ -29,6 +28,12 @@ interface ImposiumPlayerConfig {
 }
 
 const settings = require('../conf/settings.json').videoPlayer;
+
+let Hls = null;
+
+if (!isNode()) {
+	Hls = require('hls.js/dist/hls.light.min');
+}
 
 export default class ImposiumPlayer extends VideoPlayer {
 	public events = {
@@ -76,7 +81,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 	};
 
 	private hlsSupport:string = '';
-	private hlsPlayer:Hls = null;
+	private hlsPlayer:any = null;
 	private experienceCache:any[] = [];
 	private clientRef:ImposiumClient = null;
 	private ImposiumPlayerConfig:ImposiumPlayerConfig = null;
@@ -377,7 +382,6 @@ export default class ImposiumPlayer extends VideoPlayer {
 				reject(compressionLevels.LOW);
 			});
 		});
-
 	}
 
 	/*

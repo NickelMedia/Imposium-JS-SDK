@@ -14,13 +14,20 @@ export default class API {
 
 	private http:any = null;
 
-	constructor(authToken:string, env:string) {
+	constructor(accessToken:string, env:string) {
+		this.configureClient(accessToken, env);
+	}
+
+	/*
+		Set a new axios client 
+	 */
+	public configureClient = (accessToken:string, env:string) => {
 		const {version, currentVersion} = settings;
 
 		this.http = axios.create({
 			baseURL : settings[env],
 			headers : {
-				...this.getAuthHeader(authToken),
+				...this.getAuthHeader(accessToken),
 				[version]: currentVersion 
 			}
 		});
@@ -29,14 +36,14 @@ export default class API {
 	/*
 		Attempt to decode JWT format from authToken, fallback to hmac if call fails
 	 */
-	private getAuthHeader = (authToken:string):any => {
+	private getAuthHeader = (accessToken:string):any => {
 		const {jwt, hmac} = settings;
 
 		try {
-			jwt_decode(authToken);
-			return {[jwt] : authToken};
+			jwt_decode(accessToken);
+			return {[jwt] : accessToken};
 		} catch (e) {
-			return {[hmac] : authToken};
+			return {[hmac] : accessToken};
 		}
 	}
 

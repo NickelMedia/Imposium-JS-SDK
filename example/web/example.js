@@ -7,8 +7,6 @@ var statusField  = document.getElementById('status'),
 var config = {
     accessToken : 'eey6AhJei9tohsoitueQua6MoneYaiqu',
     storyId     : '6072569c-d4e7-43d8-ec7d-ec336ed8d6a8',
-    actId       : 'ded03f40-ca60-4af5-8db8-8e8166994c02',
-    sceneId     : 'e20f49c3-e036-42b1-8661-8a4e1a43892c',
     environment : 'staging'
 };
 
@@ -17,6 +15,7 @@ var player = new Imposium.ImposiumPlayer(videoPlayer, imposium);
 
 // Executes when a status message is delivered via web socket
 imposium.on(imposium.events.STATUS_UPDATE, function(data) {
+    console.log(JSON.stringify(data, null, 2));
 	setStatus(data.status, 'steelblue');
 });
 
