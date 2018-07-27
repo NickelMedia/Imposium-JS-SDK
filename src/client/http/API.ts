@@ -35,9 +35,6 @@ export default class API {
 
 		// Add exponential back off to requests...
 		API.retry(this.http, {retryDelay: API.retry.exponentialDelay});
-
-		this.http.get('http://localhost:3000')
-		.catch((e) => console.log(e));
 	}
 
 	/*
