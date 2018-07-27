@@ -5,6 +5,7 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const LIB_NAME = 'Imposium';
 
 config = {
+    mode: 'development',
     entry: __dirname + '/src/entry.ts',
     devtool: 'source-map',
     target: 'node',
