@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import * as jwt_decode from 'jwt-decode';
+import axiosRetry = require('axios-retry');
 
 import Analytics from '../../analytics/Analytics';
 
@@ -11,7 +12,7 @@ const settings = require('../../conf/settings.json').api;
 
 export default class API {
 	private static readonly testImage ='https://upload.wikimedia.org/wikipedia/commons/1/1b/LythrumSalicaria-flowers-1mb.jpg';
-
+	private static readonly retry:any = (axiosRetry as any);
 	private http:any = null;
 
 	constructor(accessToken:string, env:string) {
@@ -31,6 +32,12 @@ export default class API {
 				[version]: currentVersion 
 			}
 		});
+
+		// Add exponential back off to requests...
+		API.retry(this.http, {retryDelay: API.retry.exponentialDelay});
+
+		this.http.get('http://localhost:3000')
+		.catch((e) => console.log(e));
 	}
 
 	/*
