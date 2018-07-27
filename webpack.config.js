@@ -35,6 +35,9 @@ config = {
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
         })
     ],
+    optimization: {
+        namedChunks: false
+    },
     output: {
         library        : LIB_NAME,
         libraryTarget  : 'umd',
