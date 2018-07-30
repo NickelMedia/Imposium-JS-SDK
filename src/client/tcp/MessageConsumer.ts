@@ -127,7 +127,7 @@ export default class MessageConsumer {
 		Parses the experience data into a prop delivered via gotScene
 	 */
 	private emitSceneData = (experience:any):void => {
-		const {player, gaProperty, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
+		const {player, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
 		const {moderation_status} = experience;
 
 		try {
