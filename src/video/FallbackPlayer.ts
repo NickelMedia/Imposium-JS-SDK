@@ -1,15 +1,15 @@
-import VideoPlayer, {Video} from './VideoPlayer';
+import VideoPlayer, {IVideo} from './VideoPlayer';
 
 export default class FallbackPlayer extends VideoPlayer {
 
-    constructor(node:HTMLVideoElement) {
+    constructor(node: HTMLVideoElement) {
         super(node);
     }
 
     /*
         Set the experience id for analytics purposes
      */
-    public experienceGenerated = (experience:any):void => {
+    public experienceGenerated = (experience: any): void => {
         const {id} = experience;
         this.setExperienceId(id);
     }

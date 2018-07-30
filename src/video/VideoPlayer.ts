@@ -5,47 +5,41 @@ import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import {isNode} from '../scaffolding/Helpers';
 import {EnvironmentError, PlayerConfigurationError} from '../scaffolding/Exceptions';
 
-export interface Video {
-    id       : string;
-    url      : string;
-    format   : string;
-    width    : number;
-    height   : number;
-    filesize : number;
-    duration : number;
-    rate     : number;
-}
-
-export interface VideoConfig {
-    poster : string;
-    videos : Video[];
+export interface IVideo {
+    id: string;
+    url: string;
+    format: string;
+    width: number;
+    height: number;
+    filesize: number;
+    duration: number;
+    rate: number;
 }
 
 const settings = require('../conf/settings.json').videoPlayer;
 
 export default abstract class VideoPlayer {
-    protected node:HTMLVideoElement = null;
 
-    private static readonly intervalRate:number = settings.checkPlaybackRateMs;
-    private static readonly playbackEvents:number[] = settings.playbackEvents;
-
-    private readonly mediaEvents:any = {
+    private static readonly intervalRate: number = settings.checkPlaybackRateMs;
+    private static readonly playbackEvents: number[] = settings.playbackEvents;
+    public experienceGenerated: (exp: IVideo) => void;
+    protected node: HTMLVideoElement = null;
+    private readonly mediaEvents: any = {
         loadstart : () => this.onLoad(),
         play      : () => this.onPlay(),
         pause     : () => this.onPause(),
         ended     : () => this.onEnd()
     };
-
-    private experienceId:string = '';
-    private gaProperty:string = '';
-    private prevPlaybackEvent:number = 0;
-    private playbackInterval:any;
-    private deferredGaCalls:Queue = new Queue();
+    private experienceId: string = '';
+    private gaProperty: string = '';
+    private prevPlaybackEvent: number = 0;
+    private playbackInterval: any;
+    private deferredGaCalls: Queue = new Queue();
 
     /*
         Basis of Imposum/Fallback video player objects
      */
-    constructor(node:HTMLVideoElement) {
+    constructor(node: HTMLVideoElement) {
         if (!isNode()) {
             if (node instanceof HTMLVideoElement) {
                 const {mediaEvents} = this;
@@ -66,46 +60,50 @@ export default abstract class VideoPlayer {
     }
 
     /*
-        Set the current experience id per job that gets passed to analytics calls
+        Remove set events set on the supplied player reference
      */
-    protected setExperienceId = (experienceId:string) => {
-        this.experienceId = experienceId;
+    public remove = (): void => {
+        const {mediaEvents, node} = this;
+
+        for (const key of Object.keys(mediaEvents)) {
+            node.removeEventListener(key, mediaEvents[key]);
+        }
     }
 
     /*
         Set the current GA property and flush the pre mature GA calls
      */
-    public setGaProperty = (gaProperty:string) => {
+    public setGaProperty = (gaProperty: string) => {
         const {deferredGaCalls} = this;
 
         this.gaProperty = gaProperty;
-        console.log(gaProperty)
+        console.log(gaProperty);
 
         while (deferredGaCalls.peek()) {
-            
             Analytics.send(deferredGaCalls.peek());
             deferredGaCalls.pop();
         }
     }
 
     /*
-        Placeholder, called when experiences get generated if a
-        player ref is set on a client instance
+        Set the current experience id per job that gets passed to analytics calls
      */
-    public experienceGenerated = (experience:any):void => {}
+    protected setExperienceId = (experienceId: string) => {
+        this.experienceId = experienceId;
+    }
 
     /*
         Record a video "view" event when the player loads metadata successfully
      */
-    private onLoad = ():void => {
+    private onLoad = (): void => {
         const {gaProperty, experienceId, deferredGaCalls} = this;
 
         const call = {
-            prp : gaProperty,
-            t   : 'event',
-            ec  : 'video_player',
-            ea  : 'view',
-            el  : experienceId
+            prp: gaProperty,
+            t: 'event',
+            ec: 'video_player',
+            ea: 'view',
+            el: experienceId
         };
 
         if (gaProperty) {
@@ -119,11 +117,11 @@ export default abstract class VideoPlayer {
         Start an interval that runs during playback which triggers playback
         analytics calls
      */
-    private onPlay = ():void => {
+    private onPlay = (): void => {
         clearInterval(this.playbackInterval);
 
         this.playbackInterval = setInterval(
-            () => this.checkPlayback(), 
+            () => this.checkPlayback(),
             VideoPlayer.intervalRate
         );
     }
@@ -131,7 +129,7 @@ export default abstract class VideoPlayer {
     /*
         Clear the interval on pause to ensure no false analytics calls occur
      */
-    private onPause = ():void => {
+    private onPause = (): void => {
         const {playbackInterval} = this;
         clearInterval(playbackInterval);
     }
@@ -141,13 +139,13 @@ export default abstract class VideoPlayer {
         on the current playback progress, clears the interval if the node
         is / becomes un set to prevent bad calls
      */
-    private checkPlayback = ():void => {
+    private checkPlayback = (): void => {
         const {
             node,
             prevPlaybackEvent,
             gaProperty,
             experienceId,
-            deferredGaCalls, 
+            deferredGaCalls,
             playbackInterval
         } = this;
 
@@ -158,12 +156,12 @@ export default abstract class VideoPlayer {
 
             if (perc > next) {
                 const call = {
-                    prp : gaProperty,
-                    t   : 'event',
-                    ec  : 'video_player',
-                    ea  : `playback_${next}`,
-                    el  : experienceId
-                }
+                    prp: gaProperty,
+                    t: 'event',
+                    ec: 'video_player',
+                    ea: `playback_${next}`,
+                    el: experienceId
+                };
 
                 if (gaProperty) {
                     Analytics.send(call);
@@ -181,18 +179,18 @@ export default abstract class VideoPlayer {
     /*
         Clear the playback interval and emit a final playback analytics call
      */
-    private onEnd = ():void => {
+    private onEnd = (): void => {
         const {gaProperty, experienceId, deferredGaCalls, playbackInterval} = this;
 
         clearInterval(playbackInterval);
 
         const call = {
-            prp : gaProperty,
-            t   : 'event',
-            ec  : 'video_player',
-            ea  : 'playback_1',
-            el  : experienceId
-        }
+            prp: gaProperty,
+            t: 'event',
+            ec: 'video_player',
+            ea: 'playback_1',
+            el: experienceId
+        };
 
         if (gaProperty) {
             Analytics.send(call);
@@ -201,16 +199,5 @@ export default abstract class VideoPlayer {
         }
 
         this.prevPlaybackEvent = 0;
-    }
-
-    /*
-        Remove set events set on the supplied player reference
-     */
-    public remove = ():void => {
-        const {mediaEvents, node} = this;
-
-        for (const key of Object.keys(mediaEvents)) {
-            node.removeEventListener(key, mediaEvents[key]);
-        }
     }
 }

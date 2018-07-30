@@ -6,7 +6,11 @@
     "jsRules": {},
     "rules": {
         "quotemark":[true, "single"],
-        "trailing-comma":[false]
+        "trailing-comma":false,
+        "ordered-imports": false,
+        "object-literal-sort-keys":false,
+        "no-console":false,
+        "no-var-requires":false
     },
     "rulesDirectory": []
 }

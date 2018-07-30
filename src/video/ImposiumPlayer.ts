@@ -1,14 +1,14 @@
 import API from '../client/http/API';
-import VideoPlayer, {VideoConfig, Video} from './VideoPlayer';
+import VideoPlayer, {IVideo} from './VideoPlayer';
 import ImposiumClient from '../client/ImposiumClient';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {
     calculateAverageMbps,
-    inRangeNumeric, 
-    prepConfig, 
+    inRangeNumeric,
+    prepConfig,
     isFunc,
-    isNode, 
+    isNode,
     keyExists
 } from '../scaffolding/Helpers';
 
@@ -17,14 +17,14 @@ import {
     PlayerConfigurationError
 } from '../scaffolding/Exceptions';
 
-interface ImposiumPlayerConfig {
-    volume   : number;
-    preload  : string;
-    loop     : boolean;
-    muted    : boolean;
-    autoLoad : boolean;
-    autoPlay : boolean;
-    controls : boolean;
+interface IPlayerConfig {
+    volume: number;
+    preload: string;
+    loop: boolean;
+    muted: boolean;
+    autoLoad: boolean;
+    autoPlay: boolean;
+    controls: boolean;
 }
 
 const settings = require('../conf/settings.json').videoPlayer;
@@ -36,57 +36,58 @@ if (!isNode()) {
 }
 
 export default class ImposiumPlayer extends VideoPlayer {
-    public events = {
-        PLAY     : 'play',
-        PAUSE    : 'pause',
-        COMPLETE : 'ended',
-        ERROR    : 'error',
-        SEEK     : 'seeked',
-        TIME     : 'timeupdate',
-        VOLUME   : 'volumechange',
-        MUTE     : 'muted',
-        CONTROLS : 'controlsset'
-    };
 
     private static readonly STREAM_TYPE = settings.streamType;
-    private static readonly BANDWIDTH_SAMPLES:number = settings.bandwidthSamples;
+    private static readonly BANDWIDTH_SAMPLES: number = settings.bandwidthSamples;
 
-    private static readonly bandwidthRatings:any = {
-        LOW : settings.bandwidth.low,
-        MID : settings.bandwidth.mid,
+    private static readonly bandwidthRatings: any = {
+        LOW :  settings.bandwidth.low,
+        MID :  settings.bandwidth.mid,
     };
 
-    private static readonly compressionLevels:any = {
-        STREAM : settings.compression.stream,
-        LOW    : settings.compression.low,
-        MID    : settings.compression.mid,
-        HIGH   : settings.compression.high
+    private static readonly compressionLevels: any = {
+        STREAM :  settings.compression.stream,
+        LOW    :  settings.compression.low,
+        MID    :  settings.compression.mid,
+        HIGH   :  settings.compression.high
     };
 
-    private static readonly hlsSupportLevels:any = {
-        NATIVE : settings.hlsSupportLevels.native,
-        HLSJS  : settings.hlsSupportLevels.hlsjs
+    private static readonly hlsSupportLevels: any = {
+        NATIVE :  settings.hlsSupportLevels.native,
+        HLSJS  :  settings.hlsSupportLevels.hlsjs
     };
 
-    private eventDelegateRefs:any = {
-        play          : {callback: null, native: true},
-        pause         : {callback: null, native: true},
-        ended         : {callback: null, native: true},
-        error         : {callback: null, native: true},
-        seeked        : {callback: null, native: true},
-        timeupdated   : {callback: null, native: true},
-        volumechanged : {callback: null, native: true},
-        muted         : {callback: null, native: false},
-        controlsset   : {callback: null, native: false}
+    public events = {
+        PLAY     :  'play',
+        PAUSE    :  'pause',
+        COMPLETE :  'ended',
+        ERROR    :  'error',
+        SEEK     :  'seeked',
+        TIME     :  'timeupdate',
+        VOLUME   :  'volumechange',
+        MUTE     :  'muted',
+        CONTROLS :  'controlsset'
     };
 
-    private hlsSupport:string = '';
-    private hlsPlayer:any = null;
-    private experienceCache:any[] = [];
-    private clientRef:ImposiumClient = null;
-    private ImposiumPlayerConfig:ImposiumPlayerConfig = null;
+    private eventDelegateRefs: any = {
+        play          :  {callback:  null, native:  true},
+        pause         :  {callback:  null, native:  true},
+        ended         :  {callback:  null, native:  true},
+        error         :  {callback:  null, native:  true},
+        seeked        :  {callback:  null, native:  true},
+        timeupdated   :  {callback:  null, native:  true},
+        volumechanged :  {callback:  null, native:  true},
+        muted         :  {callback:  null, native:  false},
+        controlsset   :  {callback:  null, native:  false}
+    };
 
-    constructor(node:HTMLVideoElement, client:ImposiumClient, config:ImposiumPlayerConfig = settings.defaultConfig) {
+    private hlsSupport: string = '';
+    private hlsPlayer: any = null;
+    private experienceCache: any[] = [];
+    private clientRef: ImposiumClient = null;
+    private ImposiumPlayerConfig: IPlayerConfig = null;
+
+    constructor(node: HTMLVideoElement, client: ImposiumClient, config: IPlayerConfig = settings.defaultConfig) {
         super(node);
 
         try {
@@ -95,7 +96,7 @@ export default class ImposiumPlayer extends VideoPlayer {
                 this.init(config);
                 this.setupHls();
             } else {
-                throw new PlayerConfigurationError("noClient", null);
+                throw new PlayerConfigurationError('noClient', null);
             }
         } catch (e) {
             ExceptionPipe.trapError(e);
@@ -105,24 +106,26 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Assigns config
      */
-    public init = (config:ImposiumPlayerConfig):void => {
+    public init = (config: IPlayerConfig): void => {
         const {defaultConfig} = settings;
 
         prepConfig(config, defaultConfig);
         this.ImposiumPlayerConfig = {...defaultConfig, ...config};
 
         for (const key in this.ImposiumPlayerConfig) {
-            this.node[key] = this.ImposiumPlayerConfig[key];
+            if (this.ImposiumPlayerConfig[key]) {
+                this.node[key] = this.ImposiumPlayerConfig[key];
+            }
         }
     }
 
     /*
         Set a live stream or fallback to bandwidth checking / auto assigning a file
      */
-    public experienceGenerated = (experience:any):void => {
+    public experienceGenerated = (experience: any): void => {
         const {experienceCache, hlsSupport, node} = this;
-        const {compressionLevels: {STREAM}} = ImposiumPlayer;
-        const {id, output: {images: {poster}, videos}} = experience;
+        const {compressionLevels:  {STREAM}} = ImposiumPlayer;
+        const {id, output:  {images:  {poster}, videos}} = experience;
         const hasStream = videos.hasOwnProperty(STREAM);
 
         this.setExperienceId(id);
@@ -137,10 +140,10 @@ export default class ImposiumPlayer extends VideoPlayer {
                 this.setPlayerData(poster, videos[compressionKeys[0]].url);
             } else {
                 this.checkBandwidth(videos)
-                .then((compression:string) => {
+                .then((compression: string) => {
                     this.setPlayerData(poster, videos[compression].url);
                 })
-                .catch((fallbackCompression:string) => {
+                .catch((fallbackCompression: string) => {
                     this.setPlayerData(poster, videos[fallbackCompression].url);
                 });
             }
@@ -150,7 +153,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Enable native or custom ImposiumPlayer events
      */
-    public on = (eventName:string, callback:any):void => {
+    public on = (eventName: string, callback: any): void => {
         const {eventDelegateRefs} = this;
 
         try {
@@ -179,7 +182,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Disable native or custom ImposiumPlayer events
      */
-    public off = (eventName:string):void => {
+    public off = (eventName: string): void => {
         const {eventDelegateRefs} = this;
 
         try {
@@ -188,7 +191,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
                 // Remove node based event listener
                 if (event.native) {
-                    this.node.removeEventListener(eventName, event.callback)
+                    this.node.removeEventListener(eventName, event.callback);
                 }
 
                 event.callback = null;
@@ -203,43 +206,43 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Play video
      */
-    public play = ():void => {
+    public play = (): void => {
         this.node.play();
     }
 
     /*
         Pause video
      */
-    public pause = ():void => {
+    public pause = (): void => {
         this.node.pause();
     }
 
     /*
-        TO DO: Clarify what this is with Greg
+        TO DO:  Clarify what this is with Greg
      */
-    public getPlaybackState = ():string => {
-        return (this.node.paused) ? 'paused' : 'playing';
+    public getPlaybackState = (): string => {
+        return (this.node.paused) ? 'paused' :  'playing';
     }
 
     /*
         Get current playback time (s)
      */
-    public getPosition = ():number => {
+    public getPosition = (): number => {
         return this.node.currentTime;
     }
 
     /*
         Get duration of video (s)
      */
-    public getDuration = ():number => {
+    public getDuration = (): number => {
         return this.node.duration;
     }
 
     /*
         Seek to a point in the video (s)
      */
-    public seek = (seekTo:number, retry:number = -1):void => {
-        const {node: {duration}} = this;
+    public seek = (seekTo: number, retry: number = -1): void => {
+        const {node:  {duration}} = this;
 
         if (!isNaN(duration)) {
             if (inRangeNumeric(seekTo, 0, duration)) {
@@ -255,14 +258,14 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Get mute state
      */
-    public getMute = ():boolean => {
+    public getMute = (): boolean => {
         return this.node.muted;
     }
 
     /*
         Set mute state
      */
-    public setMute = (mute:boolean):void => {
+    public setMute = (mute: boolean): void => {
         const {eventDelegateRefs: {muted}} = this;
 
         this.node.muted = mute;
@@ -275,14 +278,14 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Get volume state
      */
-    public getVolume = ():number => {
+    public getVolume = (): number => {
         return this.node.volume;
     }
 
     /*
-        Set volume set, valid range: 0.0 -> 1.0
+        Set volume set, valid range:  0.0 -> 1.0
      */
-    public setVolume = (volume:number):void => {
+    public setVolume = (volume: number): void => {
         const {volumeMin, volumeMax} = settings;
 
         if (inRangeNumeric(volume, volumeMin, volumeMax)) {
@@ -295,15 +298,15 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Get controls state
      */
-    public getControls = ():boolean => {
+    public getControls = (): boolean => {
         return this.node.controls;
     }
 
     /*
         Set controls state
      */
-    public setControls = (controls:boolean):void => {
-        const {eventDelegateRefs: {controlsset}} = this;
+    public setControls = (controls: boolean): void => {
+        const {eventDelegateRefs:  {controlsset}} = this;
 
         this.node.controls = controls;
 
@@ -315,7 +318,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Replay video
      */
-    public replay = ():void => {
+    public replay = (): void => {
         this.pauseIfPlaying();
         this.node.currentTime = 0;
         this.node.play();
@@ -324,7 +327,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Remove all Imposium ImposiumPlayer scaffolding and break ref to video node
      */
-    public remove = ():void => {
+    public remove = (): void => {
         const {eventDelegateRefs} = this;
         const {defaultConfig} = settings;
 
@@ -342,8 +345,8 @@ export default class ImposiumPlayer extends VideoPlayer {
         Determine if browser can natively support media source extensions, if not
         use hls-js if possible, if hls-js is not supported do nothing.
      */
-    private setupHls = ():void => {
-        const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
+    private setupHls = (): void => {
+        const {hlsSupportLevels:  {NATIVE, HLSJS}} = ImposiumPlayer;
 
         if (this.node.canPlayType(ImposiumPlayer.STREAM_TYPE)) {
             this.hlsSupport = NATIVE;
@@ -356,9 +359,9 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Adapt quality manually if HLS cannot be supported
      */
-    private checkBandwidth = (videos:any):Promise<string> => {
+    private checkBandwidth = (videos: any): Promise<string> => {
         const {bandwidthRatings, compressionLevels, BANDWIDTH_SAMPLES} = ImposiumPlayer;
-        const testPromises:Promise<number>[] = [];
+        const testPromises: Array<Promise<number>> = [];
 
         for (let i = 0; i < BANDWIDTH_SAMPLES; i++) {
             testPromises.push(API.checkBandwidth());
@@ -366,7 +369,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
         return new Promise((resolve, reject) => {
             Promise.all(testPromises)
-            .then((speeds:number[]) => {
+            .then((speeds: number[]) => {
                 const speed = calculateAverageMbps(speeds);
                 const has1080 = (videos.hasOwnProperty(compressionLevels.HIGH));
 
@@ -387,9 +390,9 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Set player data once video file was selected
      */
-    private setPlayerData = (posterSrc:string, videoSrc:string):void => {
+    private setPlayerData = (posterSrc: string, videoSrc: string): void => {
         const {hlsSupport} = this;
-        const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
+        const {hlsSupportLevels:  {NATIVE, HLSJS}} = ImposiumPlayer;
 
         this.node.poster = posterSrc;
 
@@ -404,7 +407,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Pause the media stream if playing
      */
-    private pauseIfPlaying = ():void => {
+    private pauseIfPlaying = (): void => {
         if (!this.node.paused) {
             this.node.pause();
         }
