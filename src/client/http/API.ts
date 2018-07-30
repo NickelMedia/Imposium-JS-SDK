@@ -1,4 +1,4 @@
-'use strict'
+'use strict';
 
 import axios from 'axios';
 import * as jwt_decode from 'jwt-decode';
@@ -11,50 +11,80 @@ import {isNode, InventoryToFormData, calculateMbps} from '../../scaffolding/Help
 const settings = require('../../conf/settings.json').api;
 
 export default class API {
-    private static readonly testImage ='https://upload.wikimedia.org/wikipedia/commons/1/1b/LythrumSalicaria-flowers-1mb.jpg';
-    private static readonly retry:any = (axiosRetry as any);
-    private http:any = null;
 
-    constructor(accessToken:string, env:string) {
+    /*
+        Wait async for GET-ing GA tracking pixel, resolve on success
+     */
+    public static getGATrackingPixel = (url: string): Promise<null> => {
+        const {get} = axios;
+
+        return new Promise((resolve, reject) => {
+            get(url)
+            .then((res) => {
+                resolve();
+            })
+            .catch((e) => {
+                reject(e);
+            });
+        });
+    }
+
+    /*
+        Check users bandwidth
+     */
+    public static checkBandwidth = (): Promise<number> => {
+        const {get} = axios;
+        const url = `${API.testImage}?bust=${Math.random()}`;
+        const config = {responseType: 'blob', timeout: 1500};
+
+        return new Promise((resolve, reject) => {
+            const start = new Date().getTime();
+
+            get(url, config)
+            .then((res) => {
+                const {data: {size}} = res;
+                const duration: number = (new Date().getTime() - start) / 1000;
+                const filesizeBits: number = size * 8;
+                const mbps: number = calculateMbps(duration, filesizeBits);
+
+                resolve(mbps);
+            })
+            .catch((e) => {
+                reject(e);
+            });
+        });
+    }
+
+    private static readonly testImage = settings.img;
+    private static readonly retry: any = (axiosRetry as any);
+    private http: any = null;
+
+    constructor(accessToken: string, env: string) {
         this.configureClient(accessToken, env);
     }
 
     /*
-        Set a new axios client 
+        Set a new axios client
      */
-    public configureClient = (accessToken:string, env:string) => {
+    public configureClient = (accessToken: string, env: string) => {
         const {version, currentVersion} = settings;
 
         this.http = axios.create({
             baseURL : settings[env],
             headers : {
                 ...this.getAuthHeader(accessToken),
-                [version]: currentVersion 
+                [version]: currentVersion
             }
         });
 
         // Add exponential back off to requests...
         API.retry(this.http, {retryDelay: API.retry.exponentialDelay});
     }
-    
-    /*
-        Attempt to decode JWT format from authToken, fallback to hmac if call fails
-     */
-    private getAuthHeader = (accessToken:string):any => {
-        const {jwt, hmac} = settings;
-
-        try {
-            jwt_decode(accessToken);
-            return {[jwt] : accessToken};
-        } catch (e) {
-            return {[hmac] : accessToken};
-        }
-    }
 
     /*
         Wait async for story meta data, GA tracking property in particular (PLACEHOLDER)
      */
-    public getStory = (storyId:string):Promise<any> => {
+    public getStory = (storyId: string): Promise<any> => {
         const {http: {get}} = this;
 
         return new Promise((resolve, reject) => {
@@ -64,7 +94,7 @@ export default class API {
                 resolve(data);
             })
             .catch((e) => {
-                reject(e)
+                reject(e);
             });
         });
     }
@@ -72,7 +102,7 @@ export default class API {
     /*
         Wait async for GET /experience, resolve response data
      */
-    public getExperience = (experienceId:string):Promise<any> => {
+    public getExperience = (experienceId: string): Promise<any> => {
         const {http: {get}} = this;
 
         return new Promise((resolve, reject) => {
@@ -90,7 +120,7 @@ export default class API {
     /*
         Wait async for POST /experience, resolve response data
      */
-    public postExperience = (storyId:string, inventory:any, progress:(e)=>any = null):Promise<any> => {
+    public postExperience = (storyId: string, inventory: any, progress: (e) => any = null): Promise<any> => {
         const {doPostExperience, uploadProgress} = this;
         const formData = InventoryToFormData(storyId, inventory);
 
@@ -108,9 +138,40 @@ export default class API {
     }
 
     /*
+        Wait async for POST /experience/{expId}/trigger-event, resolve on success
+     */
+    public invokeStream = (experienceId: string): Promise<null> => {
+        const {http: {post}} = this;
+
+        return new Promise((resolve, reject) => {
+            post(`/experience/${experienceId}/trigger-event`)
+            .then((res) => {
+                resolve();
+            })
+            .catch((e) => {
+                reject(e);
+            });
+        });
+    }
+
+    /*
+        Attempt to decode JWT format from authToken, fallback to hmac if call fails
+     */
+    private getAuthHeader = (accessToken: string): any => {
+        const {jwt, hmac} = settings;
+
+        try {
+            jwt_decode(accessToken);
+            return {[jwt] : accessToken};
+        } catch (e) {
+            return {[hmac] : accessToken};
+        }
+    }
+
+    /*
         Make create experience POST request and resolve
      */
-    private doPostExperience = (formData:any, config:any):Promise<any> => {
+    private doPostExperience = (formData: any, config: any): Promise<any> => {
         const {http: {post}} = this;
 
         return new Promise((resolve, reject) => {
@@ -126,69 +187,9 @@ export default class API {
     }
 
     /*
-        Wait async for POST /experience/{expId}/trigger-event, resolve on success
-     */
-    public invokeStream = (experienceId:string):Promise<null> => {
-        const {http: {post}} = this;
-
-        return new Promise((resolve, reject) => {
-            post(`/experience/${experienceId}/trigger-event`)
-            .then((res) => {
-                resolve();
-            })
-            .catch((e) => {
-                reject(e);
-            });
-        });
-    }
-
-    /*
-        Wait async for GET-ing GA tracking pixel, resolve on success
-     */
-    public static getGATrackingPixel = (url:string):Promise<null> => {
-        const {get} = axios;
-
-        return new Promise((resolve, reject) => {
-            get(url)
-            .then((res) => {
-                resolve();
-            })
-            .catch((e) => {
-                reject(e);
-            })
-        });
-    }
-
-    /*
-        Check users bandwidth 
-     */
-    public static checkBandwidth = ():Promise<number> => {
-        const {get} = axios;
-        const url = `${API.testImage}?bust=${Math.random()}`;
-        const config = {responseType: 'blob', timeout: 1500};
-
-        return new Promise((resolve, reject) => {
-            const start = new Date().getTime();
-
-            get(url, config)
-            .then((res) => {
-                const {data: {size}} = res;
-                const duration:number = (new Date().getTime() - start) / 1000;
-                const filesizeBits:number = size * 8;
-                const mbps:number = calculateMbps(duration, filesizeBits);
-
-                resolve(mbps);
-            })
-            .catch((e) => {
-                reject(e);
-            });
-        });
-    }
-
-    /*
         Emit a rounded upload progress metric
      */
-    private uploadProgress = (e:any, callback:any = null):void => {
+    private uploadProgress = (e: any, callback: any = null): void => {
         if (callback) {
             const {loaded, total} = e;
             const perc = Math.round(loaded / total * 100);
