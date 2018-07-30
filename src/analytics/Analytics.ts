@@ -3,272 +3,274 @@ import Queue from './Queue';
 
 const settings = require('../conf/settings.json').analytics;
 
-
 /*
-	Manually handles calls to GA, Analytics was developed to avoid having to ask
-	clients to include the GA/GTM snippets if they didn't want them.
+    Manually handles calls to GA, Analytics was developed to avoid having to ask
+    clients to include the GA/GTM snippets if they didn't want them.
 
-	for information on the request protocol:
-	https://developers.google.com/analytics/devguides/collection/protocol/v1/reference
+    for information on the request protocol:
+    https: //developers.google.com/analytics/devguides/collection/protocol/v1/reference
 
-	for information on the query parameter options:
-	https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters
+    for information on the query parameter options:
+    https: //developers.google.com/analytics/devguides/collection/protocol/v1/parameters
  */
 
 // Holds default request settings
-interface Request {
- 	baseUrl  : string;
- 	cacheKey : string;
- 	clientId : string;
+interface IRequest {
+    baseUrl: string;
+    cacheKey: string;
+    clientId: string;
  }
 
 // Holds settings related to rate limiting
-interface Broker {
-	concurrency : number;
-	frequency   : number;
-	enqueued    : number;
-	defer       : boolean;
-	active      : Queue;
-	deferred    : Queue;
+interface IBroker {
+    concurrency: number;
+    frequency: number;
+    enqueued: number;
+    defer: boolean;
+    active: Queue;
+    deferred: Queue;
 }
 
 export default class Analytics {
-	private static emitter:any = null;
-	private static retryTimeout:any = null;
 
-	private static request:Request = {
-		baseUrl  : settings.baseUrl,
-		cacheKey : settings.lsLookup,
-		clientId : settings.cidPlaceholder
-	};
+    /*
+        Enable GA calls
+     */
+    public static setup = () => {
+        Analytics.request.clientId = Analytics.checkCache();
+    }
 
-	private static broker:Broker = {
-		concurrency : settings.concurrency, 
-		frequency   : settings.frequency, 
-		enqueued    : 0, 
-		defer       : false, 
-		active      : new Queue(), 
-		deferred    : new Queue()
-	};
+    /*
+        Sends events off to the GA collect API
+     */
+    public static send = (event: any): void => {
+        const {emit, addToQueue, concatParams} = Analytics;
+        const {defer, active} = Analytics.broker;
 
-	/*
-		Enable GA calls
-	 */
-	public static setup = () => {
-		Analytics.request.clientId = Analytics.checkCache();
-	}
+        if (active.isEmpty() && !defer) {
+            emit();
+        }
 
-	/*
-		Sends events off to the GA collect API
-	 */
-	public static send = (event:any):void => {
-		const {emit, addToQueue, concatParams} = Analytics;
-		const {defer, active} = Analytics.broker;
+        addToQueue(concatParams(event));
+    }
 
-		if (active.isEmpty() && !defer) {
-			emit();
-		}
+    private static emitter: any = null;
+    private static retryTimeout: any = null;
 
-		addToQueue(concatParams(event));
-	}
+    private static request: IRequest = {
+        baseUrl: settings.baseUrl,
+        cacheKey: settings.lsLookup,
+        clientId: settings.cidPlaceholder
+    };
 
-	/*
-		Checks to see if a user has a cached GA client id
-		in their localStorage
-	 */
-	private static checkCache = ():string => {
-		const {setCache, generateGuid} = Analytics;
-		const {cacheKey} = Analytics.request;
+    private static broker: IBroker = {
+        concurrency: settings.concurrency,
+        frequency: settings.frequency,
+        enqueued: 0,
+        defer: false,
+        active: new Queue(),
+        deferred: new Queue()
+    };
 
-		try {
-			const cache = JSON.parse(localStorage.getItem(cacheKey));
+    /*
+        Checks to see if a user has a cached GA client id
+        in their localStorage
+     */
+    private static checkCache = (): string => {
+        const {setCache, generateGuid} = Analytics;
+        const {cacheKey} = Analytics.request;
 
-			// Check ref val
-			if (cache) {
-				const {expiry, guid} = cache;
+        try {
+            const cache = JSON.parse(localStorage.getItem(cacheKey));
 
-				// check guid expiry
-				if (expiry > new Date()) {
-					return guid;
-				} else {
-					// Set new creds if expired 
-					localStorage.removeItem(cacheKey);
-				}
-			}
-			
-			return setCache(generateGuid());
-		} catch (e) {
-			// If any operations fail, return a guid for Analytics session
-			return generateGuid();
-		}
-	}
+            // Check ref val
+            if (cache) {
+                const {expiry, guid} = cache;
 
-	/*
-		Sets new user creds in localStorage
-	 */
-	private static setCache = (guid:string):string => {
-		try {
-			const {cacheKey} = Analytics.request;
-			const expiry = new Date();
+                // check guid expiry
+                if (expiry > new Date()) {
+                    return guid;
+                } else {
+                    // Set new creds if expired
+                    localStorage.removeItem(cacheKey);
+                }
+            }
 
-			const cache:any = {
-				guid   : guid, 
-				expiry : expiry.setFullYear(expiry.getFullYear() + 2)
-			};
+            return setCache(generateGuid());
+        } catch (e) {
+            // If any operations fail, return a guid for Analytics session
+            return generateGuid();
+        }
+    }
 
-			localStorage.setItem(cacheKey, JSON.stringify(cache));
-		} catch (e) {
-			
-		}
+    /*
+        Sets new user creds in localStorage
+     */
+    private static setCache = (guid: string): string => {
+        try {
+            const {cacheKey} = Analytics.request;
+            const expiry = new Date();
 
-		return guid;
-	}
+            const cache: any = {
+                guid,
+                expiry: expiry.setFullYear(expiry.getFullYear() + 2)
+            };
 
-	/*
-		Generate random sequence 
-	 */
-	private static s4 = ():string => {
-		return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-	}
+            localStorage.setItem(cacheKey, JSON.stringify(cache));
+        } catch (e) {
+            // TODO, throw warning
+            return guid;
+        }
 
-	/*
-		Concatenate a new guid
-	 */
-	private static generateGuid = ():string => {
-		const {s4} = Analytics;
-		return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
-	}
+        return guid;
+    }
 
-	/*
-		Get a random number to supply the caching buster parameter
-	 */
-	private static getRandom = ():string => {
-		return `${Math.round(new Date().getTime() / 1000)}`;
-	}
+    /*
+        Generate random sequence
+     */
+    private static s4 = (): string => {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    }
 
-	/*
-		Concatenates the default and event supplied parameters into a query string that
-		can be digested by the GA collect API. Any event provided params need to be
-		url encoded to prevent errors.
-	 */
-	private static concatParams = (event:any):string => {
-		const {getRandom} = Analytics;
-		const {baseUrl, clientId} = Analytics.request;
-		const gaProperty = event.prp;
+    /*
+        Concatenate a new guid
+     */
+    private static generateGuid = (): string => {
+        const {s4} = Analytics;
+        return `${s4()}${s4()}-${s4()}-${s4()}-${s4()}-${s4()}${s4()}${s4()}`;
+    }
 
-		delete event.prp;
+    /*
+        Get a random number to supply the caching buster parameter
+     */
+    private static getRandom = (): string => {
+        return `${Math.round(new Date().getTime() / 1000)}`;
+    }
 
-		let queryString = `${baseUrl}?v=1&tid=${gaProperty}&z=${getRandom()}&cid=${clientId}`;
+    /*
+        Concatenates the default and event supplied parameters into a query string that
+        can be digested by the GA collect API. Any event provided params need to be
+        url encoded to prevent errors.
+     */
+    private static concatParams = (event: any): string => {
+        const {getRandom} = Analytics;
+        const {baseUrl, clientId} = Analytics.request;
+        const gaProperty = event.prp;
 
-		for (const param of Object.keys(event)) {
-			queryString += `&${encodeURIComponent(param)}=${encodeURIComponent(event[param])}`;
-		}
+        delete event.prp;
 
-		return queryString;
-	}
+        let queryString = `${baseUrl}?v=1&tid=${gaProperty}&z=${getRandom()}&cid=${clientId}`;
 
-	/*
-		Set request emitting interval
-	 */
-	private static emit = () => {
-		const {setRequestUrl} = Analytics;
-		const {frequency} = Analytics.broker;
+        for (const param of Object.keys(event)) {
+            queryString += `&${encodeURIComponent(param)}=${encodeURIComponent(event[param])}`;
+        }
 
-		Analytics.emitter = setInterval(
-			() => setRequestUrl(), 
-			frequency
-		);
-	}
+        return queryString;
+    }
 
-	/*
-		Determine if request needs to be deferred during a burst
-	 */
-	private static addToQueue = (url:string):void => {
-		let {concurrency, defer, active, deferred} = Analytics.broker;
+    /*
+        Set request emitting interval
+     */
+    private static emit = () => {
+        const {setRequestUrl} = Analytics;
+        const {frequency} = Analytics.broker;
 
-		if (!defer) {
-			active.enqueue(url);
-			defer = !active.isFull(concurrency);
-		} else {
-			deferred.enqueue(url);
-		}
-	}
+        Analytics.emitter = setInterval(
+            () => setRequestUrl(),
+            frequency
+        );
+    }
 
-	/*
-		If the deferral queue has urls in it, take 10 or queue length
-		and pass them to the active queue
-	 */
-	private static scrapeDeferred = ():void => {
-		const {emit} = Analytics;
-		let {concurrency, enqueued, defer, active, deferred} = Analytics.broker;
+    /*
+        Determine if request needs to be deferred during a burst
+     */
+    private static addToQueue = (url: string): void => {
+        const {concurrency, active, deferred} = Analytics.broker;
+        let {defer} = Analytics.broker;
 
-		if (!deferred.isEmpty()) {
-			let limit = 0;
+        if (!defer) {
+            active.enqueue(url);
+            defer = !active.isFull(concurrency);
+        } else {
+            deferred.enqueue(url);
+        }
+    }
 
-			enqueued = deferred.getLength();
+    /*
+        If the deferral queue has urls in it, take 10 or queue length
+        and pass them to the active queue
+     */
+    private static scrapeDeferred = (): void => {
+        const {emit} = Analytics;
+        const {concurrency, active, deferred} = Analytics.broker;
+        let {enqueued, defer} = Analytics.broker;
 
-			if (enqueued > concurrency) {
-				limit = concurrency;
-			} else {
-				limit = enqueued;
-			}
+        if (!deferred.isEmpty()) {
+            let limit = 0;
 
-			for (let i = 0; i < limit; i++) {
-				active.enqueue(deferred.peek());
-				deferred.pop();
-			}
+            enqueued = deferred.getLength();
 
-			defer = false;
-			emit();
-		} else {
-			defer = false;
-		}
-	}
+            if (enqueued > concurrency) {
+                limit = concurrency;
+            } else {
+                limit = enqueued;
+            }
 
-	/*
-		Determine if the request is fresh, if so pop the request
-		off the head of the queue. Otherwise call scrapeDeferred.
-		Failed urls can also be passed as an optional param to
-		enable retries. 
-	 */
-	private static setRequestUrl = (failedUrl:any = null) => {
-		const {makeRequest, scrapeDeferred, broker, emitter} = Analytics;
+            for (let i = 0; i < limit; i++) {
+                active.enqueue(deferred.peek());
+                deferred.pop();
+            }
 
-		if (failedUrl) {
-			makeRequest(failedUrl);
-		} else {
-			const {active} = broker;
-			const url = active.peek();
+            defer = false;
+            emit();
+        } else {
+            defer = false;
+        }
+    }
 
-			if (url) {
-				active.pop();
-				makeRequest(url);
-			} else {
-				clearInterval(emitter);
-				scrapeDeferred();
-			}
-		}
-	}
+    /*
+        Determine if the request is fresh, if so pop the request
+        off the head of the queue. Otherwise call scrapeDeferred.
+        Failed urls can also be passed as an optional param to
+        enable retries.
+     */
+    private static setRequestUrl = (failedUrl: any = null) => {
+        const {makeRequest, scrapeDeferred, broker, emitter} = Analytics;
 
-	/*
-		Makes GET request to GA collect API with formatted query string, retrying 
-		is handled by axios-retry with exponential decay
-	 */
-	private static makeRequest = (url:string):void => {
-		const {broker, emit, emitter} = Analytics;
-		const {active} = broker;
+        if (failedUrl) {
+            makeRequest(failedUrl);
+        } else {
+            const {active} = broker;
+            const url = active.peek();
 
-		API.getGATrackingPixel(url)
-		.then(() => {
-			if (active.isEmpty()) {
-				clearInterval(emitter);
-			}
-		})
-		.catch((e) => {
-			clearInterval(emitter);
-			active.pop();
-			emit();
-		});
-	}
+            if (url) {
+                active.pop();
+                makeRequest(url);
+            } else {
+                clearInterval(emitter);
+                scrapeDeferred();
+            }
+        }
+    }
+
+    /*
+        Makes GET request to GA collect API with formatted query string, retrying
+        is handled by axios-retry with exponential decay
+     */
+    private static makeRequest = (url: string): void => {
+        const {broker, emit, emitter} = Analytics;
+        const {active} = broker;
+
+        API.getGATrackingPixel(url)
+        .then(() => {
+            if (active.isEmpty()) {
+                clearInterval(emitter);
+            }
+        })
+        .catch((e) => {
+            clearInterval(emitter);
+            active.pop();
+            emit();
+        });
+    }
 }
-
