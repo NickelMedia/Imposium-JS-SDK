@@ -5,6 +5,7 @@ const WebpackAutoInject = require('webpack-auto-inject-version');
 const LIB_NAME = 'Imposium';
 
 config = {
+    mode: 'development',
     entry: __dirname + '/src/entry.ts',
     devtool: 'source-map',
     target: 'node',
@@ -32,6 +33,9 @@ config = {
         }),
 
     ],
+    optimization: {
+        namedChunks: false
+    },
     output: {
         library        : LIB_NAME,
         libraryTarget  : 'umd',
