@@ -35,7 +35,7 @@ const settings = require('../conf/settings.json').client;
     Log out Imposium.js Version in the console
  */
 const version = '[AIV]{version}[/AIV]';
-console.log(`%cPowered By%c Imposium%c v${version}%c https: //imposium.com`,
+console.log(`%cPowered By%c Imposium%c v${version}%c https://imposium.com`,
     'text-transform: uppercase; padding: 5px 0px 5px 5px; background-color: black; color: white;',
     'text-transform: uppercase; padding: 5px 0px 5px 0px; background-color: black; color: #a1b83a;',
     'padding: 5px 5px 5px 0px; background-color: black; color: white;',
@@ -258,16 +258,16 @@ export default class ImposiumClient {
         Get the GA property per storyId passed in
      */
     private getAnalyticsProperty = (): void => {
-        const {api, player, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
+        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
         api.getStory(storyId)
         .then((story: any) => {
             const {gaTrackingId} = story;
 
             this.gaProperty = gaTrackingId;
-            console.log(player);
-            if (player) {
-                player.setGaProperty(gaTrackingId);
+
+            if (this.player) {
+                this.player.setGaProperty(gaTrackingId);
             }
 
             Analytics.setup();

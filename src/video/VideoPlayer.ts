@@ -77,7 +77,6 @@ export default abstract class VideoPlayer {
         const {deferredGaCalls} = this;
 
         this.gaProperty = gaProperty;
-        console.log(gaProperty);
 
         while (deferredGaCalls.peek()) {
             Analytics.send(deferredGaCalls.peek());
