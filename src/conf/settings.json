@@ -14,7 +14,8 @@
 		"currentVersion": "2.0.0",
 		"version": "X-Imposium-Api-Version",
 		"hmac": "X-Imposium-Access-Key",
-		"jwt": "Authorization"
+		"jwt": "Authorization",
+		"img":"https://upload.wikimedia.org/wikipedia/commons/1/1b/LythrumSalicaria-flowers-1mb.jpg"
 	},
 	"messageConsumer": {
 		"maxReconnects": 5,
