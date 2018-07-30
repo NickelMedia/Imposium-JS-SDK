@@ -13,28 +13,28 @@ const settings = require('../../conf/settings.json').messageConsumer;
 
 // Wraps around the Stomp client, providing the message handling
 export default class MessageConsumer {
-    private static readonly MAX_RETRIES:number = settings.maxReconnects;
+    private static readonly MAX_RETRIES: number = settings.maxReconnects;
 
-    private static readonly EVENT_NAMES:any = {
+    private static readonly EVENT_NAMES: any = {
         scene    : 'gotScene',
         message  : 'gotMessage',
         complete : 'actComplete'
     };
 
-    private stompDelegates:any = {
+    private stompDelegates: any = {
         start : ()      => this.startConsuming(),
-        route : (m:any) => this.routeMessageData(m),
-        error : (e:any) => this.stompError(e)
-    }
+        route : (m: any) => this.routeMessageData(m),
+        error : (e: any) => this.stompError(e)
+    };
 
-    private env:string = '';
-    private experienceId:string = null;
-    private clientDelegates:any = null;
-    private stomp:Stomp = null;
-    private player:VideoPlayer;
-    private retried:number = settings.minReconnects;
+    private env: string = '';
+    private experienceId: string = null;
+    private clientDelegates: any = null;
+    private stomp: Stomp = null;
+    private player: VideoPlayer;
+    private retried: number = settings.minReconnects;
 
-    constructor(env:string, experienceId:string, clientDelegates:any, player:VideoPlayer) {
+    constructor(env: string, experienceId: string, clientDelegates: any, player: VideoPlayer) {
         this.env = env;
         this.experienceId = experienceId;
         this.clientDelegates = clientDelegates;
@@ -46,7 +46,7 @@ export default class MessageConsumer {
         this.establishConnection();
     }
 
-    public kill = ():Promise<null> => {
+    public kill = (): Promise<null> => {
         const {stomp} = this;
 
         return new Promise((resolve) => {
@@ -60,7 +60,7 @@ export default class MessageConsumer {
     /*
         Initializes a stomp connection object
      */
-    private establishConnection = ():void => {
+    private establishConnection = (): void => {
         const {experienceId, env, stompDelegates} = this;
         this.stomp = new Stomp(experienceId, stompDelegates, env);
     }
@@ -68,7 +68,7 @@ export default class MessageConsumer {
     /*
         Invoke delegate which starts message queueing on Imposium servers
      */
-    private startConsuming = ():void => {
+    private startConsuming = (): void => {
         const {experienceId, clientDelegates: {start}} = this;
         start(experienceId);
     }
@@ -77,17 +77,16 @@ export default class MessageConsumer {
         Manage incoming messages. Depending on their state the websocket
         may be terminated.
      */
-    private routeMessageData = (msg:any):void => {
+    private routeMessageData = (msg: any): void => {
         const {EVENT_NAMES: {scene, message, complete}} = MessageConsumer;
         const {stomp, experienceId, clientDelegates: {ERROR}} = this;
-
 
         try {
             const payload = JSON.parse(msg.body);
 
-            switch(payload.event) {
+            switch (payload.event) {
                 case complete:
-                    stomp.disconnectAsync().then(() => {});
+                    stomp.disconnectAsync().then(() => { return; });
                     break;
                 case message:
                     this.emitMessageData(payload);
@@ -106,7 +105,7 @@ export default class MessageConsumer {
     /*
         Fire the gotMessage callback if the user is listening for this event
      */
-    private emitMessageData = (messageData:any):void => {
+    private emitMessageData = (messageData: any): void => {
         const {clientDelegates: {STATUS_UPDATE, ERROR}} = this;
         const {status, id} = messageData;
 
@@ -117,7 +116,7 @@ export default class MessageConsumer {
 
             if (STATUS_UPDATE) {
                 STATUS_UPDATE(messageData);
-            } 
+            }
         } catch (e) {
             ExceptionPipe.trapError(e, ERROR);
         }
@@ -126,7 +125,7 @@ export default class MessageConsumer {
     /*
         Parses the experience data into a prop delivered via gotScene
      */
-    private emitSceneData = (experience:any):void => {
+    private emitSceneData = (experience: any): void => {
         const {player, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
         const {moderation_status} = experience;
 
@@ -150,7 +149,7 @@ export default class MessageConsumer {
     /*
         Called on Stomp errors
      */
-    private stompError = (e:any):void => {
+    private stompError = (e: any): void => {
         const {retried, experienceId, stomp, clientDelegates: {ERROR}} = this;
         const {wasClean} = e;
 

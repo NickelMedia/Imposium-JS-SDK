@@ -36,7 +36,7 @@ export default class API {
         // Add exponential back off to requests...
         API.retry(this.http, {retryDelay: API.retry.exponentialDelay});
     }
-
+    
     /*
         Attempt to decode JWT format from authToken, fallback to hmac if call fails
      */
