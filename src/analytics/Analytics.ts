@@ -19,7 +19,6 @@ const settings = require('../conf/settings.json').analytics;
 interface Request {
  	baseUrl  : string;
  	cacheKey : string;
- 	appId    : string;
  	clientId : string;
  }
 
@@ -31,27 +30,17 @@ interface Broker {
 	defer       : boolean;
 	active      : Queue;
 	deferred    : Queue;
-	preLoaded   : Queue;
-}
-
-// Holds request retry settings
-interface Retries {
-	current : number;
-	max     : number;
-	delay   : number;
 }
 
 export default class Analytics {
 	private static emitter:any = null;
-	private static isSetup:boolean = false;
 	private static retryTimeout:any = null;
 
 	private static request:Request = {
 		baseUrl  : settings.baseUrl,
 		cacheKey : settings.lsLookup,
-		appId    : settings.gaPropPlaceholder,
 		clientId : settings.cidPlaceholder
-	}
+	};
 
 	private static broker:Broker = {
 		concurrency : settings.concurrency, 
@@ -59,65 +48,28 @@ export default class Analytics {
 		enqueued    : 0, 
 		defer       : false, 
 		active      : new Queue(), 
-		deferred    : new Queue(),
-		preLoaded   : new Queue()
-	};
-
-	private static retries:Retries = {
-		current : settings.minRetries, 
-		max     : settings.maxRetries,  
-		delay   : settings.minDelay
+		deferred    : new Queue()
 	};
 
 	/*
 		Enable GA calls
 	 */
-	public static setup = (trackingId:string) => {
-		Analytics.request.appId = trackingId;
+	public static setup = () => {
 		Analytics.request.clientId = Analytics.checkCache();
-
-		if (!Analytics.isSetup) {
-			const {preLoaded} = Analytics.broker;
-
-			Analytics.isSetup = true;
-
-			Analytics.pageView();
-			window.addEventListener('popstate', () => Analytics.pageView());
-
-			while (preLoaded.peek()) {
-				Analytics.send(preLoaded.peek());
-				preLoaded.pop();
-			}
-		}
-	}
-
-	/*
-		Record page view metric
-	 */
-	private static pageView = ():void => {
-		Analytics.send({
-			t: 'pageview', 
-			dp: window.location.pathname
-		});
 	}
 
 	/*
 		Sends events off to the GA collect API
 	 */
 	public static send = (event:any):void => {
-		if (Analytics.isSetup) {
-			const {emit, addToQueue, concatParams} = Analytics;
-			const {defer, active} = Analytics.broker;
+		const {emit, addToQueue, concatParams} = Analytics;
+		const {defer, active} = Analytics.broker;
 
-			if (active.isEmpty() && !defer) {
-				emit();
-			}
-
-			addToQueue(concatParams(event));
-		} else {
-			const {preLoaded} = Analytics.broker;
-			preLoaded.enqueue(event);
+		if (active.isEmpty() && !defer) {
+			emit();
 		}
+
+		addToQueue(concatParams(event));
 	}
 
 	/*
@@ -158,13 +110,12 @@ export default class Analytics {
 		try {
 			const {cacheKey} = Analytics.request;
 			const expiry = new Date();
-			const cache = {
-				guid: null, 
-				expiry: null
+
+			const cache:any = {
+				guid   : guid, 
+				expiry : expiry.setFullYear(expiry.getFullYear() + 2)
 			};
-				
-			cache.guid = guid;
-			cache.expiry = expiry.setFullYear(expiry.getFullYear() + 2)
+
 			localStorage.setItem(cacheKey, JSON.stringify(cache));
 		} catch (e) {
 			
@@ -192,7 +143,7 @@ export default class Analytics {
 		Get a random number to supply the caching buster parameter
 	 */
 	private static getRandom = ():string => {
-		return Math.round(new Date().getTime() / 1000).toString();
+		return `${Math.round(new Date().getTime() / 1000)}`;
 	}
 
 	/*
@@ -202,9 +153,12 @@ export default class Analytics {
 	 */
 	private static concatParams = (event:any):string => {
 		const {getRandom} = Analytics;
-		const {baseUrl, appId, clientId} = Analytics.request;
+		const {baseUrl, clientId} = Analytics.request;
+		const gaProperty = event.prp;
 
-		let queryString = `${baseUrl}?v=1&tid=${appId}&z=${getRandom()}&cid=${clientId}`;
+		delete event.prp;
+
+		let queryString = `${baseUrl}?v=1&tid=${gaProperty}&z=${getRandom()}&cid=${clientId}`;
 
 		for (const param of Object.keys(event)) {
 			queryString += `&${encodeURIComponent(param)}=${encodeURIComponent(event[param])}`;
@@ -232,7 +186,7 @@ export default class Analytics {
 	private static addToQueue = (url:string):void => {
 		let {concurrency, defer, active, deferred} = Analytics.broker;
 
-		if (!defer && Analytics.isSetup) {
+		if (!defer) {
 			active.enqueue(url);
 			defer = !active.isFull(concurrency);
 		} else {
@@ -297,55 +251,24 @@ export default class Analytics {
 	}
 
 	/*
-		Makes GET request to GA collect API with formatted query string
+		Makes GET request to GA collect API with formatted query string, retrying 
+		is handled by axios-retry with exponential decay
 	 */
 	private static makeRequest = (url:string):void => {
-		const {retry, broker, emitter} = Analytics;
+		const {broker, emit, emitter} = Analytics;
+		const {active} = broker;
 
 		API.getGATrackingPixel(url)
 		.then(() => {
-			const {active} = broker;
-
 			if (active.isEmpty()) {
 				clearInterval(emitter);
-			} 
+			}
 		})
-		.catch((err) => {
+		.catch((e) => {
 			clearInterval(emitter);
-			retry(url);
+			active.pop();
+			emit();
 		});
-	}
-
-	/*
-		Retry requests recursively based on settings defined in 
-		Retry interface.
-	 */
-	private static retry = (url:string):void => {
-		const {setRequestUrl, emit, retryTimeout} = Analytics;
-		const {current, max, delay} = Analytics.retries;
-		const {active} = Analytics.broker;
-
-		Analytics.retryTimeout = setTimeout(
-			() => {
-				if (current < max) {
-					Analytics.retries.delay *= 2;
-					Analytics.retries.current++;
-
-					setRequestUrl(url);
-				} else {
-					clearTimeout(retryTimeout);
-
-					active.pop();
-					emit();
-
-					Analytics.retries.delay = settings.minDelay;
-					Analytics.retries.current = settings.minRetries;
-					// add a check here to do a long poll if 
-					// n number of requests fail after retrying
-				}
-			}, 
-			delay
-		);
 	}
 }
 
