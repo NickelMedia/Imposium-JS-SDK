@@ -125,8 +125,8 @@ export default class ImposiumPlayer extends VideoPlayer {
 		const {id, output: {images: {poster}, videos}} = experience;
 		const hasStream = videos.hasOwnProperty(STREAM);
 
-		experienceCache.push(experience);
 		this.setExperienceId(id);
+		experienceCache.push(experience);
 
 		if (hasStream && hlsSupport) {
 			this.setPlayerData(poster, videos[STREAM].url);

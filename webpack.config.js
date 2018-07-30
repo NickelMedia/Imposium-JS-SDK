@@ -41,16 +41,7 @@ config = {
 
     ],
     optimization: {
-        namedChunks: false,
-        minimizer: [
-            new UglifyJSPlugin({
-                uglifyOptions: {
-                    output: {
-                        comments: false
-                    }
-                }
-            })
-        ]
+        namedChunks: true
     },
     output: {
         library        : LIB_NAME,
