@@ -27,14 +27,30 @@ config = {
         }]
     },
     plugins: [
-        new WebpackAutoInject({}),
+        new WebpackAutoInject({
+            SHORT: 'IMPOSIUM-JS-SDK',
+            componentsOptions: {
+                InjectAsComment: {
+                    tag: 'Version: {version}'
+                }
+            }            
+        }),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
         }),
 
     ],
     optimization: {
-        namedChunks: false
+        namedChunks: false,
+        minimizer: [
+            new UglifyJSPlugin({
+                uglifyOptions: {
+                    output: {
+                        comments: false
+                    }
+                }
+            })
+        ]
     },
     output: {
         library        : LIB_NAME,
