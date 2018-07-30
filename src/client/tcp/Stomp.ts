@@ -61,6 +61,8 @@ export default class Stomp {
         this.client = WebStomp.over(this.socket);
         this.client.debug = () => { return; };
 
+        const test = 'this is a test';
+
         this.client.connect
         (
             username,
