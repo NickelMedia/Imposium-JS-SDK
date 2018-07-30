@@ -46,6 +46,7 @@ export default class ImposiumClient {
 	private player:VideoPlayer = null;
 	private consumer:MessageConsumer = null;
 	private clientConfig:ClientConfig = null;
+	private gaProperty:string = '';
 
 	/*
 		Initialize Imposium client
@@ -98,16 +99,40 @@ export default class ImposiumClient {
 		Get the GA property per storyId passed in
 	 */
 	private getAnalyticsProperty = ():void => {
-		const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
+		const {api, player, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
 		api.getStory(storyId)
 		.then((story:any) => {
 			const {gaTrackingId} = story;
-			Analytics.setup(gaTrackingId);
+
+			this.gaProperty = gaTrackingId;
+
+			console.log(player)
+			if (player) {
+				player.setGaProperty(gaTrackingId);
+			}
+
+			Analytics.setup();
+
+			this.doPageView();
+			window.addEventListener('popstate', () => this.doPageView());
 		})
 		.catch((e) => {
 			const wrappedError = new NetworkError('httpFailure', null, e);
 			ExceptionPipe.trapError(wrappedError, ERROR);
+		});
+	}
+
+	/*
+		Emit a GA page view event each time popstate occurs or the ga prop gets set
+	 */
+	private doPageView = ():void => {
+		const {gaProperty} = this;
+
+		Analytics.send({
+			prp : gaProperty,
+			t   : 'pageview', 
+			dp  : window.location.pathname
 		});
 	}
 
@@ -192,7 +217,7 @@ export default class ImposiumClient {
 		Get experience data
 	 */
 	public getExperience = (experienceId:string):void => {
-		const {api, player, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
+		const {api, player, gaProperty, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
 
 		try {
 			if (GOT_EXPERIENCE || player) {

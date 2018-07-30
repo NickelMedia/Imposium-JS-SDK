@@ -37,7 +37,7 @@ config = {
         })
     ],
     optimization: {
-        namedChunks: false
+        namedChunks: true
     },
     output: {
         library        : LIB_NAME,

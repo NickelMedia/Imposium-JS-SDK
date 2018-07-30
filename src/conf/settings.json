@@ -35,10 +35,7 @@
 		"gaPropPlaceholder": "[id_placeholder]",
 		"cidPlaceholder": "[cid_placeholder]",
 		"concurrency": 10,
-		"frequency": 50,
-		"minRetries": 0,
-		"maxRetries": 3,
-		"minDelay": 2000
+		"frequency": 50
 	},
 	"videoPlayer": {
 		"defaultConfig": {
