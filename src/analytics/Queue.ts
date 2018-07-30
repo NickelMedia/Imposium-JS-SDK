@@ -2,33 +2,33 @@
     Simple queue for storing URL strings
  */
 export default class Queue {
-    private q:any[];
+    private q: any[];
 
     public constructor() {
         this.q = [];
     }
 
-    public enqueue = (item:any):void => {
+    public enqueue = (item: any): void => {
         this.q.push(item);
     }
 
-    public pop = ():void => {
-        this.q.splice(0,1);
+    public pop = (): void => {
+        this.q.splice(0, 1);
     }
 
-    public peek = ():any => {
+    public peek = (): any => {
         return this.q[0];
     }
 
-    public isEmpty = ():boolean => {
+    public isEmpty = (): boolean => {
         return (this.q.length === 0);
     }
 
-    public isFull = (max:number):boolean => {
+    public isFull = (max: number): boolean => {
         return (this.q.length < max);
     }
 
-    public getLength = ():number => {
+    public getLength = (): number => {
         return this.q.length;
     }
 }
