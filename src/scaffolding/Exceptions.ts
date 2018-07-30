@@ -9,10 +9,11 @@ const types = {
 };
 
 export abstract class ImposiumError extends Error {
-    protected prefix:string = '[IMPOSIUM ERROR]'
-    protected type:string = '';
+    public log: () => void;
+    protected prefix: string = '[IMPOSIUM ERROR]';
+    protected type: string = '';
 
-    constructor(message:string, type:string) {
+    constructor(message: string, type: string) {
         super(message);
 
         if (Error.captureStackTrace) {
@@ -22,11 +23,10 @@ export abstract class ImposiumError extends Error {
         this.type = type;
     }
 
-    public log = ():void => {}
 }
 
 export class EnvironmentError extends ImposiumError {
-    constructor(messageKey:string, type:string = types.ENV) {
+    constructor(messageKey: string, type: string = types.ENV) {
         super(errors[type][messageKey], type);
 
         if (Error.captureStackTrace) {
@@ -34,13 +34,15 @@ export class EnvironmentError extends ImposiumError {
         }
     }
 
-    public log = ():void => {
-        console.error(`${this.prefix}\nReason: Unavailable feature\nMessage: ${this.message}`);
+    public log = (): void => {
+        console.error(`${this.prefix}
+            \nReason: Unavailable feature
+            \nMessage: ${this.message}`);
     }
 }
 
 export class ModerationError extends ImposiumError {
-    constructor(messageKey:string, type:string = types.MODERATION) {
+    constructor(messageKey: string, type: string = types.MODERATION) {
         super(errors[type][messageKey], type);
 
         if (Error.captureStackTrace) {
@@ -48,15 +50,17 @@ export class ModerationError extends ImposiumError {
         }
     }
 
-    public log = ():void => {
-        console.error(`${this.prefix}\nReason: Imposium moderation\nMessage: ${this.message}`);
+    public log = (): void => {
+        console.error(`${this.prefix}
+            \nReason: Imposium moderation
+            \nMessage: ${this.message}`);
     }
 }
 
 export class ClientConfigurationError extends ImposiumError {
-    private eventName:string = '';
+    private eventName: string = '';
 
-    constructor(messageKey:string, eventName:string, type:string = types.CLIENT_CONFIG) {
+    constructor(messageKey: string, eventName: string, type: string = types.CLIENT_CONFIG) {
         super(errors[type][messageKey], type);
 
         if (Error.captureStackTrace) {
@@ -66,15 +70,18 @@ export class ClientConfigurationError extends ImposiumError {
         this.eventName = eventName || '<not_set>';
     }
 
-    public log = ():void => {
-        console.error(`${this.prefix}\nReason: Invalid client configuration\nMessage: ${this.message}\nEvent name: ${this.eventName}`);
+    public log = (): void => {
+        console.error(`${this.prefix}
+            \nReason: Invalid client configuration
+            \nMessage: ${this.message}
+            \nEvent name: ${this.eventName}`);
     }
 }
 
 export class PlayerConfigurationError extends ImposiumError {
-    private eventName:string = '';
+    private eventName: string = '';
 
-    constructor(messageKey:string, eventName:string, type:string = types.PLAYER_CONFIG) {
+    constructor(messageKey: string, eventName: string, type: string = types.PLAYER_CONFIG) {
         super(errors[type][messageKey], type);
 
         if (Error.captureStackTrace) {
@@ -84,16 +91,19 @@ export class PlayerConfigurationError extends ImposiumError {
         this.eventName = eventName || '<not_set>';
     }
 
-    public log = ():void => {
-        console.error(`${this.prefix}\nReason: Invalid player configuration\nMessage: ${this.message}\nEvent name: ${this.eventName}`);
+    public log = (): void => {
+        console.error(`${this.prefix}
+            \nReason: Invalid player configuration
+            \nMessage: ${this.message}
+            \nEvent name: ${this.eventName}`);
     }
 }
 
 export class NetworkError extends ImposiumError {
-    private experienceId:string = null;
-    private networkError:Error = null;
+    private experienceId: string = null;
+    private networkError: Error = null;
 
-    constructor(messageKey:string, experienceId:string, networkError:Error, type:string = types.NETWORK) {
+    constructor(messageKey: string, experienceId: string, networkError: Error, type: string = types.NETWORK) {
         super(errors[type][messageKey], type);
 
         if (Error.captureStackTrace) {
@@ -104,7 +114,11 @@ export class NetworkError extends ImposiumError {
         this.networkError = networkError;
     }
 
-    public log = ():void => {
-        console.error(`${this.prefix}\nReason: Network related error\nMessage: ${this.message}\nExperience ID: ${this.experienceId}\nNetwork Error:`, this.networkError);
+    public log = (): void => {
+        console.error(`${this.prefix}
+            \nReason: Network related error
+            \nMessage: ${this.message}
+            \nExperience ID: ${this.experienceId}
+            \nNetwork Error: `, this.networkError);
     }
 }
