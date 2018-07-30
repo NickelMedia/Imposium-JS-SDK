@@ -31,6 +31,11 @@ interface ClientConfig {
 
 const settings = require('../conf/settings.json').client;
 
+const version = '[AIV]{version}[/AIV]';
+
+console.log(`%cPowered By%c Imposium v${version}%c imposium.com`);
+// console.log("%cPowered by %cImposium v" + version + "%cimposium.com","color: white; font-size:14px; letter-spacing:2px; text-transform:uppercase; line-height:3.5; font-family:DINCondensed-Bold, helvetica; background-color:#000; padding-top:10px; padding-bottom:4px; padding-left:20px;", "color:#A1B83A; font-size:14px; letter-spacing:2px; text-transform:uppercase; line-height:3.5; font-family:DINCondensed-Bold, helvetica; background-color:#000; padding:10px; padding-bottom:4px; padding-left:0px;  padding-right:20px; margin-top:4px", "color:#000; font-size:14px; letter-spacing:2px; text-transform:uppercase; line-height:3.5; font-family:DINCondensed-Bold, helvetica; background-color:#A1B83A; padding:10px; padding-bottom:4px; padding-left:20px;  padding-right:20px; margin-top:4px"); 
+
 export default class ImposiumClient {
 	public events = {
 		EXPERIENCE_CREATED : 'EXPERIENCE_CREATED',
@@ -41,7 +46,6 @@ export default class ImposiumClient {
 	};
 
 	private eventDelegateRefs:any = cloneWithKeys(this.events);
-
 	private api:API = null;
 	private player:VideoPlayer = null;
 	private consumer:MessageConsumer = null;

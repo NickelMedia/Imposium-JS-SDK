@@ -1,7 +1,7 @@
 const package = require('./package.json');
 const webpack = require('webpack');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
-
+const WebpackAutoInject = require('webpack-auto-inject-version');
 const LIB_NAME = 'Imposium';
 
 config = {
@@ -26,14 +26,11 @@ config = {
         }]
     },
     plugins: [
-        new webpack.BannerPlugin({
-            banner    : `// Version: ${package.version}`, 
-            raw       : true, 
-            entryOnly : true
-        }),
+        new WebpackAutoInject({}),
         new webpack.DefinePlugin({
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
-        })
+        }),
+
     ],
     output: {
         library        : LIB_NAME,
