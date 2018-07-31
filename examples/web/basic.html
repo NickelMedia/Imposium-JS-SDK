@@ -57,8 +57,7 @@
 		<script type = "text/javascript">
 			
 			//Store all required HTML refs	
-			var playerWrapper = document.getElementById('player-wrapper'),
-				btnSubmit = document.getElementById('btn-submit'),
+			var btnSubmit = document.getElementById('btn-submit'),
 				videoNode = document.getElementById('dynamic-video'),
 				captionInput = document.getElementById('caption'),
 				statusField = document.getElementById('status'),
@@ -91,10 +90,6 @@
 
 				//Create the Imposium Experience
 				client.createExperience(inventory);
-
-				//Show the video player wrapper
-				playerWrapper.style.display = 'block';
-
 			}
 
 			//Set the content of the status update field

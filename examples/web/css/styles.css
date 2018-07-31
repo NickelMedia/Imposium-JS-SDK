@@ -60,10 +60,6 @@ input[type="text"] {
 	font-size: 14px;
 }
 
-#player-wrapper{
-	display: none;
-}
-
 #status{
 	margin:10px 0px 10px 0px;
 }
