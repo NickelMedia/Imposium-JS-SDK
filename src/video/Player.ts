@@ -125,26 +125,30 @@ export default class ImposiumPlayer extends VideoPlayer {
     public experienceGenerated = (experience: any): void => {
         const {experienceCache, hlsSupport, node} = this;
         const {compressionLevels: {STREAM}} = ImposiumPlayer;
-        const {id, output: {images: {poster}, videos}} = experience;
+        const {id, output: {videos}} = experience;
         const hasStream = videos.hasOwnProperty(STREAM);
+        let poster;
+        if(experience.output.images){
+            poster = experience.output.images.poster;
+        }
 
         this.setExperienceId(id);
         experienceCache.push(experience);
 
         if (hasStream && hlsSupport) {
-            this.setPlayerData(poster, videos[STREAM].url);
+            this.setPlayerData(videos[STREAM].url, poster);
         } else {
             const compressionKeys = Object.keys(videos);
 
             if (compressionKeys.length === 1) {
-                this.setPlayerData(poster, videos[compressionKeys[0]].url);
+                this.setPlayerData(videos[compressionKeys[0]].url, poster);
             } else {
                 this.checkBandwidth(videos)
                 .then((compression: string) => {
-                    this.setPlayerData(poster, videos[compression].url);
+                    this.setPlayerData(videos[compression].url, poster);
                 })
                 .catch((fallbackCompression: string) => {
-                    this.setPlayerData(poster, videos[fallbackCompression].url);
+                    this.setPlayerData(videos[fallbackCompression].url, poster);
                 });
             }
         }
@@ -390,17 +394,19 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Set player data once video file was selected
      */
-    private setPlayerData = (posterSrc: string, videoSrc: string): void => {
+    private setPlayerData = (videoSrc: string, posterSrc: string = null): void => {
         const {hlsSupport} = this;
         const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
-
-        this.node.poster = posterSrc;
 
         if (hlsSupport === NATIVE || !hlsSupport) {
             this.node.src = videoSrc;
         } else if (hlsSupport === HLSJS) {
             this.hlsPlayer.loadSource(videoSrc);
             this.hlsPlayer.attachMedia(this.node);
+        }
+
+        if (posterSrc) {
+            this.node.poster = posterSrc;
         }
     }
 
