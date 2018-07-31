@@ -1,0 +1,77 @@
+<!doctype html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Imposium JS Basic Example</title>
+		<link rel="stylesheet" href="./css/styles.css">
+		<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+	</head>
+
+	<body>
+
+		<header>
+			<img class="logo" src="./img/imposium_logo@2x.png"/>
+			<p>This demo requires a caption and an image file, please fill out the form to get started.</p>
+		</header>
+		
+		<div id="inputs">
+			<section>
+				<label for="caption">
+					Enter Caption:
+				</label>
+				<br/>
+				<input 
+					id="caption" 
+					name="caption" 
+					type="text" 
+					placeholder="<Witty Caption>"/>				
+			</section>
+
+			<button 
+				id="btn-submit" 
+				class="submit">
+				Submit
+			</button>
+		</div>
+
+		<section id="player-wrapper">
+			<p id = "status"></p>
+			<video id="dynamic-video" />
+		</section>
+
+		<script type = "text/javascript" src = "../../lib/imposium.js"></script>
+		<script type = "text/javascript">
+			
+			//Store all required HTML refs	
+			var playerWrapper = document.getElementById('player-wrapper'),
+				btnSubmit = document.getElementById('btn-submit'),
+				videoNode = document.getElementById('dynamic-video'),
+				captionInput = document.getElementById('caption');
+
+			//Create an instance of the Client and Player
+			var client = new Imposium.Client({
+				accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+				storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
+			});
+			var player = new Imposium.Player(videoNode, client);
+
+			//Listen for the client event on the submit button
+			btnSubmit.addEventListener('click', submit);
+
+			function submit(e){
+
+				e.preventDefault();
+
+				//Create the Imposium Experience
+				client.createExperience({
+					text:captionInput.value,
+				});
+
+				//Show the video player wrapper
+				playerWrapper.style.display = 'block';
+			}
+
+		</script>
+	</body>
+</html>
