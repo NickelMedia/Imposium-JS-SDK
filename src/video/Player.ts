@@ -1,6 +1,6 @@
 import API from '../client/http/API';
 import VideoPlayer, {IVideo} from './VideoPlayer';
-import ImposiumClient from '../client/ImposiumClient';
+import Client from '../client/Client';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {
@@ -41,53 +41,53 @@ export default class ImposiumPlayer extends VideoPlayer {
     private static readonly BANDWIDTH_SAMPLES: number = settings.bandwidthSamples;
 
     private static readonly bandwidthRatings: any = {
-        LOW :  settings.bandwidth.low,
-        MID :  settings.bandwidth.mid,
+        LOW: settings.bandwidth.low,
+        MID: settings.bandwidth.mid,
     };
 
     private static readonly compressionLevels: any = {
-        STREAM :  settings.compression.stream,
-        LOW    :  settings.compression.low,
-        MID    :  settings.compression.mid,
-        HIGH   :  settings.compression.high
+        STREAM: settings.compression.stream,
+        LOW: settings.compression.low,
+        MID: settings.compression.mid,
+        HIGH: settings.compression.high
     };
 
     private static readonly hlsSupportLevels: any = {
-        NATIVE :  settings.hlsSupportLevels.native,
-        HLSJS  :  settings.hlsSupportLevels.hlsjs
+        NATIVE : settings.hlsSupportLevels.native,
+        HLSJS  : settings.hlsSupportLevels.hlsjs
     };
 
     public events = {
-        PLAY     :  'play',
-        PAUSE    :  'pause',
-        COMPLETE :  'ended',
-        ERROR    :  'error',
-        SEEK     :  'seeked',
-        TIME     :  'timeupdate',
-        VOLUME   :  'volumechange',
-        MUTE     :  'muted',
-        CONTROLS :  'controlsset'
+        PLAY: 'play',
+        PAUSE: 'pause',
+        COMPLETE: 'ended',
+        ERROR: 'error',
+        SEEK: 'seeked',
+        TIME: 'timeupdate',
+        VOLUME: 'volumechange',
+        MUTE: 'muted',
+        CONTROLS: 'controlsset'
     };
 
     private eventDelegateRefs: any = {
-        play          :  {callback:  null, native:  true},
-        pause         :  {callback:  null, native:  true},
-        ended         :  {callback:  null, native:  true},
-        error         :  {callback:  null, native:  true},
-        seeked        :  {callback:  null, native:  true},
-        timeupdated   :  {callback:  null, native:  true},
-        volumechanged :  {callback:  null, native:  true},
-        muted         :  {callback:  null, native:  false},
-        controlsset   :  {callback:  null, native:  false}
+        play: {callback: null, native: true},
+        pause: {callback: null, native: true},
+        ended: {callback: null, native: true},
+        error: {callback: null, native: true},
+        seeked: {callback: null, native: true},
+        timeupdated: {callback: null, native: true},
+        volumechanged: {callback: null, native: true},
+        muted: {callback: null, native: false},
+        controlsset: {callback: null, native: false}
     };
 
     private hlsSupport: string = '';
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
-    private clientRef: ImposiumClient = null;
+    private clientRef: Client = null;
     private ImposiumPlayerConfig: IPlayerConfig = null;
 
-    constructor(node: HTMLVideoElement, client: ImposiumClient, config: IPlayerConfig = settings.defaultConfig) {
+    constructor(node: HTMLVideoElement, client: Client, config: IPlayerConfig = settings.defaultConfig) {
         super(node);
 
         try {
@@ -124,8 +124,8 @@ export default class ImposiumPlayer extends VideoPlayer {
      */
     public experienceGenerated = (experience: any): void => {
         const {experienceCache, hlsSupport, node} = this;
-        const {compressionLevels:  {STREAM}} = ImposiumPlayer;
-        const {id, output:  {images:  {poster}, videos}} = experience;
+        const {compressionLevels: {STREAM}} = ImposiumPlayer;
+        const {id, output: {images: {poster}, videos}} = experience;
         const hasStream = videos.hasOwnProperty(STREAM);
 
         this.setExperienceId(id);
@@ -218,10 +218,10 @@ export default class ImposiumPlayer extends VideoPlayer {
     }
 
     /*
-        TO DO:  Clarify what this is with Greg
+        TO DO: Clarify what this is with Greg
      */
     public getPlaybackState = (): string => {
-        return (this.node.paused) ? 'paused' :  'playing';
+        return (this.node.paused) ? 'paused' : 'playing';
     }
 
     /*
@@ -242,7 +242,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Seek to a point in the video (s)
      */
     public seek = (seekTo: number, retry: number = -1): void => {
-        const {node:  {duration}} = this;
+        const {node: {duration}} = this;
 
         if (!isNaN(duration)) {
             if (inRangeNumeric(seekTo, 0, duration)) {
@@ -283,7 +283,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     }
 
     /*
-        Set volume set, valid range:  0.0 -> 1.0
+        Set volume set, valid range: 0.0 -> 1.0
      */
     public setVolume = (volume: number): void => {
         const {volumeMin, volumeMax} = settings;
@@ -306,7 +306,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set controls state
      */
     public setControls = (controls: boolean): void => {
-        const {eventDelegateRefs:  {controlsset}} = this;
+        const {eventDelegateRefs: {controlsset}} = this;
 
         this.node.controls = controls;
 
@@ -346,7 +346,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         use hls-js if possible, if hls-js is not supported do nothing.
      */
     private setupHls = (): void => {
-        const {hlsSupportLevels:  {NATIVE, HLSJS}} = ImposiumPlayer;
+        const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
 
         if (this.node.canPlayType(ImposiumPlayer.STREAM_TYPE)) {
             this.hlsSupport = NATIVE;
@@ -392,7 +392,7 @@ export default class ImposiumPlayer extends VideoPlayer {
      */
     private setPlayerData = (posterSrc: string, videoSrc: string): void => {
         const {hlsSupport} = this;
-        const {hlsSupportLevels:  {NATIVE, HLSJS}} = ImposiumPlayer;
+        const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
 
         this.node.poster = posterSrc;
 

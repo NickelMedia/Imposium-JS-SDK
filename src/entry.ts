@@ -1,7 +1,10 @@
-import ImposiumClient from './client/ImposiumClient';
-import ImposiumPlayer from './video/ImposiumPlayer';
+import Client from './client/Client';
+import Player from './video/Player';
+
+const Events = Client.events;
 
 export {
-    ImposiumClient,
-    ImposiumPlayer
+    Client,
+    Player,
+    Events
 };

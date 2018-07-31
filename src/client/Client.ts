@@ -41,16 +41,17 @@ console.log(`%cPowered By%c Imposium%c v${version}%c https: //imposium.com`,
     'padding: 5px 5px 5px 0px; background-color: black; color: white;',
     'padding: 5px 5px 5px 0px;');
 
-export default class ImposiumClient {
-    public events = {
-        EXPERIENCE_CREATED : 'EXPERIENCE_CREATED',
-        UPLOAD_PROGRESS    : 'UPLOAD_PROGRESS',
-        GOT_EXPERIENCE     : 'GOT_EXPERIENCE',
-        STATUS_UPDATE      : 'STATUS_UPDATE',
-        ERROR              : 'ERROR'
+export default class Client {
+
+    public static events = {
+        EXPERIENCE_CREATED: 'EXPERIENCE_CREATED',
+        UPLOAD_PROGRESS: 'UPLOAD_PROGRESS',
+        GOT_EXPERIENCE: 'GOT_EXPERIENCE',
+        STATUS_UPDATE: 'STATUS_UPDATE',
+        ERROR: 'ERROR'
     };
 
-    private eventDelegateRefs: any = cloneWithKeys(this.events);
+    private eventDelegateRefs: any = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
     private consumer: MessageConsumer = null;
@@ -90,7 +91,7 @@ export default class ImposiumClient {
 
         try {
             if (isFunc(callback)) {
-                if (keyExists(this.events, eventName)) {
+                if (keyExists(Client.events, eventName)) {
                     eventDelegateRefs[eventName] = callback;
                 } else {
                     throw new ClientConfigurationError('invalidEventName', eventName);
@@ -111,13 +112,13 @@ export default class ImposiumClient {
 
         try {
             if (eventName !== '') {
-                if (keyExists(this.events, eventName)) {
+                if (keyExists(Client.events, eventName)) {
                     eventDelegateRefs[eventName] = null;
                 } else {
                     throw new ClientConfigurationError('invalidEventName', eventName);
                 }
             } else {
-                Object.keys(this.events).forEach((event) => {
+                Object.keys(Client.events).forEach((event) => {
                     eventDelegateRefs[event] = null;
                 });
             }
@@ -155,7 +156,7 @@ export default class ImposiumClient {
                     ExceptionPipe.trapError(wrappedError, ERROR);
                 });
             } else {
-                throw new ClientConfigurationError('eventNotConfigured', this.events.GOT_EXPERIENCE);
+                throw new ClientConfigurationError('eventNotConfigured', Client.events.GOT_EXPERIENCE);
             }
         } catch (e) {
             ExceptionPipe.trapError(e, ERROR);
@@ -202,10 +203,10 @@ export default class ImposiumClient {
                 let eventType = null;
 
                 if (render && !GOT_EXPERIENCE) {
-                    eventType = this.events.GOT_EXPERIENCE;
+                    eventType = Client.events.GOT_EXPERIENCE;
                 }
                 if (!render && !EXPERIENCE_CREATED) {
-                    eventType = this.events.EXPERIENCE_CREATED;
+                    eventType = Client.events.EXPERIENCE_CREATED;
                 }
 
                 throw new ClientConfigurationError('eventNotConfigured', eventType);
@@ -265,7 +266,6 @@ export default class ImposiumClient {
             const {gaTrackingId} = story;
 
             this.gaProperty = gaTrackingId;
-            console.log(player);
             if (player) {
                 player.setGaProperty(gaTrackingId);
             }
