@@ -266,15 +266,16 @@ export default class Client {
         Get the GA property per storyId passed in
      */
     private getAnalyticsProperty = (): void => {
-        const {api, player, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
+        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
         api.getStory(storyId)
         .then((story: any) => {
             const {gaTrackingId} = story;
 
             this.gaProperty = gaTrackingId;
-            if (player) {
-                player.setGaProperty(gaTrackingId);
+
+            if (this.player) {
+                this.player.setGaProperty(gaTrackingId);
             }
 
             Analytics.setup();
