@@ -35,7 +35,7 @@ const settings = require('../conf/settings.json').client;
     Log out Imposium.js Version in the console
  */
 const version = '[AIV]{version}[/AIV]';
-console.log(`%cPowered By%c Imposium%c v${version}%c https: //imposium.com`,
+console.log(`%cPowered By%c Imposium%c v${version}%c https://imposium.com`,
     'text-transform: uppercase; padding: 5px 0px 5px 5px; background-color: black; color: white;',
     'text-transform: uppercase; padding: 5px 0px 5px 0px; background-color: black; color: #a1b83a;',
     'padding: 5px 5px 5px 0px; background-color: black; color: white;',
@@ -62,6 +62,7 @@ export default class Client {
         Initialize Imposium client
      */
     constructor(config: any) {
+
         if (config.accessToken && config.storyId) {
             this.assignConfigOpts(config);
         } else {
@@ -172,6 +173,7 @@ export default class Client {
             eventDelegateRefs: {
                 GOT_EXPERIENCE,
                 EXPERIENCE_CREATED,
+                STATUS_UPDATE,
                 UPLOAD_PROGRESS,
                 ERROR
             }
@@ -179,6 +181,11 @@ export default class Client {
 
         const permitRender = (render && (player || EXPERIENCE_CREATED));
         const permitCreate = (!render && GOT_EXPERIENCE);
+
+        if (STATUS_UPDATE) {
+            STATUS_UPDATE({status: 'Creating Experience'});
+        }
+
         try {
             if (permitRender || permitCreate) {
                 const {api, clientConfig: {storyId}} = this;
