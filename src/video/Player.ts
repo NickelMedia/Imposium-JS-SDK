@@ -128,7 +128,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {id, output: {videos}} = experience;
         const hasStream = videos.hasOwnProperty(STREAM);
         let poster;
-        if(experience.output.images){
+        if (experience.output.images) {
             poster = experience.output.images.poster;
         }
 
