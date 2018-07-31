@@ -5,7 +5,6 @@ import ExceptionPipe from '../../scaffolding/ExceptionPipe';
 
 import {
     EnvironmentError,
-    ModerationError,
     NetworkError
 } from '../../scaffolding/Exceptions';
 
@@ -129,20 +128,12 @@ export default class MessageConsumer {
         const {player, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
         const {moderation_status} = experience;
 
-        try {
-            if (moderation_status === 'approved') {
-                if (player) {
-                    player.experienceGenerated(experience);
-                }
+        if (player) {
+            player.experienceGenerated(experience);
+        }
 
-                if (GOT_EXPERIENCE) {
-                    GOT_EXPERIENCE(experience);
-                }
-            } else {
-                throw new ModerationError('rejection');
-            }
-        } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+        if (GOT_EXPERIENCE) {
+            GOT_EXPERIENCE(experience);
         }
     }
 

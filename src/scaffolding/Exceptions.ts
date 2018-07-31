@@ -4,8 +4,7 @@ const types = {
     ENV           : 'environment',
     CLIENT_CONFIG : 'clientConfiguration',
     PLAYER_CONFIG : 'playerConfiguration',
-    NETWORK       : 'network',
-    MODERATION    : 'moderation'
+    NETWORK       : 'network'
 };
 
 export abstract class ImposiumError extends Error {
@@ -37,22 +36,6 @@ export class EnvironmentError extends ImposiumError {
     public log = (): void => {
         console.error(`${this.prefix}
             \nReason: Unavailable feature
-            \nMessage: ${this.message}`);
-    }
-}
-
-export class ModerationError extends ImposiumError {
-    constructor(messageKey: string, type: string = types.MODERATION) {
-        super(errors[type][messageKey], type);
-
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, ModerationError);
-        }
-    }
-
-    public log = (): void => {
-        console.error(`${this.prefix}
-            \nReason: Imposium moderation
             \nMessage: ${this.message}`);
     }
 }
