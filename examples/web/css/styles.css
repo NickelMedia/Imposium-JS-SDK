@@ -1,80 +1,34 @@
 body {
-	background-color: #3f3f3f;
 	font-family: Roboto Condensed, helvetica, arial, sans-serif;
 }
 
-.example-wrapper {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-.content {
-	background-color: #fff;
-	border-radius: 5px;
-	box-shadow: 0px 1px 100px 5px rgba(0,0,0,0.5);
-}
-
-.header {
-	background-color: rgba(241,241,241,0.8);
-	border-radius: 5px 5px 0px 0px;
-	padding: 10px;
-}
-
 .logo {
-	height: 30px;
+	width:137px;
+	height: 35px;
 }
 
-.info {
-	background-color: rgba(241,241,241,0.8);
-	padding: 0px 15px 10px 15px;
-	font-size: 14px;
-	line-height: 20px;
-}
-
-.inputs {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-around;
-	padding: 10px 15px;
-}
-
-.input-wrapper {
-	box-sizing: border-box;
-	margin: 5px 0px;
+section{
+	margin-top:20px;
 }
 
 label {
-	padding-left: 3px;
-	font-size: 11px;
 	text-transform: uppercase;
-	letter-spacing: 0.9px;
+}
+
+input{
+	margin-top:5px;
 }
 
 input[type="text"] {
-	margin:0;
-	border:0;
-	padding:0;
-	display:inline-block;
 	vertical-align:middle;
 	white-space:normal;
 	background:none;
 	line-height:1;
 	padding: 7.5px 5px;
 	width: 100%;
-	box-sizing: border-box;
+	max-width:300px;
 	border: 1px solid rgba(0, 0, 0, 0.15);
 	border-radius: 3px;
-}
-
-.submit-bar {
-	display: flex;
-	align-items: center;
 }
 
 .submit {
@@ -84,14 +38,18 @@ input[type="text"] {
 	border-radius: 3px;
 	width: 125px;
 	height: 30px;
-	margin: 10px 0px 0px 0px;
+	margin: 20px 0px 0px 0px;
 	color: white;
 	font-size: 12px;
 	font-weight: 600;
 	letter-spacing: 0.8px;
 	text-transform: uppercase;
 	cursor: pointer;
-	transition: background-color 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.submit:disabled{
+	pointer-events: none;
+	opacity: 0.4;
 }
 
 .submit:hover {
@@ -99,19 +57,18 @@ input[type="text"] {
 }
 
 .status {
-	height: 30px;
-	margin: 10px 0px 0px 10px;
 	font-size: 14px;
-	padding: 0px 3px 0px 0px;
-	display: flex;
-	align-items: center;
 }
 
-.player-wrapper {
-	padding: 0px 15px;
+#player-wrapper{
+	display: none;
 }
 
-video {
+#status{
+	margin:10px 0px 10px 0px;
+}
+
+#dynamic-video {
 	width: 640px;
 	height: 360px;
 	background-color: rgba(241,241,241,0.8);
