@@ -31,7 +31,7 @@ input[type="text"] {
 	border-radius: 3px;
 }
 
-.submit {
+.btn{
 	border: none;
 	outline: none;
 	background-color: deepskyblue;
@@ -47,12 +47,12 @@ input[type="text"] {
 	cursor: pointer;
 }
 
-.submit:disabled{
+.btn:disabled{
 	pointer-events: none;
 	opacity: 0.4;
 }
 
-.submit:hover {
+.btn:hover {
 	background-color: #0099cc;
 }
 
