@@ -82,6 +82,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     };
 
     private hlsSupport: string = '';
+    private singleFile: boolean = false;
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
     private clientRef: Client = null;
@@ -128,10 +129,12 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {id, output: {videos}} = experience;
         const hasStream = videos.hasOwnProperty(STREAM);
         let poster;
+
         if (experience.output.images) {
             poster = experience.output.images.poster;
         }
 
+        this.singleFile = false;
         this.setExperienceId(id);
         experienceCache.push(experience);
 
@@ -141,6 +144,7 @@ export default class ImposiumPlayer extends VideoPlayer {
             const compressionKeys = Object.keys(videos);
 
             if (compressionKeys.length === 1) {
+                this.singleFile = true;
                 this.setPlayerData(videos[compressionKeys[0]].url, poster);
             } else {
                 this.checkBandwidth(videos)
@@ -395,10 +399,10 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set player data once video file was selected
      */
     private setPlayerData = (videoSrc: string, posterSrc: string = null): void => {
-        const {hlsSupport} = this;
+        const {hlsSupport, singleFile} = this;
         const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
 
-        if (hlsSupport === NATIVE || !hlsSupport) {
+        if (hlsSupport === NATIVE || !hlsSupport || singleFile) {
             this.node.src = videoSrc;
         } else if (hlsSupport === HLSJS) {
             this.hlsPlayer.loadSource(videoSrc);

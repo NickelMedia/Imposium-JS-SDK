@@ -179,8 +179,8 @@ export default class Client {
             }
         } = this;
 
-        const permitRender = (render && (player || EXPERIENCE_CREATED));
-        const permitCreate = (!render && GOT_EXPERIENCE);
+        const permitRender = (render && (typeof player !== 'undefined' || typeof EXPERIENCE_CREATED !== 'undefined'));
+        const permitCreate = (typeof GOT_EXPERIENCE !== 'undefined');
 
         if (STATUS_UPDATE) {
             STATUS_UPDATE({status: 'Creating Experience'});
@@ -198,6 +198,7 @@ export default class Client {
                     if (EXPERIENCE_CREATED) {
                         EXPERIENCE_CREATED(experience);
                     }
+
                     if (render) {
                         this.renderExperience(id);
                     }
@@ -212,7 +213,8 @@ export default class Client {
                 if (render && !GOT_EXPERIENCE) {
                     eventType = Client.events.GOT_EXPERIENCE;
                 }
-                if (!render && !EXPERIENCE_CREATED) {
+
+                if (!EXPERIENCE_CREATED) {
                     eventType = Client.events.EXPERIENCE_CREATED;
                 }
 
