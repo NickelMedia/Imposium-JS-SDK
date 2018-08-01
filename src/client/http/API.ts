@@ -73,7 +73,7 @@ export default class API {
             }
         });
 
-        // Add exponential back off to requests...
+        // Adds exponential back off to requests...
         API.retry(this.http, {retryDelay: API.retry.exponentialDelay});
     }
 
