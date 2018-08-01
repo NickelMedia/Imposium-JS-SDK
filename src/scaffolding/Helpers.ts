@@ -44,7 +44,9 @@ export const cloneWithKeys = (o: any) => {
 };
 
 // Calcuate megabits per second based on request duration in s and size of file downloaded
-export const calculateMbps = (durationSeconds: number, filesizeBits: number): number => {
+export const calculateMbps = (startTime: number, filesize: number): number => {
+    const durationSeconds: number = (new Date().getTime() - startTime) / 1000;
+    const filesizeBits: number = filesize * 8;
     return (filesizeBits / durationSeconds) / 1024 ** 2;
 };
 
