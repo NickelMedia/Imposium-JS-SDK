@@ -57,6 +57,7 @@ export default class Client {
     private consumer: MessageConsumer = null;
     private clientConfig: IClientConfig = null;
     private gaProperty: string = '';
+    private playerIsFallback: boolean = false;
 
     /*
         Initialize Imposium client
@@ -80,7 +81,8 @@ export default class Client {
     /*
         Set current video player ref
      */
-    public setPlayer = (player: VideoPlayer) => {
+    public setPlayer = (player: VideoPlayer, isFallback: boolean = false) => {
+        this.playerIsFallback = isFallback;
         this.player = player;
     }
 
@@ -170,6 +172,7 @@ export default class Client {
     public createExperience = (inventory: any, render: boolean = true): void => {
         const {
             player,
+            playerIsFallback,
             eventDelegateRefs: {
                 GOT_EXPERIENCE,
                 EXPERIENCE_CREATED,
@@ -179,8 +182,8 @@ export default class Client {
             }
         } = this;
 
-        const permitRender = (render && (typeof player !== 'undefined' || typeof EXPERIENCE_CREATED !== 'undefined'));
-        const permitCreate = (typeof GOT_EXPERIENCE !== 'undefined');
+        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
+        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
 
         if (STATUS_UPDATE) {
             STATUS_UPDATE({status: 'Creating Experience'});
@@ -210,12 +213,12 @@ export default class Client {
             } else {
                 let eventType = null;
 
-                if (render && !GOT_EXPERIENCE) {
-                    eventType = Client.events.GOT_EXPERIENCE;
-                }
-
                 if (!EXPERIENCE_CREATED) {
                     eventType = Client.events.EXPERIENCE_CREATED;
+                }
+
+                if (render && !GOT_EXPERIENCE) {
+                    eventType = Client.events.GOT_EXPERIENCE;
                 }
 
                 throw new ClientConfigurationError('eventNotConfigured', eventType);
@@ -233,7 +236,7 @@ export default class Client {
 
         try {
             if (!isNode()) {
-                this.setPlayer(new FallbackPlayer(playerRef));
+                this.setPlayer(new FallbackPlayer(playerRef), true);
             } else {
                 throw new EnvironmentError('node');
             }
