@@ -360,7 +360,6 @@ export default class ImposiumPlayer extends VideoPlayer {
             this.hlsSupport = NATIVE;
         } else if (Hls.isSupported()) {
             this.hlsSupport = HLSJS;
-            this.hlsPlayer = new Hls();
         }
     }
 
@@ -405,8 +404,13 @@ export default class ImposiumPlayer extends VideoPlayer {
         if (hlsSupport === NATIVE || !hlsSupport || singleFile) {
             this.node.src = videoSrc;
         } else if (hlsSupport === HLSJS) {
-            this.hlsPlayer.loadSource(videoSrc);
+            if (this.hlsPlayer) {
+                this.hlsPlayer.destroy();
+            }
+            
+            this.hlsPlayer = new Hls();
             this.hlsPlayer.attachMedia(this.node);
+            this.hlsPlayer.loadSource(videoSrc);
         }
 
         if (posterSrc) {
