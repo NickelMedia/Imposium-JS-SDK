@@ -37,14 +37,13 @@ export const keyExists = (o: any, key: string) => {
 
 // Return a new object containing the same keys as the ref passed in
 export const cloneWithKeys = (o: any) => {
-    return Object.keys(o).reduce((p, c) => {
-        p[c] = null;
-        return p;
-    }, {});
+    return Object.keys(o).reduce((p, c) => { p[c] = null; return p; }, {});
 };
 
 // Calcuate megabits per second based on request duration in s and size of file downloaded
-export const calculateMbps = (durationSeconds: number, filesizeBits: number): number => {
+export const calculateMbps = (startTime: number, filesize: number): number => {
+    const durationSeconds: number = (new Date().getTime() - startTime) / 1000;
+    const filesizeBits: number = filesize * 8;
     return (filesizeBits / durationSeconds) / 1024 ** 2;
 };
 
