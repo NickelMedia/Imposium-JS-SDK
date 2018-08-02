@@ -68,7 +68,7 @@
 				accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
 				storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
 			});
-			var player = new Imposium.Player(client);
+			var player = new Imposium.Player(videoNode, client);
 
 			//Listen to the client STATUS_UPDATE event to populate the status field
 			client.on(Imposium.Events.STATUS_UPDATE, setStatus);
