@@ -69,6 +69,8 @@
                 storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
             });
 
+            client.captureAnalytics(videoNode);
+
             //Listen to the client STATUS_UPDATE event to populate the status field
             client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
@@ -84,25 +86,22 @@
 
                 e.preventDefault();
 
-                //Build the inventory object
+                // Build the inventory object
                 var inventory = {
                     text:captionInput.value,
                     image:imageInput.files[0]
                 }
 
-                //Create the Imposium Experience
+                // Create the Imposium Experience
                 client.createExperience(inventory);
             }
 
-            function gotExperience(e){
-
-                console.log(e);
-                videoNode.src = e.output.videos['mp4_720'].url;
+            function gotExperience(data) {
+                videoNode.src = data.output.videos['mp4_720'].url;
             }
 
             //Set the content of the status update field
             function setStatus(e){
-
                 statusField.innerHTML = e.status;
             }
 

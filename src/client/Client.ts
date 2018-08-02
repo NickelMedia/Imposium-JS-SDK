@@ -229,7 +229,7 @@ export default class Client {
         Sets up analytics using fallback video player wrapper class
      */
     public captureAnalytics = (playerRef: HTMLVideoElement = null): void => {
-        const {eventDelegateRefs: {onError}} = this;
+        const {eventDelegateRefs: {ERROR}} = this;
 
         try {
             if (!isNode()) {
@@ -238,7 +238,7 @@ export default class Client {
                 throw new EnvironmentError('node');
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, onError);
+            ExceptionPipe.trapError(e, ERROR);
         }
     }
 
