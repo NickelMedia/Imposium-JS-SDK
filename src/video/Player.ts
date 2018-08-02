@@ -407,7 +407,7 @@ export default class ImposiumPlayer extends VideoPlayer {
             if (this.hlsPlayer) {
                 this.hlsPlayer.destroy();
             }
-            
+
             this.hlsPlayer = new Hls();
             this.hlsPlayer.attachMedia(this.node);
             this.hlsPlayer.loadSource(videoSrc);
