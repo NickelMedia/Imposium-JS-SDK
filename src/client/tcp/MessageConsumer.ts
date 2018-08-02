@@ -27,14 +27,16 @@ export default class MessageConsumer {
     };
 
     private env: string = '';
+    private storyId: string = '';
     private experienceId: string = null;
     private clientDelegates: any = null;
     private stomp: Stomp = null;
     private player: VideoPlayer;
     private retried: number = settings.minReconnects;
 
-    constructor(env: string, experienceId: string, clientDelegates: any, player: VideoPlayer) {
+    constructor(env: string, storyId: string, experienceId: string, clientDelegates: any, player: VideoPlayer) {
         this.env = env;
+        this.storyId = storyId;
         this.experienceId = experienceId;
         this.clientDelegates = clientDelegates;
 
@@ -78,7 +80,7 @@ export default class MessageConsumer {
      */
     private routeMessageData = (msg: any): void => {
         const {EVENT_NAMES: {scene, message, complete}} = MessageConsumer;
-        const {stomp, experienceId, clientDelegates: {ERROR}} = this;
+        const {stomp, storyId, experienceId, clientDelegates: {ERROR}} = this;
 
         try {
             const payload = JSON.parse(msg.body);
@@ -96,7 +98,7 @@ export default class MessageConsumer {
                 default: break;
             }
         } catch (e) {
-            const wrappedError = new NetworkError('messageParseFailed', experienceId, e);
+            const wrappedError = new NetworkError('messageParseFailed', storyId, experienceId, e);
             ExceptionPipe.trapError(wrappedError, ERROR);
         }
     }
@@ -105,12 +107,12 @@ export default class MessageConsumer {
         Fire the gotMessage callback if the user is listening for this event
      */
     private emitMessageData = (messageData: any): void => {
-        const {clientDelegates: {STATUS_UPDATE, ERROR}} = this;
+        const {storyId, clientDelegates: {STATUS_UPDATE, ERROR}} = this;
         const {status, id} = messageData;
 
         try {
             if (status === settings.errorOverTcp) {
-                throw new NetworkError('errorOverTcp', id, null);
+                throw new NetworkError('errorOverTcp', storyId, id, null);
             }
 
             if (STATUS_UPDATE) {
@@ -141,7 +143,7 @@ export default class MessageConsumer {
         Called on Stomp errors
      */
     private stompError = (e: any): void => {
-        const {retried, experienceId, stomp, clientDelegates: {ERROR}} = this;
+        const {retried, storyId, experienceId, stomp, clientDelegates: {ERROR}} = this;
         const {wasClean} = e;
 
         if (!e.wasClean) {
@@ -155,7 +157,7 @@ export default class MessageConsumer {
                     this.establishConnection();
                 });
             } else {
-                const wrappedError = new NetworkError('tcpFailure', experienceId, e);
+                const wrappedError = new NetworkError('tcpFailure', storyId, experienceId, e);
                 ExceptionPipe.trapError(wrappedError, ERROR);
             }
         }

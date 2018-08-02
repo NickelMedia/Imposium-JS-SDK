@@ -82,6 +82,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     };
 
     private hlsSupport: string = '';
+    private singleFile: boolean = false;
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
     private clientRef: Client = null;
@@ -91,12 +92,22 @@ export default class ImposiumPlayer extends VideoPlayer {
         super(node);
 
         try {
-            if (client) {
-                client.setPlayer(this);
-                this.init(config);
-                this.setupHls();
+            if (!isNode()) {
+                if (node instanceof HTMLVideoElement) {
+                    if (client) {
+                        client.setPlayer(this);
+                        this.init(config);
+                        this.setupHls();
+                    } else {
+                        throw new PlayerConfigurationError('noClient', client.clientConfig.storyId, null);
+                    }
+                } else {
+                    // Prop passed wasn't of type HTMLVideoElement
+                    throw new PlayerConfigurationError('invalidPlayerRef', client.clientConfig.storyId, null);
+                }
             } else {
-                throw new PlayerConfigurationError('noClient', null);
+                // Cancels out initialization in NodeJS
+                throw new EnvironmentError('node', client.clientConfig.storyId);
             }
         } catch (e) {
             ExceptionPipe.trapError(e);
@@ -128,10 +139,12 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {id, output: {videos}} = experience;
         const hasStream = videos.hasOwnProperty(STREAM);
         let poster;
+
         if (experience.output.images) {
             poster = experience.output.images.poster;
         }
 
+        this.singleFile = false;
         this.setExperienceId(id);
         experienceCache.push(experience);
 
@@ -141,6 +154,7 @@ export default class ImposiumPlayer extends VideoPlayer {
             const compressionKeys = Object.keys(videos);
 
             if (compressionKeys.length === 1) {
+                this.singleFile = true;
                 this.setPlayerData(videos[compressionKeys[0]].url, poster);
             } else {
                 this.checkBandwidth(videos)
@@ -158,7 +172,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Enable native or custom ImposiumPlayer events
      */
     public on = (eventName: string, callback: any): void => {
-        const {eventDelegateRefs} = this;
+        const {storyId, eventDelegateRefs} = this;
 
         try {
             if (isFunc(callback)) {
@@ -173,10 +187,10 @@ export default class ImposiumPlayer extends VideoPlayer {
                         this.node.addEventListener(eventName, event.callback);
                     }
                 } else {
-                    throw new PlayerConfigurationError('invalidEventName', eventName);
+                    throw new PlayerConfigurationError('invalidEventName', storyId, eventName);
                 }
             } else {
-                throw new PlayerConfigurationError('invalidCallbackType', eventName);
+                throw new PlayerConfigurationError('invalidCallbackType', storyId, eventName);
             }
         } catch (e) {
             ExceptionPipe.trapError(e);
@@ -187,7 +201,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Disable native or custom ImposiumPlayer events
      */
     public off = (eventName: string): void => {
-        const {eventDelegateRefs} = this;
+        const {storyId, eventDelegateRefs} = this;
 
         try {
             if (keyExists(this.events, eventName)) {
@@ -200,7 +214,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
                 event.callback = null;
             } else {
-                throw new PlayerConfigurationError('invalidEventName', eventName);
+                throw new PlayerConfigurationError('invalidEventName', storyId, eventName);
             }
         } catch (e) {
             ExceptionPipe.trapError(e);
@@ -356,7 +370,6 @@ export default class ImposiumPlayer extends VideoPlayer {
             this.hlsSupport = NATIVE;
         } else if (Hls.isSupported()) {
             this.hlsSupport = HLSJS;
-            this.hlsPlayer = new Hls();
         }
     }
 
@@ -395,14 +408,19 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set player data once video file was selected
      */
     private setPlayerData = (videoSrc: string, posterSrc: string = null): void => {
-        const {hlsSupport} = this;
+        const {hlsSupport, singleFile} = this;
         const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
 
-        if (hlsSupport === NATIVE || !hlsSupport) {
+        if (hlsSupport === NATIVE || !hlsSupport || singleFile) {
             this.node.src = videoSrc;
         } else if (hlsSupport === HLSJS) {
-            this.hlsPlayer.loadSource(videoSrc);
+            if (this.hlsPlayer) {
+                this.hlsPlayer.destroy();
+            }
+
+            this.hlsPlayer = new Hls();
             this.hlsPlayer.attachMedia(this.node);
+            this.hlsPlayer.loadSource(videoSrc);
         }
 
         if (posterSrc) {
