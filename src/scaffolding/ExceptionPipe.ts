@@ -17,7 +17,7 @@ export default class ExceptionPipe {
             e.log();
             ExceptionPipe.traceError(e);
         } else {
-            // do throw uncaught exception
+            console.error(e);
         }
         // ExceptionPipe.gaEmit(e)
     }
@@ -25,14 +25,13 @@ export default class ExceptionPipe {
     private static traceError = (e): void => {
         const gaProp = 'UA-113079866-1';
 
-        console.log(e.storyId)
-        // Analytics.send({
-        //     prp: gaProp,
-        //     t: 'event',
-        //     ec: e.type,
-        //     ea: e.stack,
-        //     el: '6072569c-d4e7-43d8-ec7d-ec336ed8d6a8',
-        //     ev: 0
-        // });
+        Analytics.send({
+            prp: gaProp,
+            t: 'event',
+            ec: e.type,
+            ea: e.stack,
+            el: e.storyId,
+            ev: 0
+        });
     }
 }
