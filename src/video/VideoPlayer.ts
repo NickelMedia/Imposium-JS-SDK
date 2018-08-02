@@ -41,24 +41,16 @@ export default abstract class VideoPlayer {
         Basis of Imposum/Fallback video player objects
      */
     constructor(node: HTMLVideoElement) {
-        const {storyId} = this;
+        const {mediaEvents, storyId} = this;
 
-        if (!isNode()) {
-            if (node instanceof HTMLVideoElement) {
-                const {mediaEvents} = this;
+        this.node = node;
 
-                this.node = node;
-
-                for (const key of Object.keys(mediaEvents)) {
-                    this.node.addEventListener(key, this.mediaEvents[key]);
-                }
-            } else {
-                // Prop passed wasn't of type HTMLVideoElement
+        for (const key of Object.keys(mediaEvents)) {
+            try {
+                this.node.addEventListener(key, this.mediaEvents[key]);
+            } catch (e) {
                 throw new PlayerConfigurationError('invalidPlayerRef', storyId, null);
             }
-        } else {
-            // Cancels out initialization in NodeJS
-            throw new EnvironmentError('node', storyId);
         }
     }
 

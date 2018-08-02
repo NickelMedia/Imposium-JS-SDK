@@ -23,7 +23,6 @@ export abstract class ImposiumError extends Error {
         this.type = type;
         this.storyId = storyId;
     }
-
 }
 
 export class EnvironmentError extends ImposiumError {

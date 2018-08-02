@@ -92,13 +92,22 @@ export default class ImposiumPlayer extends VideoPlayer {
         super(node);
 
         try {
-            if (client) {
-                client.setPlayer(this);
-                this.init(config);
-                this.setupHls();
+            if (!isNode()) {
+                if (node instanceof HTMLVideoElement) {
+                    if (client) {
+                        client.setPlayer(this);
+                        this.init(config);
+                        this.setupHls();
+                    } else {
+                        throw new PlayerConfigurationError('noClient', client.clientConfig.storyId, null);
+                    }
+                } else {
+                    // Prop passed wasn't of type HTMLVideoElement
+                    throw new PlayerConfigurationError('invalidPlayerRef', client.clientConfig.storyId, null);
+                }
             } else {
-                const {storyId} = this;
-                throw new PlayerConfigurationError('noClient', storyId, null);
+                // Cancels out initialization in NodeJS
+                throw new EnvironmentError('node', client.clientConfig.storyId);
             }
         } catch (e) {
             ExceptionPipe.trapError(e);

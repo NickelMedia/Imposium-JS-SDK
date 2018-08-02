@@ -9,6 +9,7 @@ import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {
     ClientConfigurationError,
+    PlayerConfigurationError,
     EnvironmentError,
     NetworkError
 } from '../scaffolding/Exceptions';
@@ -50,12 +51,11 @@ export default class Client {
         STATUS_UPDATE: 'STATUS_UPDATE',
         ERROR: 'ERROR'
     };
-
+    public clientConfig: IClientConfig = null;
     private eventDelegateRefs: any = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
     private consumer: MessageConsumer = null;
-    private clientConfig: IClientConfig = null;
     private gaProperty: string = '';
     private playerIsFallback: boolean = false;
 
@@ -239,10 +239,20 @@ export default class Client {
         Sets up analytics using fallback video player wrapper class
      */
     public captureAnalytics = (playerRef: HTMLVideoElement = null): void => {
-        const {eventDelegateRefs: {ERROR}} = this;
+        const {clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
         try {
-            this.setPlayer(new FallbackPlayer(playerRef), true);
+            if (!isNode()) {
+                if (playerRef instanceof HTMLVideoElement) {
+                    this.setPlayer(new FallbackPlayer(playerRef), true);
+                } else {
+                    // Prop passed wasn't of type HTMLVideoElement
+                    throw new PlayerConfigurationError('invalidPlayerRef', storyId, null);
+                }
+            } else {
+                // Cancels out initialization in NodeJS
+                throw new EnvironmentError('node', storyId);
+            }
         } catch (e) {
             ExceptionPipe.trapError(e, ERROR);
         }
