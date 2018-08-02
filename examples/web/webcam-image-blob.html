@@ -10,12 +10,13 @@
     </head>
 
     <body>
-
+    
         <header>
             <img class="logo" src="./img/imposium_logo@2x.png"/>
-            <p>This demo requires a caption, as well as an image taken from your webcam. First, hit "Capture" to take image on your webcam, then hit "Submit" to create the dynamic video.</p>
+            <h1>Webcam Image Blob Example</h1>
+            <p>This example demonstrates how you can pass Imposium.js and image Blob object, as opposed to a file uploaded via a file input. For this exemple, we use an image Blob recorded via the webcam. Enter a caption, hit "Capture" to take the image, and hit "Submit" to create the dynamic video.</p>
         </header>
-        
+
         <div id="inputs">
             <section>
                 <label for="caption">
@@ -66,7 +67,6 @@
                 videoNode = document.getElementById('dynamic-video'),
                 captionInput = document.getElementById('caption'),
                 statusField = document.getElementById('status'),
-                imageInput = document.getElementById('image'),
                 captureNode = document.getElementById('capture-video'),
                 captureCanvas = document.getElementById('capture-canvas');
 
