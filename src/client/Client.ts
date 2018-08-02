@@ -82,25 +82,29 @@ export default class Client {
         Set current video player ref
      */
     public setPlayer = (player: VideoPlayer, isFallback: boolean = false) => {
+        const {clientConfig: {storyId}} = this;
+
         this.playerIsFallback = isFallback;
         this.player = player;
+
+        player.setStoryId(storyId);
     }
 
     /*
         Sets a callback for an event
      */
     public on = (eventName: string, callback: any): void => {
-        const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
+        const {clientConfig: {storyId}, eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
         try {
             if (isFunc(callback)) {
                 if (keyExists(Client.events, eventName)) {
                     eventDelegateRefs[eventName] = callback;
                 } else {
-                    throw new ClientConfigurationError('invalidEventName', eventName);
+                    throw new ClientConfigurationError('invalidEventName', storyId, eventName);
                 }
             } else {
-                throw new ClientConfigurationError('invalidCallbackType', eventName);
+                throw new ClientConfigurationError('invalidCallbackType', storyId, eventName);
             }
         } catch (e) {
             ExceptionPipe.trapError(e, ERROR);
@@ -111,14 +115,14 @@ export default class Client {
         Turns off a specific event or all events
      */
     public off = (eventName: string = ''): void => {
-        const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
+        const {clientConfig: {storyId}, eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
         try {
             if (eventName !== '') {
                 if (keyExists(Client.events, eventName)) {
                     eventDelegateRefs[eventName] = null;
                 } else {
-                    throw new ClientConfigurationError('invalidEventName', eventName);
+                    throw new ClientConfigurationError('invalidEventName', storyId, eventName);
                 }
             } else {
                 Object.keys(Client.events).forEach((event) => {
@@ -134,7 +138,7 @@ export default class Client {
         Get experience data
      */
     public getExperience = (experienceId: string): void => {
-        const {api, player, gaProperty, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
+        const {api, player, gaProperty, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
 
         try {
             if (GOT_EXPERIENCE || player) {
@@ -155,11 +159,11 @@ export default class Client {
                     }
                 })
                 .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', experienceId, e);
+                    const wrappedError = new NetworkError('httpFailure', storyId, experienceId, e);
                     ExceptionPipe.trapError(wrappedError, ERROR);
                 });
             } else {
-                throw new ClientConfigurationError('eventNotConfigured', Client.events.GOT_EXPERIENCE);
+                throw new ClientConfigurationError('eventNotConfigured', storyId, Client.events.GOT_EXPERIENCE);
             }
         } catch (e) {
             ExceptionPipe.trapError(e, ERROR);
@@ -173,6 +177,9 @@ export default class Client {
         const {
             player,
             playerIsFallback,
+            clientConfig: {
+                storyId
+            },
             eventDelegateRefs: {
                 GOT_EXPERIENCE,
                 EXPERIENCE_CREATED,
@@ -191,7 +198,7 @@ export default class Client {
 
         try {
             if (permitRender || permitCreate) {
-                const {api, clientConfig: {storyId}} = this;
+                const {api} = this;
 
                 api.postExperience(storyId, inventory, UPLOAD_PROGRESS)
                 .then((experience: any) => {
@@ -207,7 +214,7 @@ export default class Client {
                     }
                 })
                 .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', null, e);
+                    const wrappedError = new NetworkError('httpFailure', storyId, null, e);
                     ExceptionPipe.trapError(wrappedError, ERROR);
                 });
             } else {
@@ -221,7 +228,7 @@ export default class Client {
                     eventType = Client.events.GOT_EXPERIENCE;
                 }
 
-                throw new ClientConfigurationError('eventNotConfigured', eventType);
+                throw new ClientConfigurationError('eventNotConfigured', storyId, eventType);
             }
         } catch (e) {
             ExceptionPipe.trapError(e, ERROR);
@@ -235,11 +242,7 @@ export default class Client {
         const {eventDelegateRefs: {ERROR}} = this;
 
         try {
-            if (!isNode()) {
-                this.setPlayer(new FallbackPlayer(playerRef), true);
-            } else {
-                throw new EnvironmentError('node');
-            }
+            this.setPlayer(new FallbackPlayer(playerRef), true);
         } catch (e) {
             ExceptionPipe.trapError(e, ERROR);
         }
@@ -289,7 +292,7 @@ export default class Client {
             window.addEventListener('popstate', () => this.doPageView());
         })
         .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', null, e);
+            const wrappedError = new NetworkError('httpFailure', storyId, null, e);
             ExceptionPipe.trapError(wrappedError, ERROR);
         });
     }
@@ -311,11 +314,11 @@ export default class Client {
         Invokes the streaming process
      */
     private startMessaging = (experienceId): void => {
-        const {api, eventDelegateRefs: {ERROR}} = this;
+        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
         api.invokeStream(experienceId)
         .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', experienceId, e);
+            const wrappedError = new NetworkError('httpFailure', storyId, experienceId, e);
             ExceptionPipe.trapError(wrappedError, ERROR);
         });
     }
@@ -324,7 +327,7 @@ export default class Client {
         Make a new consumer w/ delegates
      */
     private makeConsumer = (experienceId: string): void => {
-        const {clientConfig: {environment}, eventDelegateRefs, player} = this;
+        const {clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
 
         // Merge scoped startMessaging call with client events
         const delegates: any = {
@@ -334,6 +337,7 @@ export default class Client {
 
         this.consumer = new MessageConsumer(
             environment,
+            storyId,
             experienceId,
             delegates,
             player

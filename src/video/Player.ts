@@ -97,7 +97,8 @@ export default class ImposiumPlayer extends VideoPlayer {
                 this.init(config);
                 this.setupHls();
             } else {
-                throw new PlayerConfigurationError('noClient', null);
+                const {storyId} = this;
+                throw new PlayerConfigurationError('noClient', storyId, null);
             }
         } catch (e) {
             ExceptionPipe.trapError(e);
@@ -162,7 +163,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Enable native or custom ImposiumPlayer events
      */
     public on = (eventName: string, callback: any): void => {
-        const {eventDelegateRefs} = this;
+        const {storyId, eventDelegateRefs} = this;
 
         try {
             if (isFunc(callback)) {
@@ -177,10 +178,10 @@ export default class ImposiumPlayer extends VideoPlayer {
                         this.node.addEventListener(eventName, event.callback);
                     }
                 } else {
-                    throw new PlayerConfigurationError('invalidEventName', eventName);
+                    throw new PlayerConfigurationError('invalidEventName', storyId, eventName);
                 }
             } else {
-                throw new PlayerConfigurationError('invalidCallbackType', eventName);
+                throw new PlayerConfigurationError('invalidCallbackType', storyId, eventName);
             }
         } catch (e) {
             ExceptionPipe.trapError(e);
@@ -191,7 +192,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Disable native or custom ImposiumPlayer events
      */
     public off = (eventName: string): void => {
-        const {eventDelegateRefs} = this;
+        const {storyId, eventDelegateRefs} = this;
 
         try {
             if (keyExists(this.events, eventName)) {
@@ -204,7 +205,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
                 event.callback = null;
             } else {
-                throw new PlayerConfigurationError('invalidEventName', eventName);
+                throw new PlayerConfigurationError('invalidEventName', storyId, eventName);
             }
         } catch (e) {
             ExceptionPipe.trapError(e);

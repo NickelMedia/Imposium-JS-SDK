@@ -11,8 +11,9 @@ export abstract class ImposiumError extends Error {
     public log: () => void;
     protected prefix: string = '[IMPOSIUM ERROR]';
     protected type: string = '';
+    protected storyId: string = '';
 
-    constructor(message: string, type: string) {
+    constructor(message: string, type: string, storyId: string) {
         super(message);
 
         if (Error.captureStackTrace) {
@@ -20,13 +21,14 @@ export abstract class ImposiumError extends Error {
         }
 
         this.type = type;
+        this.storyId = storyId;
     }
 
 }
 
 export class EnvironmentError extends ImposiumError {
-    constructor(messageKey: string, type: string = types.ENV) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, storyId: string, type: string = types.ENV) {
+        super(errors[type][messageKey], type, storyId);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, EnvironmentError);
@@ -43,8 +45,8 @@ export class EnvironmentError extends ImposiumError {
 export class ClientConfigurationError extends ImposiumError {
     private eventName: string = '';
 
-    constructor(messageKey: string, eventName: string, type: string = types.CLIENT_CONFIG) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, storyId: string,  eventName: string, type: string = types.CLIENT_CONFIG) {
+        super(errors[type][messageKey], type, storyId);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, ClientConfigurationError);
@@ -64,8 +66,8 @@ export class ClientConfigurationError extends ImposiumError {
 export class PlayerConfigurationError extends ImposiumError {
     private eventName: string = '';
 
-    constructor(messageKey: string, eventName: string, type: string = types.PLAYER_CONFIG) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, storyId: string, eventName: string, type: string = types.PLAYER_CONFIG) {
+        super(errors[type][messageKey], type, storyId);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, PlayerConfigurationError);
@@ -86,15 +88,15 @@ export class NetworkError extends ImposiumError {
     private experienceId: string = null;
     private networkError: Error = null;
 
-    constructor(messageKey: string, experienceId: string, networkError: Error, type: string = types.NETWORK) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, storyId: string, experienceId: string, e: Error, type: string = types.NETWORK) {
+        super(errors[type][messageKey], type, storyId);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, NetworkError);
         }
 
         this.experienceId = experienceId || '<not_set>';
-        this.networkError = networkError;
+        this.networkError = e;
     }
 
     public log = (): void => {

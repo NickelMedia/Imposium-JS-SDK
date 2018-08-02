@@ -24,6 +24,7 @@ export default abstract class VideoPlayer {
     private static readonly playbackEvents: number[] = settings.playbackEvents;
     public experienceGenerated: (exp: IVideo) => void;
     protected node: HTMLVideoElement = null;
+    protected storyId: string = '';
     private readonly mediaEvents: any = {
         loadstart : () => this.onLoad(),
         play      : () => this.onPlay(),
@@ -40,6 +41,8 @@ export default abstract class VideoPlayer {
         Basis of Imposum/Fallback video player objects
      */
     constructor(node: HTMLVideoElement) {
+        const {storyId} = this;
+
         if (!isNode()) {
             if (node instanceof HTMLVideoElement) {
                 const {mediaEvents} = this;
@@ -51,11 +54,11 @@ export default abstract class VideoPlayer {
                 }
             } else {
                 // Prop passed wasn't of type HTMLVideoElement
-                throw new PlayerConfigurationError('invalidPlayerRef', null);
+                throw new PlayerConfigurationError('invalidPlayerRef', storyId, null);
             }
         } else {
             // Cancels out initialization in NodeJS
-            throw new EnvironmentError('node');
+            throw new EnvironmentError('node', storyId);
         }
     }
 
@@ -73,7 +76,7 @@ export default abstract class VideoPlayer {
     /*
         Set the current GA property and flush the pre mature GA calls
      */
-    public setGaProperty = (gaProperty: string) => {
+    public setGaProperty = (gaProperty: string): void => {
         const {deferredGaCalls} = this;
 
         this.gaProperty = gaProperty;
@@ -85,9 +88,16 @@ export default abstract class VideoPlayer {
     }
 
     /*
+        Set the current story id per client
+     */
+    public setStoryId = (storyId: string): void => {
+        this.storyId = storyId;
+    }
+
+    /*
         Set the current experience id per job that gets passed to analytics calls
      */
-    protected setExperienceId = (experienceId: string) => {
+    protected setExperienceId = (experienceId: string): void => {
         this.experienceId = experienceId;
     }
 
