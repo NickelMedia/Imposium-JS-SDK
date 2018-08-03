@@ -80,7 +80,7 @@ var inventory = {
 
 ### 7. Create new experiences
 
-An Imposium experience is the data record of the video that is being generated. You must first create the experience before generating the video. This loads the data into Imposium and started the rendering process. Once the video has been rendered, our player will auto load the most appropriate video quality for the user.
+An Imposium experience is the data record of the video that is being generated. The createExperience call loads the data into Imposium and starts the rendering process. Once the video has been rendered, our player will auto load the most appropriate video URL for the user.
 
 ```javascript
 client.createExperience(inventory);
