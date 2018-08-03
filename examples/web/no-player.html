@@ -76,7 +76,7 @@
             client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
             //Listen to the client GOT_EXPERIENE event to get the video URLs 
-            // client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
+            client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
 
             //Listen for input event to trigger input validation
             captionInput.addEventListener('input', validateForm);
