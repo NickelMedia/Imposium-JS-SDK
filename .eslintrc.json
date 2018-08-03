@@ -17,7 +17,8 @@
         "no-unused-vars":["error", {"vars":"local"}],
         "quotes":["error", "single"],
         "no-console":"off",
-        "camelcase":"error"
+        "camelcase":"error",
+        "no-empty-function"
     },
     "globals":{
         "Imposium": true
