@@ -1,3 +1,4 @@
+const path = require('path');
 const package = require('./package.json');
 const webpack = require('webpack');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
@@ -16,15 +17,31 @@ config = {
         extensions: ['.ts', '.js']
     },
     externals: {
-        'form-data'     : 'form-data',
-        'isomorphic-ws' : 'isomorphic-ws'
+        'form-data': 'form-data',
+        'isomorphic-ws': 'isomorphic-ws',
+        'has-flag': 'has-flag'
     },
     module: {
-        rules: [{
-            test    : /\.ts$/,
-            use     : 'awesome-typescript-loader',
-            exclude : /node_modules/
-        }]
+        rules: [
+            {
+                test: /\.ts$/,
+                use: 'awesome-typescript-loader',
+                exclude: /node_modules/
+            }, {
+                test: /\.js$/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ["@babel/preset-env"]
+                    }
+                },
+                exclude: /node_modules\/(?!(has-flag|supports-color))/,
+                include: [
+                    path.join(__dirname, 'node_modules', 'has-flag'),
+                    path.join(__dirname, 'node_modules', 'supports-color')
+                ]
+            }
+        ]
     },
     plugins: [
         new WebpackAutoInject({
@@ -52,11 +69,11 @@ config = {
         ]
     },
     output: {
-        library        : LIB_NAME,
-        libraryTarget  : 'umd',
-        umdNamedDefine : true,
-        path           : __dirname + '/lib',
-        globalObject   : 'this'
+        library: LIB_NAME,
+        libraryTarget: 'umd',
+        umdNamedDefine: true,
+        path: __dirname + '/lib',
+        globalObject: 'this'
     }
 };
 
