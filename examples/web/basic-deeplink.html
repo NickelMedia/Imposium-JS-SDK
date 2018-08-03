@@ -85,7 +85,7 @@
             //On page load, check for an experience ID in the URL
             if(window.location.hash){
 
-                var experienceId = window.location.hash.replace("#","");
+                var experienceId = window.location.hash.replace('#','');
                 if(experienceId){
                     client.getExperience(experienceId);
                 }
@@ -108,7 +108,7 @@
             //Writes the experience ID to the URL
             function gotExperience(e){
 
-                window.location.hash = "#" + e.id;
+                window.location.hash = '#' + e.id;
             }
 
             //Set the content of the status update field
@@ -118,7 +118,7 @@
             }
 
             //Validate the two inputs in the inputs field, enable the submit button if they are filled out
-            function validateForm(e){
+            function validateForm(){
 
                 if(captionInput.value != '' && imageInput.files.length > 0){
                     btnSubmit.disabled = false;

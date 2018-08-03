@@ -155,7 +155,7 @@
             }
 
             //Creates an object URL from the uploaded file
-            function imageUploaded(e){
+            function imageUploaded(){
 
                 var src = URL.createObjectURL(imageInput.files[0]);
 
@@ -188,6 +188,7 @@
             //Makes the canvas white again
             function clearCanvas(){
 
+                ctx.clearRect(0, 0, cvsW, cvsH);
             }
 
             function moveLeft(){

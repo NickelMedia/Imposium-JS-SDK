@@ -1,0 +1,25 @@
+{
+    "plugins": [
+        "html"
+    ],
+    "extends": [
+        "eslint:recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 5
+    },
+    "env": {
+        "browser": true,
+        "node": true
+    },
+    "rules":{
+        "no-trailing-spaces":"error",
+        "no-unused-vars":["error", {"vars":"local"}],
+        "quotes":["error", "single"],
+        "no-console":"off",
+        "camelcase":"error"
+    },
+    "globals":{
+        "Imposium": true
+    }
+}
