@@ -1,16 +1,13 @@
 {
-    "plugins": [
-        "html"
-    ],
     "extends": [
         "eslint:recommended"
     ],
     "parserOptions": {
-        "ecmaVersion": 5
+        "ecmaVersion": 6
     },
     "env": {
-        "browser": true,
-        "node": true
+        "node": true,
+        "browser": false
     },
     "rules":{
         "no-trailing-spaces":"error",
@@ -18,7 +15,7 @@
         "quotes":["error", "single"],
         "no-console":"off",
         "camelcase":"error",
-        "no-empty-function"
+        "no-empty-function":"error"
     },
     "globals":{
         "Imposium": true
