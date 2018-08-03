@@ -3,7 +3,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Imposium JS Basic Example</title>
+        <title>Imposium JS Two Stage Rendering Example</title>
         <link rel="stylesheet" href="./css/styles.css">
         <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
     </head>
@@ -12,8 +12,8 @@
 
         <header>
             <img class="logo" src="./img/imposium_logo@2x.png"/>
-            <h1>Basic Example</h1>
-            <p>This example represents a typical Imposium JavaScript integration. It includes a text and image input, simple client-side validation, and a status message as the video renders. Fill out the form and hit "Submit" to create your dynamic video.</p>
+            <h1>Two Stage Rendering Example</h1>
+            <p>This example represents breaking the rendering out into two steps, the creation of the experience, and the rendering of the experience. This can very very useful when using JavaScript based routers to enable deeplinking. Fill out the form and hit "Submit" to create your dynamic video.</p>
         </header>
         
         <div id="inputs">
@@ -74,13 +74,22 @@
             //Listen to the client STATUS_UPDATE event to populate the status field
             client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
-            //Listen to the client EXPERIENCE_CREATED event to get the experience ID.
+            //Listen to the client EXPERIENCE_CREATED event to get the experience ID
             client.on(Imposium.Events.EXPERIENCE_CREATED, experienceCreated);
 
             //Listen for input event to trigger input validation
             captionInput.addEventListener('input', validateForm);
             imageInput.addEventListener('input', validateForm);
             btnSubmit.addEventListener('click', submit);
+
+            //On page load, check for an experience ID in the URL
+            if(window.location.hash){
+
+                var experienceId = window.location.hash.replace("#","");    
+                if(experienceId){
+                    client.getExperience(experienceId);
+                }
+            }
 
             function submit(e){
 
@@ -98,7 +107,8 @@
 
             function experienceCreated(e){
 
-                console.log(e);
+                window.location.hash = "#" + e.id;
+                client.getExperience(e.id);
             }
 
             //Set the content of the status update field

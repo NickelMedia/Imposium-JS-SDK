@@ -14,6 +14,7 @@
         <header>
             <img class="logo" src="./img/imposium_logo@2x.png"/>
             <h1>Uploaded Image Blob Example</h1>
+            <p>This example demonstrates how you can pass Imposium.js and image Blob object, created via manipulating an uploaded image on an HTML5 Canvas element. Enter a caption, hit "Capture" to take the image, and hit "Submit" to create the dynamic video.</p>
             <p></p>
         </header>
 
@@ -233,7 +234,7 @@
                 statusField.innerHTML = e.status;
             }
 
-            //Validate the two inputs in the inputs field, enable the submit button if they are filled out.
+            //Validate the two inputs in the inputs field, enable the submit button if they are filled out
             function validateForm(){
 
                 if(captionInput.value != '' && imageInput.files.length > 0){
