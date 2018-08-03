@@ -107,8 +107,8 @@
             client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
             //Listen for input event to trigger input validation
-            captionInput.addEventListener('input', validateForm);
-            imageInput.addEventListener('input', imageUploaded);
+            captionInput.addEventListener('change', validateForm);
+            imageInput.addEventListener('change', imageUploaded);
             btnSubmit.addEventListener('click', submit);
 
             //Listen for click events on canvas manipulation buttons

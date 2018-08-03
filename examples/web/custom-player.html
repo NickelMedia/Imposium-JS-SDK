@@ -81,8 +81,8 @@
             client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
 
             //Listen for input event to trigger input validation
-            captionInput.addEventListener('input', validateForm);
-            imageInput.addEventListener('input', validateForm);
+            captionInput.addEventListener('change', validateForm);
+            imageInput.addEventListener('change', validateForm);
             btnSubmit.addEventListener('click', submit);
 
             function submit(e){

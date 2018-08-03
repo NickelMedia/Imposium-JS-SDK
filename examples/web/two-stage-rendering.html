@@ -78,8 +78,8 @@
             client.on(Imposium.Events.EXPERIENCE_CREATED, experienceCreated);
 
             //Listen for input event to trigger input validation
-            captionInput.addEventListener('input', validateForm);
-            imageInput.addEventListener('input', validateForm);
+            captionInput.addEventListener('change', validateForm);
+            imageInput.addEventListener('change', validateForm);
             btnSubmit.addEventListener('click', submit);
 
             //On page load, check for an experience ID in the URL
