@@ -35,12 +35,15 @@ const settings = require('../conf/settings.json').client;
 /*
     Log out Imposium.js Version in the console
  */
-const version = '[AIV]{version}[/AIV]';
-console.log(`%cPowered By%c Imposium%c v${version}%c https://imposium.com`,
-    'text-transform: uppercase; padding: 5px 0px 5px 5px; background-color: black; color: white;',
-    'text-transform: uppercase; padding: 5px 0px 5px 0px; background-color: black; color: #a1b83a;',
-    'padding: 5px 5px 5px 0px; background-color: black; color: white;',
-    'padding: 5px 5px 5px 0px;');
+export const version = '[AIV]{version}[/AIV]';
+
+if (!isNode()) {
+    console.log(`%cPowered By%c Imposium%c v${version}%c https://imposium.com`,
+        'text-transform: uppercase; padding: 5px 0px 5px 5px; background-color: black; color: white;',
+        'text-transform: uppercase; padding: 5px 0px 5px 0px; background-color: black; color: #a1b83a;',
+        'padding: 5px 5px 5px 0px; background-color: black; color: white;',
+        'padding: 5px 5px 5px 0px;');
+}
 
 export default class Client {
 
@@ -101,13 +104,13 @@ export default class Client {
                 if (keyExists(Client.events, eventName)) {
                     eventDelegateRefs[eventName] = callback;
                 } else {
-                    throw new ClientConfigurationError('invalidEventName', storyId, eventName);
+                    throw new ClientConfigurationError('invalidEventName', eventName);
                 }
             } else {
-                throw new ClientConfigurationError('invalidCallbackType', storyId, eventName);
+                throw new ClientConfigurationError('invalidCallbackType', eventName);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -122,7 +125,7 @@ export default class Client {
                 if (keyExists(Client.events, eventName)) {
                     eventDelegateRefs[eventName] = null;
                 } else {
-                    throw new ClientConfigurationError('invalidEventName', storyId, eventName);
+                    throw new ClientConfigurationError('invalidEventName', eventName);
                 }
             } else {
                 Object.keys(Client.events).forEach((event) => {
@@ -130,7 +133,7 @@ export default class Client {
                 });
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -159,14 +162,14 @@ export default class Client {
                     }
                 })
                 .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', storyId, experienceId, e);
-                    ExceptionPipe.trapError(wrappedError, ERROR);
+                    const wrappedError = new NetworkError('httpFailure', experienceId, e);
+                    ExceptionPipe.trapError(wrappedError, storyId, ERROR);
                 });
             } else {
-                throw new ClientConfigurationError('eventNotConfigured', storyId, Client.events.GOT_EXPERIENCE);
+                throw new ClientConfigurationError('eventNotConfigured', Client.events.GOT_EXPERIENCE);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -215,7 +218,7 @@ export default class Client {
                 })
                 .catch((e) => {
                     const wrappedError = new NetworkError('httpFailure', storyId, null, e);
-                    ExceptionPipe.trapError(wrappedError, ERROR);
+                    ExceptionPipe.trapError(wrappedError, storyId, ERROR);
                 });
             } else {
                 let eventType = null;
@@ -228,10 +231,10 @@ export default class Client {
                     eventType = Client.events.GOT_EXPERIENCE;
                 }
 
-                throw new ClientConfigurationError('eventNotConfigured', storyId, eventType);
+                throw new ClientConfigurationError('eventNotConfigured', eventType);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -247,14 +250,14 @@ export default class Client {
                     this.setPlayer(new FallbackPlayer(playerRef), true);
                 } else {
                     // Prop passed wasn't of type HTMLVideoElement
-                    throw new PlayerConfigurationError('invalidPlayerRef', storyId, null);
+                    throw new PlayerConfigurationError('invalidPlayerRef', null);
                 }
             } else {
                 // Cancels out initialization in NodeJS
-                throw new EnvironmentError('node', storyId);
+                throw new EnvironmentError('node');
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -302,8 +305,8 @@ export default class Client {
             window.addEventListener('popstate', () => this.doPageView());
         })
         .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', storyId, null, e);
-            ExceptionPipe.trapError(wrappedError, ERROR);
+            const wrappedError = new NetworkError('httpFailure', null, e);
+            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
         });
     }
 
@@ -328,8 +331,8 @@ export default class Client {
 
         api.invokeStream(experienceId)
         .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', storyId, experienceId, e);
-            ExceptionPipe.trapError(wrappedError, ERROR);
+            const wrappedError = new NetworkError('httpFailure', experienceId, e);
+            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
         });
     }
 

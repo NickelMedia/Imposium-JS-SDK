@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const Imposium = require('../../lib/imposium.min.js');
+const Imposium = require('../../lib/imposium.js');
 
 const YELLOW = "\x1b[33m",
 	    CYAN = "\x1b[36m",
@@ -8,12 +8,11 @@ const YELLOW = "\x1b[33m",
 	   RESET = "\x1b[0m";
 
 const config = {
-   accessToken : 'eey6AhJei9tohsoitueQua6MoneYaiqu',
-   storyId     : '6072569c-d4e7-43d8-ec7d-ec336ed8d6a8',
-   environment : 'staging'
+   accessToken : 'zooch5ja8fiejoojoo6AeQuahmex1wes',
+   storyId     : '295a80d0-871c-4def-a579-8a375d6942fc'
 };
 
-const imposium = new Imposium.ImposiumClient(config);
+const imposium = new Imposium.Client(config);
 
 const statusUpdate = (data) => {
 	console.log(`${YELLOW}Got message:${RESET} ${data.status || data.msg}`);
@@ -25,7 +24,7 @@ const experienceCreated = (data) => {
 
 const gotExperience = (data) => {
 	const prettyData = JSON.stringify(data, null, 2);
-	console.log(`\n${CYAN}Got scene:${RESET}\n${prettyData}\n\n${YELLOW}Test complete! Exiting (0)...${RESET}`);
+	console.log(`\n${CYAN}Got scene:${RESET}\n${prettyData}\n\n${YELLOW}Test complete! Exiting...${RESET}`);
 }
 
 const onError = (error) => {
@@ -34,11 +33,17 @@ const onError = (error) => {
 }
 
 const doRender = () => {
+	const inventory = {
+		'text'         : 'test',
+		'image'        : fs.createReadStream(__dirname + '/test.jpg'),
+		'callback_url' : ''
+	};
+
 	imposium.createExperience();
 }
 
 const bindEvents = () => {
-	const {STATUS_UPDATE, EXPERIENCE_CREATED, GOT_EXPERIENCE, ERROR} = imposium.events;
+	const {STATUS_UPDATE, EXPERIENCE_CREATED, GOT_EXPERIENCE, ERROR} = Imposium.Events;
 
 	imposium.on(STATUS_UPDATE, statusUpdate);
 	imposium.on(EXPERIENCE_CREATED, experienceCreated);
