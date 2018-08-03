@@ -58,7 +58,7 @@
         <script type = "text/javascript" src = "../../lib/imposium.js"></script>
         <script type = "text/javascript">
             
-            //Store all required HTML refs  
+            //Store all required HTML refs
             var btnSubmit = document.getElementById('btn-submit'),
                 videoNode = document.getElementById('dynamic-video'),
                 captionInput = document.getElementById('caption'),
@@ -77,7 +77,7 @@
             //Listen to the client STATUS_UPDATE event to populate the status field
             client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
-            //Listen to the client GOT_EXPERIENE event to get the video URLs 
+            //Listen to the client GOT_EXPERIENE event to get the video URLs
             client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
 
             //Listen for input event to trigger input validation

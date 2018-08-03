@@ -57,7 +57,7 @@
         <script type = "text/javascript" src = "../../lib/imposium.js"></script>
         <script type = "text/javascript">
             
-            //Store all required HTML refs  
+            //Store all required HTML refs
             var btnSubmit = document.getElementById('btn-submit'),
                 videoNode = document.getElementById('dynamic-video'),
                 captionInput = document.getElementById('caption'),
@@ -85,7 +85,7 @@
             //On page load, check for an experience ID in the URL
             if(window.location.hash){
 
-                var experienceId = window.location.hash.replace("#","");    
+                var experienceId = window.location.hash.replace("#","");
                 if(experienceId){
                     client.getExperience(experienceId);
                 }

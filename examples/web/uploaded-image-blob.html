@@ -70,7 +70,7 @@
         <script type = "text/javascript" src = "../../lib/imposium.js"></script>
         <script type = "text/javascript">
             
-            //Store all required HTML refs  
+            //Store all required HTML refs
             var btnSubmit = document.getElementById('btn-submit'),
                 videoNode = document.getElementById('dynamic-video'),
                 captionInput = document.getElementById('caption'),
@@ -150,9 +150,9 @@
                     var w = imgW * imgScale,
                         h = imgH * imgScale;
 
-                    ctx.drawImage(img, imgX, imgY, w, h); 
+                    ctx.drawImage(img, imgX, imgY, w, h);
                 }
-            }  
+            }
 
             //Creates an object URL from the uploaded file
             function imageUploaded(e){
@@ -188,7 +188,7 @@
             //Makes the canvas white again
             function clearCanvas(){
 
-            } 
+            }
 
             function moveLeft(){
 
@@ -218,7 +218,7 @@
 
                 imgScale += 0.01;
                 writeImageToCanvas();
-            }   
+            }
 
             function zoomOut(){
 
