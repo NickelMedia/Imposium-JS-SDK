@@ -6,7 +6,7 @@ import axiosRetry = require('axios-retry');
 
 import Analytics from '../../analytics/Analytics';
 
-import {isNode, InventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
+import {isNode, inventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
 
 const settings = require('../../conf/settings.json').api;
 
@@ -118,7 +118,7 @@ export default class API {
      */
     public postExperience = (storyId: string, inventory: any, progress: (e) => any = null): Promise<any> => {
         const {doPostExperience, uploadProgress} = this;
-        const formData = InventoryToFormData(storyId, inventory);
+        const formData = inventoryToFormData(storyId, inventory);
 
         const config = {
             onUploadProgress : (e) => uploadProgress(e, progress),

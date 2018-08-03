@@ -29,10 +29,10 @@ interface IPlayerConfig {
 
 const settings = require('../conf/settings.json').videoPlayer;
 
-let Hls = null;
+let hls = null;
 
 if (!isNode()) {
-    Hls = require('hls.js/dist/hls.light.min');
+    hls = require('hls.js/dist/hls.light.min');
 }
 
 export default class ImposiumPlayer extends VideoPlayer {
@@ -86,7 +86,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
     private clientRef: Client = null;
-    private ImposiumPlayerConfig: IPlayerConfig = null;
+    private imposiumPlayerConfig: IPlayerConfig = null;
 
     constructor(node: HTMLVideoElement, client: Client, config: IPlayerConfig = settings.defaultConfig) {
         super(node);
@@ -121,11 +121,11 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {defaultConfig} = settings;
 
         prepConfig(config, defaultConfig);
-        this.ImposiumPlayerConfig = {...defaultConfig, ...config};
+        this.imposiumPlayerConfig = {...defaultConfig, ...config};
 
-        for (const key in this.ImposiumPlayerConfig) {
-            if (this.ImposiumPlayerConfig[key]) {
-                this.node[key] = this.ImposiumPlayerConfig[key];
+        for (const key in this.imposiumPlayerConfig) {
+            if (this.imposiumPlayerConfig[key]) {
+                this.node[key] = this.imposiumPlayerConfig[key];
             }
         }
     }
@@ -355,7 +355,7 @@ export default class ImposiumPlayer extends VideoPlayer {
             this.off(eventDelegateRefs[key]);
         }
 
-        this.ImposiumPlayerConfig = {...defaultConfig};
+        this.imposiumPlayerConfig = {...defaultConfig};
         this.node = null;
     }
 
@@ -368,7 +368,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
         if (this.node.canPlayType(ImposiumPlayer.STREAM_TYPE)) {
             this.hlsSupport = NATIVE;
-        } else if (Hls.isSupported()) {
+        } else if (hls.isSupported()) {
             this.hlsSupport = HLSJS;
         }
     }
@@ -418,7 +418,7 @@ export default class ImposiumPlayer extends VideoPlayer {
                 this.hlsPlayer.destroy();
             }
 
-            this.hlsPlayer = new Hls();
+            this.hlsPlayer = new hls();
             this.hlsPlayer.attachMedia(this.node);
             this.hlsPlayer.loadSource(videoSrc);
         }

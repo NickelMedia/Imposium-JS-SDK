@@ -12,6 +12,8 @@
 
         <header>
             <img class="logo" src="./img/imposium_logo@2x.png"/>
+            <h1>Landing Page Example</h1>
+            <p>This example demonstrates how Imposium.js can be used to pull in a pre-rendered video using the Experience ID. This flow is generally used for email marketing campaigns.</p>
         </header>
 
         <section id="player-wrapper">
@@ -22,12 +24,11 @@
         <script type = "text/javascript" src = "../../lib/imposium.js"></script>
         <script type = "text/javascript">
             
-            //NOTE: PULL THIS EXPERIENCE ID FROM THE URL, this is hardcoded for sample purposes only    
+            //NOTE: PULL THIS EXPERIENCE ID FROM THE URL, this is hardcoded for sample purposes only
             var experienceID = 'bdc8ca2e-6c68-4c37-8396-bae2c65964d9';
 
-            //Store all required HTML refs  
-            var playerWrapper = document.getElementById('player-wrapper'),
-                videoNode = document.getElementById('dynamic-video');
+            //Store all required HTML refs
+            var videoNode = document.getElementById('dynamic-video');
 
             //Create an instance of the Client and Player
             var client = new Imposium.Client({

@@ -1,7 +1,7 @@
 import * as WebStomp from 'webstomp-client';
 import {isNode} from '../../scaffolding/Helpers';
 
-const WebSocketShim = require('isomorphic-ws');
+const webSocketShim = require('isomorphic-ws');
 const settings = require('../../conf/settings.json').stomp;
 
 export default class Stomp {
@@ -57,7 +57,7 @@ export default class Stomp {
         const {username, password} = Stomp;
         const {endpoint, delegates: {error}} = this;
 
-        this.socket = (!isNode()) ? new WebSocket(endpoint) : new WebSocketShim(endpoint);
+        this.socket = (!isNode()) ? new WebSocket(endpoint) : new webSocketShim(endpoint);
         this.client = WebStomp.over(this.socket);
         this.client.debug = () => { return; };
 

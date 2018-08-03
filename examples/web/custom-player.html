@@ -3,7 +3,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Imposium JS Basic Deeplink Example</title>
+        <title>Imposium JS Basic Example</title>
         <link rel="stylesheet" href="./css/styles.css">
         <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
     </head>
@@ -12,9 +12,10 @@
 
         <header>
             <img class="logo" src="./img/imposium_logo@2x.png"/>
-            <h1>Basic Deeplink Example</h1>
-            <p>This example represents a typical Imposium JavaScript integration. It includes a text and image input, simple client-side validation, and a status message as the video renders. When the Imposium Experience is created, we will write the Experience ID to the URL, so if you refresh the page, it will automatically re-load that video. Fill out the form and hit "Submit" to create your dynamic video.</p>
+            <h1>Custom Player Example</h1>
+            <p>This example demonstrates how you can use the Imposium Client without the Imposium Video Player. This can be useful if you want to use your own custom player, or use the generated video URLs in some other way. Fill out the form and hit "Submit" to create your dynamic video.</p>
         </header>
+
         
         <div id="inputs">
             <section>
@@ -44,7 +45,7 @@
             <button 
                 disabled
                 id="btn-submit" 
-                class="submit">
+                class="btn submit">
                 Submit
             </button>
         </div>
@@ -64,56 +65,46 @@
                 statusField = document.getElementById('status'),
                 imageInput = document.getElementById('image');
 
-            //Create an instance of the Client and Player
+            //Create an instance of the Client
             var client = new Imposium.Client({
                 accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
                 storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
             });
-            var player = new Imposium.Player(videoNode, client);
+
+            //Enables imposium to capture playback metrics without our default video player
+            client.captureAnalytics(videoNode);
 
             //Listen to the client STATUS_UPDATE event to populate the status field
             client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
-            //Listen for the EXPERIENCE_CREATED event to pull the experience ID and write it to the URL
-            client.on(Imposium.Events.EXPERIENCE_CREATED, gotExperience);
+            //Listen to the client GOT_EXPERIENE event to get the video URLs
+            client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
 
             //Listen for input event to trigger input validation
             captionInput.addEventListener('input', validateForm);
             imageInput.addEventListener('input', validateForm);
             btnSubmit.addEventListener('click', submit);
 
-            //On page load, check for an experience ID in the URL
-            if(window.location.hash){
-
-                var experienceId = window.location.hash.replace('#','');
-                if(experienceId){
-                    client.getExperience(experienceId);
-                }
-            }
-
             function submit(e){
 
                 e.preventDefault();
 
-                //Build the inventory object
+                // Build the inventory object
                 var inventory = {
                     text:captionInput.value,
                     image:imageInput.files[0]
                 }
 
-                //Create the Imposium Experience
+                // Create the Imposium Experience
                 client.createExperience(inventory);
             }
 
-            //Writes the experience ID to the URL
-            function gotExperience(e){
-
-                window.location.hash = '#' + e.id;
+            function gotExperience(data) {
+                videoNode.src = data.output.videos['mp4_720'].url;
             }
 
             //Set the content of the status update field
             function setStatus(e){
-
                 statusField.innerHTML = e.status;
             }
 

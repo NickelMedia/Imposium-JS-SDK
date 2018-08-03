@@ -60,6 +60,20 @@ input[type="text"] {
 	font-size: 14px;
 }
 
+h1{
+	font-size:30px;
+}
+
+h2{
+	text-transform:uppercase;
+	font-weight:600;
+	font-size: 18px;
+}
+
+p{
+	font-size:14px;
+	max-width:650px;
+}
 #status{
 	margin:10px 0px 10px 0px;
 }

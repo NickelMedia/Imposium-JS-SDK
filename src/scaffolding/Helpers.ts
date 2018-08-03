@@ -54,7 +54,7 @@ export const calculateAverageMbps = (speeds: number[]): number => {
 };
 
 // Deal with prepping form data objs in isomporphic way
-export const InventoryToFormData = (s: string, i: any): any => {
+export const inventoryToFormData = (s: string, i: any): any => {
     return (!isNode()) ? invToFDGlobal(s, i) :  invToFDShim(s, i);
 };
 
