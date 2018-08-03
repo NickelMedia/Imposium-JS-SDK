@@ -195,13 +195,13 @@ export default class Client {
         const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
         const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
 
-        if (STATUS_UPDATE) {
-            STATUS_UPDATE({status: 'Creating Experience'});
-        }
-
         try {
             if (permitRender || permitCreate) {
                 const {api} = this;
+
+                if (STATUS_UPDATE) {
+                    STATUS_UPDATE({status: 'Creating Experience'});
+                }
 
                 api.postExperience(storyId, inventory, UPLOAD_PROGRESS)
                 .then((experience: any) => {
