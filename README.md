@@ -74,7 +74,7 @@ var imageFile = fileInput.files[0];
 
 var inventory = {
 	text: 'hello_world',
-	image: imageFile,
+	image: imageFile
 };
 ```
 
