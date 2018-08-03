@@ -66,7 +66,7 @@ client.on(Imposium.Events.STATUS_UPDATE, statusUpdate);
 
 ### 6. Define the data to be rendered
 
-Dynamic data is defined in Imposium through the inventory object. This object lists all dynamic values to be used in the creation of the video. The property names are assigned based on the values in the story which come from your particular project set up by your Imposium account manager. You will find these values in an email from your Imposium account manager.
+Dynamic data is defined in Imposium through the inventory object. This object lists all dynamic values to be used in the creation of the video. You will be given the list of property names to use in this object by your Imposium account manager as they vary for every use case.
 
 The `callback_url` property is the only optional value and can be an empty string unless you require the responses be sent to a custom callback url.
 
@@ -87,10 +87,9 @@ An Imposium experience is the data record of the video that is being generated. 
 
 ```javascript
 client.createExperience(inventory);
-);
 ```
 
 ### 8. More Information
 
-There are lots of other features built into our SDK that are not described in this example so we can keep this short and informative. For more advanced examples of control flows and other features, take a look at our examples.
+There are lots of other features built into our SDK that are not described in this example so we can keep this tutorial short and informative. For more advanced examples of control flows and other features, take a look at our examples.
 
