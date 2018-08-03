@@ -68,16 +68,13 @@ client.on(Imposium.Events.STATUS_UPDATE, statusUpdate);
 
 Dynamic data is defined in Imposium through the inventory object. This object lists all dynamic values to be used in the creation of the video. You will be given the list of property names to use in this object by your Imposium account manager as they vary for every use case.
 
-The `callback_url` property is the only optional value and can be an empty string unless you require the responses be sent to a custom callback url.
-
 ```javascript
 var fileInput = document.getElementById('my-file-input');
 var imageFile = fileInput.files[0];
 
 var inventory = {
 	text: 'hello_world',
-	image: imageFile,
-	callback_url: ''
+	image: imageFile
 };
 ```
 
