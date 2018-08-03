@@ -98,8 +98,8 @@ export default class MessageConsumer {
                 default: break;
             }
         } catch (e) {
-            const wrappedError = new NetworkError('messageParseFailed', storyId, experienceId, e);
-            ExceptionPipe.trapError(wrappedError, ERROR);
+            const wrappedError = new NetworkError('messageParseFailed', experienceId, e);
+            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
         }
     }
 
@@ -112,14 +112,14 @@ export default class MessageConsumer {
 
         try {
             if (status === settings.errorOverTcp) {
-                throw new NetworkError('errorOverTcp', storyId, id, null);
+                throw new NetworkError('errorOverTcp', id, null);
             }
 
             if (STATUS_UPDATE) {
                 STATUS_UPDATE(messageData);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -157,8 +157,8 @@ export default class MessageConsumer {
                     this.establishConnection();
                 });
             } else {
-                const wrappedError = new NetworkError('tcpFailure', storyId, experienceId, e);
-                ExceptionPipe.trapError(wrappedError, ERROR);
+                const wrappedError = new NetworkError('tcpFailure', experienceId, e);
+                ExceptionPipe.trapError(wrappedError, storyId, ERROR);
             }
         }
     }

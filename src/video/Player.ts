@@ -99,18 +99,18 @@ export default class ImposiumPlayer extends VideoPlayer {
                         this.init(config);
                         this.setupHls();
                     } else {
-                        throw new PlayerConfigurationError('noClient', client.clientConfig.storyId, null);
+                        throw new PlayerConfigurationError('noClient', null);
                     }
                 } else {
                     // Prop passed wasn't of type HTMLVideoElement
-                    throw new PlayerConfigurationError('invalidPlayerRef', client.clientConfig.storyId, null);
+                    throw new PlayerConfigurationError('invalidPlayerRef', null);
                 }
             } else {
                 // Cancels out initialization in NodeJS
-                throw new EnvironmentError('node', client.clientConfig.storyId);
+                throw new EnvironmentError('node');
             }
         } catch (e) {
-            ExceptionPipe.trapError(e);
+            ExceptionPipe.trapError(e, client.clientConfig.storyId);
         }
     }
 
@@ -187,13 +187,13 @@ export default class ImposiumPlayer extends VideoPlayer {
                         this.node.addEventListener(eventName, event.callback);
                     }
                 } else {
-                    throw new PlayerConfigurationError('invalidEventName', storyId, eventName);
+                    throw new PlayerConfigurationError('invalidEventName', eventName);
                 }
             } else {
-                throw new PlayerConfigurationError('invalidCallbackType', storyId, eventName);
+                throw new PlayerConfigurationError('invalidCallbackType', eventName);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e);
+            ExceptionPipe.trapError(e, storyId);
         }
     }
 
@@ -214,10 +214,10 @@ export default class ImposiumPlayer extends VideoPlayer {
 
                 event.callback = null;
             } else {
-                throw new PlayerConfigurationError('invalidEventName', storyId, eventName);
+                throw new PlayerConfigurationError('invalidEventName', eventName);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e);
+            ExceptionPipe.trapError(e, storyId);
         }
     }
 

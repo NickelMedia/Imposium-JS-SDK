@@ -49,7 +49,7 @@ export default abstract class VideoPlayer {
             try {
                 this.node.addEventListener(key, this.mediaEvents[key]);
             } catch (e) {
-                throw new PlayerConfigurationError('invalidPlayerRef', storyId, null);
+                throw new PlayerConfigurationError('invalidPlayerRef', null);
             }
         }
     }
