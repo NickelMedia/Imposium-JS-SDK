@@ -1,10 +1,11 @@
 const errors = require('../conf/errors.json');
 
 const types = {
-    ENV           : 'environment',
-    CLIENT_CONFIG : 'clientConfiguration',
-    PLAYER_CONFIG : 'playerConfiguration',
-    NETWORK       : 'network'
+    ENV: 'environment',
+    CLIENT_CONFIG: 'clientConfiguration',
+    PLAYER_CONFIG: 'playerConfiguration',
+    NETWORK: 'network',
+    UNCAUGHT: 'uncaught'
 };
 
 export abstract class ImposiumError extends Error {
@@ -21,7 +22,6 @@ export abstract class ImposiumError extends Error {
 
         this.type = type;
     }
-
 }
 
 export class EnvironmentError extends ImposiumError {
@@ -86,7 +86,7 @@ export class NetworkError extends ImposiumError {
     private experienceId: string = null;
     private networkError: Error = null;
 
-    constructor(messageKey: string, experienceId: string, networkError: Error, type: string = types.NETWORK) {
+    constructor(messageKey: string, experienceId: string, e: Error, type: string = types.NETWORK) {
         super(errors[type][messageKey], type);
 
         if (Error.captureStackTrace) {
@@ -94,7 +94,7 @@ export class NetworkError extends ImposiumError {
         }
 
         this.experienceId = experienceId || '<not_set>';
-        this.networkError = networkError;
+        this.networkError = e;
     }
 
     public log = (): void => {
@@ -103,5 +103,26 @@ export class NetworkError extends ImposiumError {
             \nMessage: ${this.message}
             \nExperience ID: ${this.experienceId}
             \nNetwork Error: `, this.networkError);
+    }
+}
+
+export class UncaughtError extends ImposiumError {
+    private uncaughtError = null;
+
+    constructor(messageKey: string, e: Error, type: string = types.UNCAUGHT) {
+        super(errors[type][messageKey], type);
+
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, NetworkError);
+        }
+
+        this.uncaughtError = e;
+    }
+
+    public log = (): void => {
+        console.error(`${this.prefix}
+            \nReason: Unknown
+            \nMessage: ${this.message}
+            \nError: `, this.uncaughtError);
     }
 }

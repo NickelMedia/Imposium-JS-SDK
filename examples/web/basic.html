@@ -12,7 +12,8 @@
 
 		<header>
 			<img class="logo" src="./img/imposium_logo@2x.png"/>
-			<p>This demo requires a caption and an image file, please fill out the form to get started.</p>
+			<h1>Basic Example</h1>
+			<p>This example represents a typical Imposium JavaScript integration. It includes a text and image input, simple client-side validation, and a status message as the video renders. Fill out the form and hit "Submit" to create your dynamic video.</p>
 		</header>
 		
 		<div id="inputs">
@@ -37,13 +38,13 @@
 					id="image" 
 					name="image" 
 					type="file" 
-					accept=".jpg, .jpeg, .png, .gif" />			
+					accept=".jpg, .jpeg, .png" />
 			</section>
 
 			<button 
 				disabled
 				id="btn-submit" 
-				class="submit">
+				class="btn submit">
 				Submit
 			</button>
 		</div>
@@ -56,9 +57,8 @@
 		<script type = "text/javascript" src = "../../lib/imposium.js"></script>
 		<script type = "text/javascript">
 			
-			//Store all required HTML refs	
-			var playerWrapper = document.getElementById('player-wrapper'),
-				btnSubmit = document.getElementById('btn-submit'),
+			//Store all required HTML refs
+			var btnSubmit = document.getElementById('btn-submit'),
 				videoNode = document.getElementById('dynamic-video'),
 				captionInput = document.getElementById('caption'),
 				statusField = document.getElementById('status'),
@@ -91,10 +91,6 @@
 
 				//Create the Imposium Experience
 				client.createExperience(inventory);
-
-				//Show the video player wrapper
-				playerWrapper.style.display = 'block';
-
 			}
 
 			//Set the content of the status update field
@@ -103,8 +99,8 @@
 				statusField.innerHTML = e.status;
 			}
 
-			//Validate the two inputs in the inputs field, enable the submit button if they are filled out.
-			function validateForm(e){
+			//Validate the two inputs in the inputs field, enable the submit button if they are filled out
+			function validateForm(){
 
 				if(captionInput.value != '' && imageInput.files.length > 0){
 					btnSubmit.disabled = false;

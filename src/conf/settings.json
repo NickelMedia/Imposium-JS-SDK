@@ -46,7 +46,8 @@
 			"muted": false,
 			"autoLoad": true,
 			"autoPlay": true,
-			"controls": true
+			"controls": true,
+			"crossOrigin": "anonymous"
 		},
 		"playbackEvents": [0.25, 0.5, 0.75],
 		"checkPlaybackRateMs": 100,

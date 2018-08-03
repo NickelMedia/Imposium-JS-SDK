@@ -29,10 +29,10 @@ interface IPlayerConfig {
 
 const settings = require('../conf/settings.json').videoPlayer;
 
-let Hls = null;
+let hls = null;
 
 if (!isNode()) {
-    Hls = require('hls.js/dist/hls.light.min');
+    hls = require('hls.js/dist/hls.light.min');
 }
 
 export default class ImposiumPlayer extends VideoPlayer {
@@ -82,24 +82,35 @@ export default class ImposiumPlayer extends VideoPlayer {
     };
 
     private hlsSupport: string = '';
+    private singleFile: boolean = false;
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
     private clientRef: Client = null;
-    private ImposiumPlayerConfig: IPlayerConfig = null;
+    private imposiumPlayerConfig: IPlayerConfig = null;
 
     constructor(node: HTMLVideoElement, client: Client, config: IPlayerConfig = settings.defaultConfig) {
         super(node);
 
         try {
-            if (client) {
-                client.setPlayer(this);
-                this.init(config);
-                this.setupHls();
+            if (!isNode()) {
+                if (node instanceof HTMLVideoElement) {
+                    if (client) {
+                        client.setPlayer(this);
+                        this.init(config);
+                        this.setupHls();
+                    } else {
+                        throw new PlayerConfigurationError('noClient', null);
+                    }
+                } else {
+                    // Prop passed wasn't of type HTMLVideoElement
+                    throw new PlayerConfigurationError('invalidPlayerRef', null);
+                }
             } else {
-                throw new PlayerConfigurationError('noClient', null);
+                // Cancels out initialization in NodeJS
+                throw new EnvironmentError('node');
             }
         } catch (e) {
-            ExceptionPipe.trapError(e);
+            ExceptionPipe.trapError(e, client.clientConfig.storyId);
         }
     }
 
@@ -110,11 +121,11 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {defaultConfig} = settings;
 
         prepConfig(config, defaultConfig);
-        this.ImposiumPlayerConfig = {...defaultConfig, ...config};
+        this.imposiumPlayerConfig = {...defaultConfig, ...config};
 
-        for (const key in this.ImposiumPlayerConfig) {
-            if (this.ImposiumPlayerConfig[key]) {
-                this.node[key] = this.ImposiumPlayerConfig[key];
+        for (const key in this.imposiumPlayerConfig) {
+            if (this.imposiumPlayerConfig[key]) {
+                this.node[key] = this.imposiumPlayerConfig[key];
             }
         }
     }
@@ -128,10 +139,12 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {id, output: {videos}} = experience;
         const hasStream = videos.hasOwnProperty(STREAM);
         let poster;
+
         if (experience.output.images) {
             poster = experience.output.images.poster;
         }
 
+        this.singleFile = false;
         this.setExperienceId(id);
         experienceCache.push(experience);
 
@@ -141,6 +154,7 @@ export default class ImposiumPlayer extends VideoPlayer {
             const compressionKeys = Object.keys(videos);
 
             if (compressionKeys.length === 1) {
+                this.singleFile = true;
                 this.setPlayerData(videos[compressionKeys[0]].url, poster);
             } else {
                 this.checkBandwidth(videos)
@@ -158,7 +172,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Enable native or custom ImposiumPlayer events
      */
     public on = (eventName: string, callback: any): void => {
-        const {eventDelegateRefs} = this;
+        const {storyId, eventDelegateRefs} = this;
 
         try {
             if (isFunc(callback)) {
@@ -179,7 +193,7 @@ export default class ImposiumPlayer extends VideoPlayer {
                 throw new PlayerConfigurationError('invalidCallbackType', eventName);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e);
+            ExceptionPipe.trapError(e, storyId);
         }
     }
 
@@ -187,7 +201,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Disable native or custom ImposiumPlayer events
      */
     public off = (eventName: string): void => {
-        const {eventDelegateRefs} = this;
+        const {storyId, eventDelegateRefs} = this;
 
         try {
             if (keyExists(this.events, eventName)) {
@@ -203,7 +217,7 @@ export default class ImposiumPlayer extends VideoPlayer {
                 throw new PlayerConfigurationError('invalidEventName', eventName);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e);
+            ExceptionPipe.trapError(e, storyId);
         }
     }
 
@@ -341,7 +355,7 @@ export default class ImposiumPlayer extends VideoPlayer {
             this.off(eventDelegateRefs[key]);
         }
 
-        this.ImposiumPlayerConfig = {...defaultConfig};
+        this.imposiumPlayerConfig = {...defaultConfig};
         this.node = null;
     }
 
@@ -354,9 +368,8 @@ export default class ImposiumPlayer extends VideoPlayer {
 
         if (this.node.canPlayType(ImposiumPlayer.STREAM_TYPE)) {
             this.hlsSupport = NATIVE;
-        } else if (Hls.isSupported()) {
+        } else if (hls.isSupported()) {
             this.hlsSupport = HLSJS;
-            this.hlsPlayer = new Hls();
         }
     }
 
@@ -395,14 +408,19 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set player data once video file was selected
      */
     private setPlayerData = (videoSrc: string, posterSrc: string = null): void => {
-        const {hlsSupport} = this;
+        const {hlsSupport, singleFile} = this;
         const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
 
-        if (hlsSupport === NATIVE || !hlsSupport) {
+        if (hlsSupport === NATIVE || !hlsSupport || singleFile) {
             this.node.src = videoSrc;
         } else if (hlsSupport === HLSJS) {
-            this.hlsPlayer.loadSource(videoSrc);
+            if (this.hlsPlayer) {
+                this.hlsPlayer.destroy();
+            }
+
+            this.hlsPlayer = new hls();
             this.hlsPlayer.attachMedia(this.node);
+            this.hlsPlayer.loadSource(videoSrc);
         }
 
         if (posterSrc) {

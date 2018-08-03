@@ -6,7 +6,7 @@ import axiosRetry = require('axios-retry');
 
 import Analytics from '../../analytics/Analytics';
 
-import {isNode, InventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
+import {isNode, inventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
 
 const settings = require('../../conf/settings.json').api;
 
@@ -38,16 +38,12 @@ export default class API {
         const config = {responseType: 'blob', timeout: 1500};
 
         return new Promise((resolve, reject) => {
-            const start = new Date().getTime();
+            const startTime = new Date().getTime();
 
             get(url, config)
             .then((res) => {
                 const {data: {size}} = res;
-                const duration: number = (new Date().getTime() - start) / 1000;
-                const filesizeBits: number = size * 8;
-                const mbps: number = calculateMbps(duration, filesizeBits);
-
-                resolve(mbps);
+                resolve(calculateMbps(startTime, size));
             })
             .catch((e) => {
                 reject(e);
@@ -77,7 +73,7 @@ export default class API {
             }
         });
 
-        // Add exponential back off to requests...
+        // Adds exponential back off to requests...
         API.retry(this.http, {retryDelay: API.retry.exponentialDelay});
     }
 
@@ -122,7 +118,7 @@ export default class API {
      */
     public postExperience = (storyId: string, inventory: any, progress: (e) => any = null): Promise<any> => {
         const {doPostExperience, uploadProgress} = this;
-        const formData = InventoryToFormData(storyId, inventory);
+        const formData = inventoryToFormData(storyId, inventory);
 
         const config = {
             onUploadProgress : (e) => uploadProgress(e, progress),

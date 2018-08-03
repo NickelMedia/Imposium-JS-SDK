@@ -9,6 +9,7 @@ import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {
     ClientConfigurationError,
+    PlayerConfigurationError,
     EnvironmentError,
     NetworkError
 } from '../scaffolding/Exceptions';
@@ -34,12 +35,15 @@ const settings = require('../conf/settings.json').client;
 /*
     Log out Imposium.js Version in the console
  */
-const version = '[AIV]{version}[/AIV]';
-console.log(`%cPowered By%c Imposium%c v${version}%c https://imposium.com`,
-    'text-transform: uppercase; padding: 5px 0px 5px 5px; background-color: black; color: white;',
-    'text-transform: uppercase; padding: 5px 0px 5px 0px; background-color: black; color: #a1b83a;',
-    'padding: 5px 5px 5px 0px; background-color: black; color: white;',
-    'padding: 5px 5px 5px 0px;');
+export const version = '[AIV]{version}[/AIV]';
+
+if (!isNode()) {
+    console.log(`%cPowered By%c Imposium%c v${version}%c https://imposium.com`,
+        'text-transform: uppercase; padding: 5px 0px 5px 5px; background-color: black; color: white;',
+        'text-transform: uppercase; padding: 5px 0px 5px 0px; background-color: black; color: #a1b83a;',
+        'padding: 5px 5px 5px 0px; background-color: black; color: white;',
+        'padding: 5px 5px 5px 0px;');
+}
 
 export default class Client {
 
@@ -50,13 +54,13 @@ export default class Client {
         STATUS_UPDATE: 'STATUS_UPDATE',
         ERROR: 'ERROR'
     };
-
+    public clientConfig: IClientConfig = null;
     private eventDelegateRefs: any = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
     private consumer: MessageConsumer = null;
-    private clientConfig: IClientConfig = null;
     private gaProperty: string = '';
+    private playerIsFallback: boolean = false;
 
     /*
         Initialize Imposium client
@@ -80,15 +84,20 @@ export default class Client {
     /*
         Set current video player ref
      */
-    public setPlayer = (player: VideoPlayer) => {
+    public setPlayer = (player: VideoPlayer, isFallback: boolean = false) => {
+        const {clientConfig: {storyId}} = this;
+
+        this.playerIsFallback = isFallback;
         this.player = player;
+
+        player.setStoryId(storyId);
     }
 
     /*
         Sets a callback for an event
      */
     public on = (eventName: string, callback: any): void => {
-        const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
+        const {clientConfig: {storyId}, eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
         try {
             if (isFunc(callback)) {
@@ -101,7 +110,7 @@ export default class Client {
                 throw new ClientConfigurationError('invalidCallbackType', eventName);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -109,7 +118,7 @@ export default class Client {
         Turns off a specific event or all events
      */
     public off = (eventName: string = ''): void => {
-        const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
+        const {clientConfig: {storyId}, eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
         try {
             if (eventName !== '') {
@@ -124,7 +133,7 @@ export default class Client {
                 });
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -132,7 +141,7 @@ export default class Client {
         Get experience data
      */
     public getExperience = (experienceId: string): void => {
-        const {api, player, gaProperty, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
+        const {api, player, gaProperty, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
 
         try {
             if (GOT_EXPERIENCE || player) {
@@ -154,13 +163,13 @@ export default class Client {
                 })
                 .catch((e) => {
                     const wrappedError = new NetworkError('httpFailure', experienceId, e);
-                    ExceptionPipe.trapError(wrappedError, ERROR);
+                    ExceptionPipe.trapError(wrappedError, storyId, ERROR);
                 });
             } else {
                 throw new ClientConfigurationError('eventNotConfigured', Client.events.GOT_EXPERIENCE);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -170,6 +179,10 @@ export default class Client {
     public createExperience = (inventory: any, render: boolean = true): void => {
         const {
             player,
+            playerIsFallback,
+            clientConfig: {
+                storyId
+            },
             eventDelegateRefs: {
                 GOT_EXPERIENCE,
                 EXPERIENCE_CREATED,
@@ -179,16 +192,16 @@ export default class Client {
             }
         } = this;
 
-        const permitRender = (render && (player || EXPERIENCE_CREATED));
-        const permitCreate = (!render && GOT_EXPERIENCE);
-
-        if (STATUS_UPDATE) {
-            STATUS_UPDATE({status: 'Creating Experience'});
-        }
+        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
+        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
 
         try {
             if (permitRender || permitCreate) {
-                const {api, clientConfig: {storyId}} = this;
+                const {api} = this;
+
+                if (STATUS_UPDATE) {
+                    STATUS_UPDATE({status: 'Creating Experience'});
+                }
 
                 api.postExperience(storyId, inventory, UPLOAD_PROGRESS)
                 .then((experience: any) => {
@@ -198,28 +211,30 @@ export default class Client {
                     if (EXPERIENCE_CREATED) {
                         EXPERIENCE_CREATED(experience);
                     }
+
                     if (render) {
                         this.renderExperience(id);
                     }
                 })
                 .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', null, e);
-                    ExceptionPipe.trapError(wrappedError, ERROR);
+                    const wrappedError = new NetworkError('httpFailure', storyId, null, e);
+                    ExceptionPipe.trapError(wrappedError, storyId, ERROR);
                 });
             } else {
                 let eventType = null;
 
+                if (!EXPERIENCE_CREATED) {
+                    eventType = Client.events.EXPERIENCE_CREATED;
+                }
+
                 if (render && !GOT_EXPERIENCE) {
                     eventType = Client.events.GOT_EXPERIENCE;
-                }
-                if (!render && !EXPERIENCE_CREATED) {
-                    eventType = Client.events.EXPERIENCE_CREATED;
                 }
 
                 throw new ClientConfigurationError('eventNotConfigured', eventType);
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, ERROR);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -227,16 +242,22 @@ export default class Client {
         Sets up analytics using fallback video player wrapper class
      */
     public captureAnalytics = (playerRef: HTMLVideoElement = null): void => {
-        const {eventDelegateRefs: {onError}} = this;
+        const {clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
         try {
             if (!isNode()) {
-                this.setPlayer(new FallbackPlayer(playerRef));
+                if (playerRef instanceof HTMLVideoElement) {
+                    this.setPlayer(new FallbackPlayer(playerRef), true);
+                } else {
+                    // Prop passed wasn't of type HTMLVideoElement
+                    throw new PlayerConfigurationError('invalidPlayerRef', null);
+                }
             } else {
+                // Cancels out initialization in NodeJS
                 throw new EnvironmentError('node');
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, onError);
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -285,7 +306,7 @@ export default class Client {
         })
         .catch((e) => {
             const wrappedError = new NetworkError('httpFailure', null, e);
-            ExceptionPipe.trapError(wrappedError, ERROR);
+            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
         });
     }
 
@@ -306,12 +327,12 @@ export default class Client {
         Invokes the streaming process
      */
     private startMessaging = (experienceId): void => {
-        const {api, eventDelegateRefs: {ERROR}} = this;
+        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
         api.invokeStream(experienceId)
         .catch((e) => {
             const wrappedError = new NetworkError('httpFailure', experienceId, e);
-            ExceptionPipe.trapError(wrappedError, ERROR);
+            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
         });
     }
 
@@ -319,7 +340,7 @@ export default class Client {
         Make a new consumer w/ delegates
      */
     private makeConsumer = (experienceId: string): void => {
-        const {clientConfig: {environment}, eventDelegateRefs, player} = this;
+        const {clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
 
         // Merge scoped startMessaging call with client events
         const delegates: any = {
@@ -329,6 +350,7 @@ export default class Client {
 
         this.consumer = new MessageConsumer(
             environment,
+            storyId,
             experienceId,
             delegates,
             player

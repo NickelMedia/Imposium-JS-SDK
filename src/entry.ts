@@ -1,10 +1,10 @@
 import Client from './client/Client';
 import Player from './video/Player';
 
-const Events = Client.events;
+const e = Client.events;
 
 export {
     Client,
     Player,
-    Events
+    e as Events
 };

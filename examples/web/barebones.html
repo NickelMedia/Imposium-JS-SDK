@@ -3,7 +3,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Imposium JS Basic Example</title>
+		<title>Imposium JS Barebones Example</title>
 		<link rel="stylesheet" href="./css/styles.css">
 		<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
 	</head>
@@ -12,7 +12,8 @@
 
 		<header>
 			<img class="logo" src="./img/imposium_logo@2x.png"/>
-			<p>This demo requires a caption and an image file, please fill out the form to get started.</p>
+			<h1>Barebones Example</h1>
+			<p>This example represents the absolute bare minimum of code required to create a dynamic video. Enter a caption, hit "Submit", and wait until the video is rendered and begins to play.</p>
 		</header>
 		
 		<div id="inputs">
@@ -30,7 +31,7 @@
 
 			<button 
 				id="btn-submit" 
-				class="submit">
+				class="btn submit">
 				Submit
 			</button>
 		</div>
@@ -43,9 +44,8 @@
 		<script type = "text/javascript" src = "../../lib/imposium.js"></script>
 		<script type = "text/javascript">
 			
-			//Store all required HTML refs	
-			var playerWrapper = document.getElementById('player-wrapper'),
-				btnSubmit = document.getElementById('btn-submit'),
+			//Store all required HTML refs
+			var btnSubmit = document.getElementById('btn-submit'),
 				videoNode = document.getElementById('dynamic-video'),
 				captionInput = document.getElementById('caption');
 
@@ -67,9 +67,6 @@
 				client.createExperience({
 					text:captionInput.value,
 				});
-
-				//Show the video player wrapper
-				playerWrapper.style.display = 'block';
 			}
 
 		</script>

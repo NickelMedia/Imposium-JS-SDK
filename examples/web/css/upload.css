@@ -1,0 +1,16 @@
+
+#img-canvas{
+    width:360px;
+    height:360px;
+    border:1px solid #ddd;
+    display: inline-block;
+}
+
+.btn-container{
+    vertical-align: top;
+    display: inline-block;
+}
+
+.btn-canvas{
+    width:100px;
+}

@@ -31,7 +31,7 @@ input[type="text"] {
 	border-radius: 3px;
 }
 
-.submit {
+.btn{
 	border: none;
 	outline: none;
 	background-color: deepskyblue;
@@ -47,12 +47,12 @@ input[type="text"] {
 	cursor: pointer;
 }
 
-.submit:disabled{
+.btn:disabled{
 	pointer-events: none;
 	opacity: 0.4;
 }
 
-.submit:hover {
+.btn:hover {
 	background-color: #0099cc;
 }
 
@@ -60,10 +60,20 @@ input[type="text"] {
 	font-size: 14px;
 }
 
-#player-wrapper{
-	display: none;
+h1{
+	font-size:30px;
 }
 
+h2{
+	text-transform:uppercase;
+	font-weight:600;
+	font-size: 18px;
+}
+
+p{
+	font-size:14px;
+	max-width:650px;
+}
 #status{
 	margin:10px 0px 10px 0px;
 }

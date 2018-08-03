@@ -22,5 +22,8 @@
 		"tcpFailure": "Unable to reach Imposium while processing this experience.",
 		"errorOverTcp": "Something went wrong while processing this experience.",
 		"messageParseFailure": "Message data from Imposium was malformed."
+	},
+	"uncaught": {
+		"generic": "Something unexpected went wrong."
 	}
 }
