@@ -82,6 +82,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     };
 
     private hlsSupport: string = '';
+    private qualityOverride: string = '';
     private singleFile: boolean = false;
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
@@ -134,7 +135,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set a live stream or fallback to bandwidth checking / auto assigning a file
      */
     public experienceGenerated = (experience: any): void => {
-        const {experienceCache, hlsSupport, node} = this;
+        const {experienceCache, qualityOverride, storyId, hlsSupport, node} = this;
         const {compressionLevels: {STREAM}} = ImposiumPlayer;
         const {id, output: {videos}} = experience;
         const hasStream = videos.hasOwnProperty(STREAM);
@@ -148,22 +149,34 @@ export default class ImposiumPlayer extends VideoPlayer {
         this.setExperienceId(id);
         experienceCache.push(experience);
 
-        if (hasStream && hlsSupport) {
-            this.setPlayerData(videos[STREAM].url, poster);
+        if (qualityOverride) {
+            try {
+                if (videos.hasOwnProperty(qualityOverride)) {
+                    this.setPlayerData(videos[qualityOverride], poster);
+                } else {
+                    throw new PlayerConfigurationError('badQualityOverride', null);
+                }
+            } catch (e) {
+                ExceptionPipe.trapError(e, storyId);
+            }
         } else {
-            const compressionKeys = Object.keys(videos);
-
-            if (compressionKeys.length === 1) {
-                this.singleFile = true;
-                this.setPlayerData(videos[compressionKeys[0]].url, poster);
+            if (hasStream && hlsSupport) {
+                this.setPlayerData(videos[STREAM].url, poster);
             } else {
-                this.checkBandwidth(videos)
-                .then((compression: string) => {
-                    this.setPlayerData(videos[compression].url, poster);
-                })
-                .catch((fallbackCompression: string) => {
-                    this.setPlayerData(videos[fallbackCompression].url, poster);
-                });
+                const compressionKeys = Object.keys(videos);
+
+                if (compressionKeys.length === 1) {
+                    this.singleFile = true;
+                    this.setPlayerData(videos[compressionKeys[0]].url, poster);
+                } else {
+                    this.checkBandwidth(videos)
+                    .then((compression: string) => {
+                        this.setPlayerData(videos[compression].url, poster);
+                    })
+                    .catch((fallbackCompression: string) => {
+                        this.setPlayerData(videos[fallbackCompression].url, poster);
+                    });
+                }
             }
         }
     }
@@ -357,6 +370,13 @@ export default class ImposiumPlayer extends VideoPlayer {
 
         this.imposiumPlayerConfig = {...defaultConfig};
         this.node = null;
+    }
+
+    /*
+        Manually ensures that a certain quality is
+     */
+    public setQualityOverride = (key: string): void => {
+        this.qualityOverride = key;
     }
 
     /*

@@ -55,7 +55,7 @@ export const calculateAverageMbps = (speeds: number[]): number => {
 
 // Deal with prepping form data objs in isomporphic way
 export const inventoryToFormData = (s: string, i: any): any => {
-    return (!isNode()) ? invToFDGlobal(s, i) :  invToFDShim(s, i);
+    return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
 };
 
 // Uses browser based FormData library to prep POST data
@@ -65,7 +65,6 @@ const invToFDGlobal = (storyId: string, inventory: any): FormData => {
     formData.append('story_id', storyId);
 
     for (const key in inventory) {
-
         if (inventory[key]) {
 
             const data = inventory[key];
