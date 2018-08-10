@@ -1,0 +1,99 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Imposium JS Player Controls Example</title>
+        <link rel="stylesheet" href="./css/styles.css">
+        <link rel="stylesheet" href="./css/controls.css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+    </head>
+
+    <body>
+
+        <header>
+            <img class="logo" src="./img/imposium_logo@2x.png"/>
+            <h1>Player Controls Example</h1>
+            <p>This example will demonstrate how to use the Imposium Player API if you want to use custom video controls / markup for your example.</p>
+        </header>
+
+        <section id="player-wrapper">
+            <p id = "status"></p>
+            <video id="dynamic-video" />
+        </section>
+
+        <div class="controls">
+            <button onclick="doPlay()">Play</button>
+            <button onclick="doPause()">Pause</button>
+            <button onclick="doReplay()">Replay</button>
+            <button onclick="doMute()">Mute</button>
+            <button onclick="doSeek(-1)"><< Go Back</button>
+            <button onclick="doSeek(1)">Skip Ahead >></button>
+            <button onclick="adjustVolume(.1)">Increase volume</button>
+            <button onclick="adjustVolume(-.1)">Decrease volume</button>
+        </div>
+
+        <script type = "text/javascript" src = "../../lib/imposium.js"></script>
+        <script type = "text/javascript">
+            
+            //NOTE: PULL THIS EXPERIENCE ID FROM THE URL, this is hardcoded for sample purposes only
+            var experienceID = 'bdc8ca2e-6c68-4c37-8396-bae2c65964d9';
+
+            //Store all required HTML refs
+            var videoNode = document.getElementById('dynamic-video');
+
+            //Create an instance of the Client and Player
+            var client = new Imposium.Client({
+                accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+                storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
+            });
+
+            //Turn off default media controls
+            var playerConfig = {
+                controls: false
+            };
+
+            var player = new Imposium.Player(videoNode, client, playerConfig);
+
+            //Pull in the already created experience
+            client.getExperience(experienceID);
+
+            //Play video
+            function doPlay() {
+                player.play();
+            }
+
+            //Pause video
+            function doPause() {
+                player.pause();
+            }
+
+            //Replay video
+            function doReplay() {
+                player.replay();
+            }
+
+            //Toggle mute state
+            function doMute() {
+                var muted = player.getMute();
+                player.setMute(!muted);
+            }
+
+            //Seek to an offset time within the duration
+            function doSeek(offset) {
+                var currentTime = player.getPosition();
+                var seekTo = currentTime + offset;
+
+                player.seek(seekTo);
+            }
+
+            //Change the volume level of the video
+            function adjustVolume(offset) {
+                var currentVolume = player.getVolume();
+
+                var offsetVolume = currentVolume + offset;
+                player.setVolume(offsetVolume);
+            }
+        </script>
+    </body>
+</html>

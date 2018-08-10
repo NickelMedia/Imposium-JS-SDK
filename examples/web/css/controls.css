@@ -1,0 +1,17 @@
+#dynamic-video {
+	margin-bottom: 0;
+}
+
+.controls {
+	width: 640px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	padding: 10px;
+	background-color: #ccc;
+}
+
+button {
+	margin: 2.5px;
+}
