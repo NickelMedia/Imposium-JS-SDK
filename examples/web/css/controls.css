@@ -5,11 +5,28 @@
 .controls {
 	width: 640px;
 	display: flex;
-	align-items: center;
+	flex-direction: column;
 	justify-content: center;
 	box-sizing: border-box;
 	padding: 10px;
 	background-color: #ccc;
+}
+
+.sub-controls {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	margin-bottom: 5px;
+}
+
+.type {
+	margin-right: 5px;
+	font-size: 12px;
+	font-weight: 800;
+}
+
+.label {
+	margin-
 }
 
 button {

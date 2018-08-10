@@ -293,7 +293,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {volumeMin, volumeMax} = settings;
 
         if (inRangeNumeric(volume, volumeMin, volumeMax)) {
-            this.node.volume = volume;
+            this.node.volume = Math.round(volume * 10) / 10;
         } else {
             ExceptionPipe.logWarning('playerFailure', 'invalidVolume');
         }
