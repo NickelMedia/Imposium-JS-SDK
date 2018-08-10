@@ -75,7 +75,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         ended: {callback: null, native: true},
         error: {callback: null, native: true},
         seeked: {callback: null, native: true},
-        timeupdated: {callback: null, native: true},
+        timeupdate: {callback: null, native: true},
         volumechanged: {callback: null, native: true},
         muted: {callback: null, native: false},
         controlsset: {callback: null, native: false}

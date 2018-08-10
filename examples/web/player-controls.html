@@ -75,7 +75,10 @@
 
             //Setup an instance of the Player
             var player = new Imposium.Player(videoNode, client, playerConfig);
+
+            //Setup player events that will update the DOM
             player.on(player.events.COMPLETE, onComplete);
+            player.on(player.events.TIME, onTimeUpdate);
 
             //Print default player values
             setupLabels();
@@ -130,6 +133,10 @@
                 updatePlaybackLabel();
             }
 
+            function onTimeUpdate() {
+                updateSeekLabel();
+            }
+
             //Update DOM element with playback state
             function updatePlaybackLabel() {
                 playbackLabel.innerHTML = player.getPlaybackState();
@@ -143,7 +150,7 @@
 
             //Update DOM element with current time state
             function updateSeekLabel() {
-                seekLabel.innerHTML = player.getPosition() + 's';
+                seekLabel.innerHTML = Math.floor(player.getPosition()) + 's';
             }
 
             //Ensures player properties are displayed when page loads
