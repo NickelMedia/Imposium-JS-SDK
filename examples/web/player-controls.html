@@ -37,6 +37,7 @@
                 <button onclick="adjustVolume(.1)">+</button>
                 <button onclick="adjustVolume(-.1)">-</button>
                 <span class="label" id="volume-label"></span>
+                <span class="label" id="mute-label"></span>
             </div>
             
             <div class="sub-controls seek">
@@ -58,6 +59,7 @@
             var videoNode = document.getElementById('dynamic-video');
             var playbackLabel = document.getElementById('playback-label');
             var volumeLabel = document.getElementById('volume-label');
+            var muteLabel = document.getElementById('mute-label');
             var seekLabel = document.getElementById('seek-label');
 
             //Create an instance of the Client
@@ -73,6 +75,7 @@
 
             //Setup an instance of the Player
             var player = new Imposium.Player(videoNode, client, playerConfig);
+            player.on(player.events.COMPLETE, onComplete);
 
             //Print default player values
             setupLabels();
@@ -102,6 +105,7 @@
             function doMute() {
                 var muted = player.getMute();
                 player.setMute(!muted);
+                updateVolumeLabel();
             }
 
             //Change the volume level of the video
@@ -122,6 +126,10 @@
                 updateSeekLabel();
             }
 
+            function onComplete() {
+                updatePlaybackLabel();
+            }
+
             //Update DOM element with playback state
             function updatePlaybackLabel() {
                 playbackLabel.innerHTML = player.getPlaybackState();
@@ -130,11 +138,12 @@
             //Update DOM element with volume state
             function updateVolumeLabel() {
                 volumeLabel.innerHTML = player.getVolume();
+                muteLabel.innerHTML = (player.getMute()) ? 'muted' : 'unmuted';
             }
 
             //Update DOM element with current time state
             function updateSeekLabel() {
-                seekLabel.innerHTML = player.getPosition();
+                seekLabel.innerHTML = player.getPosition() + 's';
             }
 
             //Ensures player properties are displayed when page loads

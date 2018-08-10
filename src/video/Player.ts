@@ -249,6 +249,8 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {node: {duration}} = this;
 
         if (!isNaN(duration)) {
+            seekTo = Math.floor(seekTo);
+
             if (inRangeNumeric(seekTo, 0, duration)) {
                 this.node.currentTime = seekTo;
             } else {
@@ -292,8 +294,10 @@ export default class ImposiumPlayer extends VideoPlayer {
     public setVolume = (volume: number): void => {
         const {volumeMin, volumeMax} = settings;
 
+        volume = Math.round(volume * 10) / 10;
+
         if (inRangeNumeric(volume, volumeMin, volumeMax)) {
-            this.node.volume = Math.round(volume * 10) / 10;
+            this.node.volume = volume;
         } else {
             ExceptionPipe.logWarning('playerFailure', 'invalidVolume');
         }
