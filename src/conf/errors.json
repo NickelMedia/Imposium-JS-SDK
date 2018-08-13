@@ -15,7 +15,8 @@
 		"invalidPlayerRef": "No reference to an HTML5 video element was detected.",
 		"invalidEventName": "Invalid player event name.",
 		"invalidCallbackType": "The callback reference set for this player event is not of type function.",
-		"eventNotConfigured": "You cannot invoke this player event without a callback set."
+		"eventNotConfigured": "You cannot invoke this player event without a callback set.",
+		"badQualityOverride": "The quality specified does not exist for this experience."
 	},
 	"network": {
 		"httpFailure": "Unable to process request to the Imposium API.",

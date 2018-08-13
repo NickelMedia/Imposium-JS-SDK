@@ -31,13 +31,15 @@ export default class ExceptionPipe {
         }
     }
 
+    private static readonly errorsProperty: string = 'UA-123315989-1';
+
     private static logError = (e: any, storyId: string): void => {
         e.log();
         ExceptionPipe.traceError(e, storyId);
     }
 
     private static traceError = (e: any, storyId: string): void => {
-        const gaProp = 'UA-113079866-1';
+        const {errorsProperty} = ExceptionPipe;
 
         let eventAction = `Version: ${version}*`;
 
@@ -50,7 +52,7 @@ export default class ExceptionPipe {
         }
 
         if (e.networkError) {
-            eventAction += `Stack: ${e.networkError}`;
+            eventAction += `Url: ${e.networkError.config.url}*Stack: ${e.networkError}`;
         } else if (e.uncaughtError) {
             eventAction += `Stack: ${e.uncaughtError}`;
         } else {
@@ -58,7 +60,7 @@ export default class ExceptionPipe {
         }
 
         Analytics.send({
-            prp: gaProp,
+            prp: errorsProperty,
             t: 'event',
             ec: e.type,
             ea: eventAction,

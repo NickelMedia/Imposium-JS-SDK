@@ -147,7 +147,7 @@ export default class Client {
             if (GOT_EXPERIENCE || player) {
                 api.getExperience(experienceId)
                 .then((experience: any) => {
-                    const {output, id} = experience;
+                    const {id, output, rendering} = experience;
 
                     if (Object.keys(output).length > 0) {
                         if (player) {
@@ -158,7 +158,7 @@ export default class Client {
                             GOT_EXPERIENCE(experience);
                         }
                     } else {
-                        this.renderExperience(id);
+                        this.renderExperience(id, rendering);
                     }
                 })
                 .catch((e) => {
@@ -206,14 +206,14 @@ export default class Client {
                 api.postExperience(storyId, inventory, UPLOAD_PROGRESS)
                 .then((experience: any) => {
                     const {clientConfig: {sceneId, actId}} = this;
-                    const {id} = experience;
+                    const {id, rendering} = experience;
 
                     if (EXPERIENCE_CREATED) {
                         EXPERIENCE_CREATED(experience);
                     }
 
                     if (render) {
-                        this.renderExperience(id);
+                        this.renderExperience(id, rendering);
                     }
                 })
                 .catch((e) => {
@@ -339,12 +339,12 @@ export default class Client {
     /*
         Make a new consumer w/ delegates
      */
-    private makeConsumer = (experienceId: string): void => {
+    private makeConsumer = (experienceId: string, isRendering: boolean): void => {
         const {clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
-
+        const start = (!isRendering) ? (id: string) => this.startMessaging(id) : null;
         // Merge scoped startMessaging call with client events
         const delegates: any = {
-            start: (id: string) => this.startMessaging(id),
+            start,
             ...eventDelegateRefs
         };
 
@@ -360,14 +360,14 @@ export default class Client {
     /*
         Invokes rendering processes and starts listening for messages
      */
-    private renderExperience = (experienceId: string): void => {
+    private renderExperience = (experienceId: string, isRendering: boolean): void => {
         const {consumer} = this;
         if (!consumer) {
-            this.makeConsumer(experienceId);
+            this.makeConsumer(experienceId, isRendering);
         } else {
             consumer.kill()
             .then(() => {
-                this.makeConsumer(experienceId);
+                this.makeConsumer(experienceId, isRendering);
             });
         }
     }

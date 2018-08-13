@@ -75,13 +75,14 @@ export default class ImposiumPlayer extends VideoPlayer {
         ended: {callback: null, native: true},
         error: {callback: null, native: true},
         seeked: {callback: null, native: true},
-        timeupdated: {callback: null, native: true},
+        timeupdate: {callback: null, native: true},
         volumechanged: {callback: null, native: true},
         muted: {callback: null, native: false},
         controlsset: {callback: null, native: false}
     };
 
     private hlsSupport: string = '';
+    private qualityOverride: string = '';
     private singleFile: boolean = false;
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
@@ -134,37 +135,22 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set a live stream or fallback to bandwidth checking / auto assigning a file
      */
     public experienceGenerated = (experience: any): void => {
-        const {experienceCache, hlsSupport, node} = this;
-        const {compressionLevels: {STREAM}} = ImposiumPlayer;
-        const {id, output: {videos}} = experience;
-        const hasStream = videos.hasOwnProperty(STREAM);
-        let poster;
-
-        if (experience.output.images) {
-            poster = experience.output.images.poster;
-        }
+        const {experienceCache, qualityOverride} = this;
+        const {id, output: {videos, images}} = experience;
+        let poster = '';
 
         this.singleFile = false;
         this.setExperienceId(id);
         experienceCache.push(experience);
 
-        if (hasStream && hlsSupport) {
-            this.setPlayerData(videos[STREAM].url, poster);
-        } else {
-            const compressionKeys = Object.keys(videos);
+        if (images) {
+            poster = images.poster;
+        }
 
-            if (compressionKeys.length === 1) {
-                this.singleFile = true;
-                this.setPlayerData(videos[compressionKeys[0]].url, poster);
-            } else {
-                this.checkBandwidth(videos)
-                .then((compression: string) => {
-                    this.setPlayerData(videos[compression].url, poster);
-                })
-                .catch((fallbackCompression: string) => {
-                    this.setPlayerData(videos[fallbackCompression].url, poster);
-                });
-            }
+        if (qualityOverride) {
+            this.doQualityOverride(videos, poster);
+        } else {
+            this.doQualityAssessment(videos, poster);
         }
     }
 
@@ -263,6 +249,8 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {node: {duration}} = this;
 
         if (!isNaN(duration)) {
+            seekTo = Math.floor(seekTo);
+
             if (inRangeNumeric(seekTo, 0, duration)) {
                 this.node.currentTime = seekTo;
             } else {
@@ -284,12 +272,12 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set mute state
      */
     public setMute = (mute: boolean): void => {
-        const {eventDelegateRefs: {muted}} = this;
+        const {eventDelegateRefs: {muted: {callback}}} = this;
 
         this.node.muted = mute;
 
-        if (muted) {
-            muted.callback();
+        if (callback) {
+            callback();
         }
     }
 
@@ -305,6 +293,8 @@ export default class ImposiumPlayer extends VideoPlayer {
      */
     public setVolume = (volume: number): void => {
         const {volumeMin, volumeMax} = settings;
+
+        volume = Math.round(volume * 10) / 10;
 
         if (inRangeNumeric(volume, volumeMin, volumeMax)) {
             this.node.volume = volume;
@@ -360,6 +350,13 @@ export default class ImposiumPlayer extends VideoPlayer {
     }
 
     /*
+        Manually ensures that a certain quality is
+     */
+    public setQualityOverride = (key: string): void => {
+        this.qualityOverride = key;
+    }
+
+    /*
         Determine if browser can natively support media source extensions, if not
         use hls-js if possible, if hls-js is not supported do nothing.
      */
@@ -370,6 +367,53 @@ export default class ImposiumPlayer extends VideoPlayer {
             this.hlsSupport = NATIVE;
         } else if (hls.isSupported()) {
             this.hlsSupport = HLSJS;
+        }
+    }
+
+    /*
+        If the user has set a quality override string, serve the video
+        at the setting provided
+     */
+    private doQualityOverride = (videos: any, poster: string): void => {
+        const {qualityOverride, storyId} = this;
+
+        try {
+            if (videos.hasOwnProperty(qualityOverride)) {
+                this.setPlayerData(videos[qualityOverride], poster);
+            } else {
+                throw new PlayerConfigurationError('badQualityOverride', null);
+            }
+        } catch (e) {
+            ExceptionPipe.trapError(e, storyId);
+        }
+    }
+
+    /*
+        Determine if adaptive streaming can be used, if not do a manual bandwidth check
+        to try and get a best guess of what quality setting to serve.
+     */
+    private doQualityAssessment = (videos: any, poster: string): void => {
+        const {hlsSupport} = this;
+        const {compressionLevels: {STREAM}} = ImposiumPlayer;
+        const hasStream = videos.hasOwnProperty(STREAM);
+
+        if (hasStream && hlsSupport) {
+            this.setPlayerData(videos[STREAM].url, poster);
+        } else {
+            const formatKeys = Object.keys(videos);
+
+            if (formatKeys.length === 1) {
+                this.singleFile = true;
+                this.setPlayerData(videos[formatKeys[0]].url, poster);
+            } else {
+                this.checkBandwidth(videos)
+                .then((format: string) => {
+                    this.setPlayerData(videos[format].url, poster);
+                })
+                .catch((lowestQuality: string) => {
+                    this.setPlayerData(videos[lowestQuality].url, poster);
+                });
+            }
         }
     }
 

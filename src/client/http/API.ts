@@ -121,8 +121,8 @@ export default class API {
         const formData = inventoryToFormData(storyId, inventory);
 
         const config = {
-            onUploadProgress : (e) => uploadProgress(e, progress),
-            headers          : {}
+            headers: {},
+            onUploadProgress: (e) => uploadProgress(e, progress)
         };
 
         if (!isNode()) {
@@ -171,7 +171,7 @@ export default class API {
         const {http: {post}} = this;
 
         return new Promise((resolve, reject) => {
-            post(`/experience`, formData, config)
+            post(`/experience/render`, formData, config)
             .then((res) => {
                 const {data} = res;
                 resolve(data);
