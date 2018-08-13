@@ -68,10 +68,14 @@ export default class MessageConsumer {
 
     /*
         Invoke delegate which starts message queueing on Imposium servers
+        if there is not output yet and the processing was deferred.
      */
     private startConsuming = (): void => {
         const {experienceId, clientDelegates: {start}} = this;
-        start(experienceId);
+
+        if (start) {
+            start(experienceId);
+        }
     }
 
     /*

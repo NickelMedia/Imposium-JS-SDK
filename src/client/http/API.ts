@@ -171,7 +171,7 @@ export default class API {
         const {http: {post}} = this;
 
         return new Promise((resolve, reject) => {
-            post(`/experience`, formData, config)
+            post(`/experience/render`, formData, config)
             .then((res) => {
                 const {data} = res;
                 resolve(data);
