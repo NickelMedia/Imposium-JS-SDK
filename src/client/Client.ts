@@ -362,6 +362,7 @@ export default class Client {
      */
     private renderExperience = (experienceId: string, isRendering: boolean): void => {
         const {consumer} = this;
+
         if (!consumer) {
             this.makeConsumer(experienceId, isRendering);
         } else {
