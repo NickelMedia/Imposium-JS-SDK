@@ -6,9 +6,10 @@ pipeline {
     PROJECT_DIR = './'
   }
   stages {
-    if (env.BRANCH_NAME == 'dev') {
-      stage('Functional Test') {
-        steps {
+
+    stage('Functional Test') {
+      steps {
+        if (env.BRANCH_NAME == 'dev') { 
           checkout scm
 
           with_browser_stack 'linux-x64', {
