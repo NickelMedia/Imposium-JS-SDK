@@ -8,7 +8,6 @@ pipeline {
 
         with_browser_stack 'linux-x64', {
           // Execute tests [...]
-          sh "ls -a"
         }
       }
     }
@@ -16,6 +15,8 @@ pipeline {
 }
 
 def with_browser_stack(type, actions) {
+
+  sh "ls -a"
   // Prepare the BrowserStackLocal client
   if (! fileExists("/var/tmp/BrowserStackLocal")) {
     
@@ -24,7 +25,8 @@ def with_browser_stack(type, actions) {
     sh "chmod +x /var/tmp/BrowserStackLocal"
   }
   // Start the connection
-  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal --key kqExpNPZDere7GszwkgL -onlyAutomate > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
+  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal --key kqExpNPZDere7GszwkgL --folder ./Imposium-JS-SDK/examples -onlyAutomate > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
+  
   sh "kill `cat /var/tmp/browserstack.pid`"
   // try {
   //   actions()
