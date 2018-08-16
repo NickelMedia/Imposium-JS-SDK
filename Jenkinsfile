@@ -17,7 +17,6 @@ pipeline {
               // Execute tests [...]
               sh "ls -a"
               sh "pwd"
-              sh "node -v"
             }
           } else {
             sh " echo 'Skipping, Please try again on dev.'"
