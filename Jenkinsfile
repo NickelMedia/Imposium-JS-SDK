@@ -1,9 +1,12 @@
 node {
+  checkout scm
+
   with_browser_stack 'linux-x64', {
     // Execute tests [...]
+    ls -a
   }
 }
-// ----------------------------------------------
+
 def with_browser_stack(type, actions) {
   // Prepare the BrowserStackLocal client
   if (! fileExists("/var/tmp/BrowserStackLocal")) {
