@@ -8,11 +8,7 @@
 // }
 
 pipeline {
-  agent {
-    docker {
-      image 'node:10'
-    }
-  }
+  agent { dockerfile true }
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
