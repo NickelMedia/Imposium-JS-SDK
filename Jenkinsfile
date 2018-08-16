@@ -6,15 +6,17 @@ pipeline {
     PROJECT_DIR = './'
   }
   stages {
-    stage('Functional Test') {
-      steps {
-        checkout scm
+    if (env.BRANCH_NAME = 'dev') {
+      stage('Functional Test') {
+        steps {
+          checkout scm
 
-        with_browser_stack 'linux-x64', {
-          // Execute tests [...]
-          sh "ls -a"
-          sh "pwd"
-          sh "node -v"
+          with_browser_stack 'linux-x64', {
+            // Execute tests [...]
+            sh "ls -a"
+            sh "pwd"
+            sh "node -v"
+          }
         }
       }
     }
@@ -24,7 +26,7 @@ pipeline {
 def with_browser_stack(type, doTests) {
   
   // Download Browserstack local, unzip and make it executable
-  if (! fileExists("/var/tmp/BrowserStackLocal")) {
+  if (! fileExists('/var/tmp/BrowserStackLocal')) {
     sh "curl https://www.browserstack.com/browserstack-local/BrowserStackLocal-${type}.zip > /var/tmp/BrowserStackLocal.zip"
     sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal"
   }
