@@ -14,6 +14,7 @@ pipeline {
           // Execute tests [...]
           sh "ls -a"
           sh "pwd"
+          sh "node -v"
         }
       }
     }
