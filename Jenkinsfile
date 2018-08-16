@@ -29,13 +29,12 @@ def with_browser_stack(type, doTests) {
     sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal"
   }
 
-  // Start the connection
-  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal \
+  // Nohup the tunnel invocation so we can move on with the session, save pid in tmp for killing on success / fail
+  sh "nohup /var/tmp/BrowserStackLocal \
     --key kqExpNPZDere7GszwkgL \
     --local-identifier ${env.LOCAL_IDENTIFIER} \
     --folder ${env.PROJECT_DIR} \
-    > /var/tmp/browserstack.log 2>&1 \
-    & echo \$! > /var/tmp/browserstack.pid"
+    > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
 
   try {
     doTests()
