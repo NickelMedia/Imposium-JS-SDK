@@ -40,7 +40,9 @@ node {
     if (env.BRANCH_NAME == 'dev') { 
       checkout scm
 
-      docker.image('node:10') {
+      def testingImage = docker.build("my-image:${env.BUILD_ID}")
+
+      testingImage.inside {
         with_browser_stack 'linux-x64', {
           // Execute tests [...]
           sh "node -v"
