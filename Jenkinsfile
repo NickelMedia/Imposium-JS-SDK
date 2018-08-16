@@ -6,7 +6,7 @@ pipeline {
     PROJECT_DIR = './'
   }
   stages {
-    if (env.BRANCH_NAME = 'dev') {
+    if (env.BRANCH_NAME == 'dev') {
       stage('Functional Test') {
         steps {
           checkout scm
