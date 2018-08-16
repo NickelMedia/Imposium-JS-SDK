@@ -7,30 +7,47 @@
 //   ]
 // }
 
-pipeline {
+// pipeline {
+//   agent any
+//   environment {
+//     LOCAL_IDENTIFIER = 'sdktest'
+//     PROJECT_DIR = './'
+//   }
+//   stages {
+//     stage('Functional Test') {
+//       steps {
+//         script {
+//           if (env.BRANCH_NAME == 'dev') { 
+//             checkout scm
 
-  environment {
-    LOCAL_IDENTIFIER = 'sdktest'
-    PROJECT_DIR = './'
-  }
-  stages {
-    stage('Functional Test') {
-      steps {
-        script {
-          if (env.BRANCH_NAME == 'dev') { 
-            checkout scm
+//             docker.image('node:10').withRun('npm i') {
+//               with_browser_stack 'linux-x64', {
+//                 // Execute tests [...]
+//                 sh "node -v"
+//               }
+//             }
+//           } else {
+//             sh " echo 'Skipping, Please try again on dev.'"
+//           }
+//         }
+//       }
+//     }
+//   }
+// }
 
-            docker.image('node:10').withRun('npm i') {
-              with_browser_stack 'linux-x64', {
-                // Execute tests [...]
-                sh "node -v"
-              }
-            }
-          } else {
-            sh " echo 'Skipping, Please try again on dev.'"
-          }
+node {
+  script {
+    if (env.BRANCH_NAME == 'dev') { 
+      checkout scm
+
+      docker.image('node:10') {
+        with_browser_stack 'linux-x64', {
+          // Execute tests [...]
+          sh "node -v"
         }
       }
+    } else {
+      sh " echo 'Skipping, Please try again on dev.'"
     }
   }
 }
