@@ -25,6 +25,7 @@ interface IPlayerConfig {
     autoLoad: boolean;
     autoPlay: boolean;
     controls: boolean;
+    qualityOverride: string;
 }
 
 const settings = require('../conf/settings.json').videoPlayer;
@@ -82,7 +83,6 @@ export default class ImposiumPlayer extends VideoPlayer {
     };
 
     private hlsSupport: string = '';
-    private qualityOverride: string = '';
     private singleFile: boolean = false;
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
@@ -135,7 +135,9 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set a live stream or fallback to bandwidth checking / auto assigning a file
      */
     public experienceGenerated = (experience: any): void => {
-        const {experienceCache, qualityOverride} = this;
+        const {experienceCache} = this;
+        const {qualityOverride} = this.imposiumPlayerConfig;
+
         const {id, output: {videos, images}} = experience;
         let poster = '';
 
@@ -350,13 +352,6 @@ export default class ImposiumPlayer extends VideoPlayer {
     }
 
     /*
-        Manually ensures that a certain quality is
-     */
-    public setQualityOverride = (key: string): void => {
-        this.qualityOverride = key;
-    }
-
-    /*
         Determine if browser can natively support media source extensions, if not
         use hls-js if possible, if hls-js is not supported do nothing.
      */
@@ -375,11 +370,12 @@ export default class ImposiumPlayer extends VideoPlayer {
         at the setting provided
      */
     private doQualityOverride = (videos: any, poster: string): void => {
-        const {qualityOverride, storyId} = this;
+        const {storyId} = this;
+        const {qualityOverride} = this.imposiumPlayerConfig;
 
         try {
             if (videos.hasOwnProperty(qualityOverride)) {
-                this.setPlayerData(videos[qualityOverride], poster);
+                this.setPlayerData(videos[qualityOverride].url, poster);
             } else {
                 throw new PlayerConfigurationError('badQualityOverride', null);
             }
@@ -455,7 +451,9 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {hlsSupport, singleFile} = this;
         const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
 
-        if (hlsSupport === NATIVE || !hlsSupport || singleFile) {
+        if (this.imposiumPlayerConfig.qualityOverride) {
+            this.node.src = videoSrc;
+        } else if (hlsSupport === NATIVE || !hlsSupport || singleFile) {
             this.node.src = videoSrc;
         } else if (hlsSupport === HLSJS) {
             if (this.hlsPlayer) {
