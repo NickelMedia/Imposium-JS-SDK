@@ -1,9 +1,17 @@
-node {
-  checkout scm
+pipeline {
+  agent any
 
-  with_browser_stack 'linux-x64', {
-    // Execute tests [...]
-    ls -a
+  stages {
+    stage('Functional Test') {
+      steps {
+        checkout scm
+
+        with_browser_stack 'linux-x64', {
+          // Execute tests [...]
+          ls -a
+        }
+      }
+    }
   }
 }
 
