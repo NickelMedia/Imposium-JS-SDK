@@ -1,12 +1,23 @@
-pipeline {
-  agent any
+#!groovy
 
+// runPipeline {
+//   projectName = 'sdk-tester'
+//   images = [
+//     [imageName: "sdk-tester"]
+//   ]
+// }
+
+pipeline {
+  agent {
+    docker {
+      image 'node:10'
+    }
+  }
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
   }
   stages {
-
     stage('Functional Test') {
       steps {
         script {
@@ -15,8 +26,7 @@ pipeline {
 
             with_browser_stack 'linux-x64', {
               // Execute tests [...]
-              sh "ls -a"
-              sh "pwd"
+              sh "node -v"
             }
           } else {
             sh " echo 'Skipping, Please try again on dev.'"
@@ -29,7 +39,7 @@ pipeline {
 
 def with_browser_stack(type, doTests) {
   
-  // Download Browserstack local, unzip and make it executable
+  // Download Browserstack local, unzip and make it executable, may still exist if many deployments fire at once
   if (! fileExists('/var/tmp/BrowserStackLocal')) {
     sh "curl https://www.browserstack.com/browserstack-local/BrowserStackLocal-${type}.zip > /var/tmp/BrowserStackLocal.zip"
     sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal"
