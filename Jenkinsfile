@@ -2,7 +2,8 @@ pipeline {
   agent any
 
   environment {
-    localIdentifier = 'sdktest'
+    LOCAL_IDENTIFIER = 'sdktest'
+    PROJECT_DIR = './'
   }
   stages {
     stage('Functional Test') {
@@ -30,8 +31,8 @@ def with_browser_stack(type, doTests) {
   // Start the connection
   sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal \
     --key kqExpNPZDere7GszwkgL \
-    --local-identifier sdktest \
-    --folder ./ \
+    --local-identifier ${env.LOCAL_IDENTIFIER} \
+    --folder ${env.PROJECT_DIR} \
     > /var/tmp/browserstack.log 2>&1 \
     & echo \$! > /var/tmp/browserstack.pid"
 
