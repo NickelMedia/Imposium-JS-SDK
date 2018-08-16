@@ -8,7 +8,7 @@
 // }
 
 pipeline {
-  agent any
+
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
