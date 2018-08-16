@@ -9,7 +9,7 @@ pipeline {
 
     stage('Functional Test') {
       steps {
-        if (env.BRANCH_NAME == 'dev') { 
+        if(env.BRANCH_NAME == 'dev'){ 
           checkout scm
 
           with_browser_stack 'linux-x64', {
