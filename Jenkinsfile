@@ -13,7 +13,7 @@ def with_browser_stack(type, actions) {
     sh "chmod +x /var/tmp/BrowserStackLocal"
   }
   // Start the connection
-  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal --key DsVSdoJPBi2z44sbGFx1"
+  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal --key kqExpNPZDere7GszwkgL"
   sh "kill `cat /var/tmp/browserstack.pid`"
   // try {
   //   actions()
