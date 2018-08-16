@@ -1,6 +1,9 @@
 pipeline {
   agent any
 
+  environment {
+    localIdentifier = 'sdktest'
+  }
   stages {
     stage('Functional Test') {
       steps {
@@ -17,16 +20,20 @@ pipeline {
 }
 
 def with_browser_stack(type, doTests) {
-  // Prepare the BrowserStackLocal client
+  
+  // Download Browserstack local, unzip and make it executable
   if (! fileExists("/var/tmp/BrowserStackLocal")) {
-    
     sh "curl https://www.browserstack.com/browserstack-local/BrowserStackLocal-${type}.zip > /var/tmp/BrowserStackLocal.zip"
-    sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp"
-    sh "chmod +x /var/tmp/BrowserStackLocal"
+    sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal"
   }
 
   // Start the connection
-  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal --key kqExpNPZDere7GszwkgL --folder ./ --local-identifier sdktest > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
+  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal \
+    --key kqExpNPZDere7GszwkgL \
+    --local-identifier sdktest \
+    --folder ./ \
+    > /var/tmp/browserstack.log 2>&1 \
+    & echo \$! > /var/tmp/browserstack.pid"
 
   try {
     doTests()
