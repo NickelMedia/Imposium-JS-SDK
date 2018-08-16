@@ -25,8 +25,8 @@ def with_browser_stack(type, actions) {
     sh "chmod +x /var/tmp/BrowserStackLocal"
   }
   // Start the connection
-  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal --key kqExpNPZDere7GszwkgL --folder ./Imposium-JS-SDK/examples -onlyAutomate > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
-  
+  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal --key kqExpNPZDere7GszwkgL --folder ./ --local-identifier sdktest > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
+
   sh "kill `cat /var/tmp/browserstack.pid`"
   // try {
   //   actions()

@@ -14,7 +14,9 @@ describe('deeplink', () => {
             'os_version': 'High Sierra',
             'resolution': '1024x768',
             'browserstack.user': 'patrickchisholm1',
-            'browserstack.key': 'kqExpNPZDere7GszwkgL'
+            'browserstack.key': 'kqExpNPZDere7GszwkgL',
+            'browserstack.local': 'true',
+            'browserstack.localIdentifier': 'sdktest'
         };
 
         driver = new webdriver.Builder()
@@ -26,7 +28,7 @@ describe('deeplink', () => {
     });
 
     it('experience should load', (done) => {
-        driver.get('https://sdk-test.staging.k8s.nickel.media/examples/web/basic-deeplink.html')
+        driver.get('http://patrickchisholm1.browserstack.com/examples/web/basic-deeplink.html')
         .then(() => {
             driver.findElement(webdriver.By.id('caption')).sendKeys('this is a test!')
             .then(() => {
