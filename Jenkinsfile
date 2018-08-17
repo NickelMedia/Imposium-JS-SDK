@@ -1,12 +1,5 @@
 #!groovy
 
-// runPipeline {
-//   projectName = 'sdk-tester'
-//   images = [
-//     [imageName: "sdk-tester"]
-//   ]
-// }
-
 pipeline {
   agent any
   environment {
@@ -20,12 +13,14 @@ pipeline {
           if (env.BRANCH_NAME == 'dev') { 
             checkout scm
 
-            def testingImage = docker.build('sdk-test-image', './Dockerfile')
+            docker.withTool('default') {
+              def testingImage = docker.build('sdk-test-image', './Dockerfile')
 
-            testingImage.inside {
-              with_browser_stack 'linux-x64', {
-                // Execute tests [...]
-                sh "node -v"
+              testingImage.inside {
+                setup_tunnel {
+                  // TO DO: Actually execute the tests
+                  sh "node -v"
+                }
               }
             }
           } else {
@@ -37,30 +32,11 @@ pipeline {
   }
 }
 
-// node {
-//   script {
-//     if (env.BRANCH_NAME == 'dev') { 
-//       checkout scm
-
-//       def testingImage = docker.build('sdk-test-image', './Dockerfile')
-
-//       testingImage.inside {
-//         with_browser_stack 'linux-x64', {
-//           // Execute tests [...]
-//           sh "node -v"
-//         }
-//       }
-//     } else {
-//       sh " echo 'Skipping, Please try again on dev.'"
-//     }
-//   }
-// }
-
-def with_browser_stack(type, doTests) {
+def setup_tunnel(doTests) {
   
   // Download Browserstack local, unzip and make it executable, may still exist if many deployments fire at once
   if (!fileExists('/var/tmp/BrowserStackLocal')) {
-    sh "curl https://www.browserstack.com/browserstack-local/BrowserStackLocal-${type}.zip > /var/tmp/BrowserStackLocal.zip"
+    sh "curl https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip > /var/tmp/BrowserStackLocal.zip"
     sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal"
   }
 
@@ -74,7 +50,7 @@ def with_browser_stack(type, doTests) {
   try {
     doTests()
   } finally {
-    // Stop the connection
+    // Kill browserstack local instance
     sh "kill `cat /var/tmp/browserstack.pid`"
   }
 }

@@ -1,13 +1,46 @@
-const assert = require('assert');
-const fs = require('fs');
+const fs        = require('fs');
+const assert    = require('assert');
 const webdriver = require('selenium-webdriver');
-const remote = require('selenium-webdriver/remote');
+const remote    = require('selenium-webdriver/remote');
+
+const tempHost = 'http://patrickchisholm1.browserstack.com';
+const example  = '/examples/web/basic-deeplink.html';
+const caption  = 'This is a test.';
+const imgPath  = `${process.cwd()}/test.jpg`;
+const expect   = 'Video ready for viewing.'
+const waitFor  = 40000;
+
+const {findElement, wait} = bsDriver;
+const {By: {id}} = webdriver;
+
+/*
+    Runs via selenium wait call (setInterval), strips the Imposium status message from DOM to validate if 
+    
+ */
+const stripStatus = (cb) => {
+    return findElement(id('status'))
+    .then((e) => {
+        e.getText()
+        .then((t) => {
+            try {
+                assert.equal(t, expect);
+                done();
+            } catch(e) {
+
+            }
+        });
+    });
+}
 
 describe('deeplink', () => {
-    let driver, server;
+    let driver;
 
     before(() => {
-        var capabilities = {
+        /*
+            TO DO: Put this into a conf file and add a helper function to make this easily configurable
+            for parallel testing 
+         */
+        const capabilities = {
             'browserName': 'Chrome',
             'browser_version': '68.0',
             'os': 'OS X',
@@ -19,47 +52,37 @@ describe('deeplink', () => {
             'browserstack.localIdentifier': 'sdktest'
         };
 
-        driver = new webdriver.Builder()
+        // Bind selenium driver with BS config
+        bsDriver = new webdriver.Builder()
             .usingServer('http://hub-cloud.browserstack.com/wd/hub')
             .withCapabilities(capabilities)
             .build();
 
-        driver.setFileDetector(new remote.FileDetector);
+        // This will allow the driver to use local image files for testing
+        bsDriver.setFileDetector(new remote.FileDetector);
     });
 
+    // TO DO: Make this more descriptive once functionality is locked
     it('experience should load', (done) => {
-        driver.get('http://patrickchisholm1.browserstack.com/examples/web/basic-deeplink.html')
+        bsDriver.get(`${tempHost}${example}`)
         .then(() => {
-            driver.findElement(webdriver.By.id('caption')).sendKeys('this is a test!')
-            .then(() => {
-                driver.findElement(webdriver.By.id('image')).sendKeys(process.cwd() + '/test.jpg')
+            Promise.all([
+                findElement(id('caption')).sendKeys(caption),
+                findElement(id('image')).sendKeys(imgPath)
+            ]).then(() => {
+                findElement(id('btn-submit')).click()
                 .then(() => {
-                    driver.findElement(webdriver.By.id('btn-submit')).click()
-                    .then(() => {
-                        driver.wait(() => {
-                            return driver.findElement(webdriver.By.id('status'))
-                            .then((statusElement) => {
-                                statusElement.getText()
-                                .then((strippedText) => {
-                                    try {
-                                        assert.equal(strippedText, 'Video ready for viewing.');
-                                        done();
-                                    } catch(e) {
-
-                                    }
-                                });
-                            });
-                        }, 40000);
-                    });
+                    wait(stripStatus, waitFor);
                 });
             });
         });
     });
 
     after((done) => {
-        driver.quit()
+        bsDriver.quit()
         .then(() => {
             done();
         });
     });
 });
+
