@@ -14,15 +14,14 @@ pipeline {
             checkout scm
 
             docker.withTool('default') {
-              sh "ls -a"
-              // def testingImage = docker.build('sdk-test-image', './Dockerfile')
+              def testingImage = docker.build('sdk-test-image', './')
 
-              // testingImage.inside {
-              //   setup_tunnel {
-              //     // TO DO: Actually execute the tests
-              //     sh "node -v"
-              //   }
-              // }
+              testingImage.inside {
+                setup_tunnel {
+                  // TO DO: Actually execute the tests
+                  sh "node -v"
+                }
+              }
             }
           } else {
             sh " echo 'Skipping, Please try again on dev.'"
