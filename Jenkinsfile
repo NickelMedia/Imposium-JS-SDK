@@ -13,13 +13,15 @@ pipeline {
           if (env.BRANCH_NAME == 'dev') { 
             checkout scm
 
-            withDockerServer([uri: 'tcp://localhost:2375']) {
-              def testingImage = docker.build('sdk-test-image', './')
+            docker.withTool('default') {
+              withDockerServer([uri: 'tcp://localhost:2375']) {
+                def testingImage = docker.build('sdk-test-image', './')
 
-              testingImage.inside {
-                setup_tunnel {
-                  // TO DO: Actually execute the tests
-                  sh "node -v"
+                testingImage.inside {
+                  setup_tunnel {
+                    // TO DO: Actually execute the tests
+                    sh "node -v"
+                  }
                 }
               }
             }
