@@ -18,10 +18,11 @@ pipeline {
                 def testingImage = docker.build('sdk-test-image', './')
 
                 testingImage.inside {
-                  setup_tunnel {
-                    // TO DO: Actually execute the tests
-                    sh "node -v"
-                  }
+                  sh "node -v"
+                  // setup_tunnel {
+                  //   // TO DO: Actually execute the tests
+                  //   sh "node -v"
+                  // }
                 }
               }
             }
