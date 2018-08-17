@@ -15,7 +15,7 @@ pipeline {
 
             docker.withTool('default') {
               withDockerServer([uri: 'tcp://localhost:2375']) {
-                def testingImage = docker.build('sdk-test-image', './')
+                def testingImage = docker.build('functionaltestcont', './')
 
                 testingImage.inside {
                   sh "node -v"
