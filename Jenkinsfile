@@ -18,8 +18,10 @@ pipeline {
                 def testingImage = docker.build('functionaltestcont', './')
 
                 testingImage.inside {
-                  sh "cd ./tests"
-                  sh "mocha trial.js --timeout 60000"
+                  setup_tunnel {
+                    sh "cd ./tests"
+                    sh "mocha trial.js --timeout 60000"
+                  }
                 }
               }
             }
