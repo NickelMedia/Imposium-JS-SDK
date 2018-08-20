@@ -13,12 +13,15 @@ pipeline {
           if (env.BRANCH_NAME == 'dev') { 
             checkout scm
 
+            // Make sure the docker tools are setup correctly according to k8s jenkins host specs
             docker.withTool('default') {
               withDockerServer([uri: 'tcp://localhost:2375']) {
                 def testingImage = docker.build('functionaltestcont', './')
 
                 testingImage.inside {
+                  // Ensure that running an npm install doesn't result in an EACCES error
                   withEnv(['npm_config_cache=npm-cache', 'HOME=.']) {
+                    // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                     sh "npm i"
 
                     setup_tunnel {
