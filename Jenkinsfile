@@ -5,7 +5,7 @@ pipeline {
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
-    npm_config_cache='npm-cache'
+    HOME=.
   }
   stages {
     stage('Functional Test') {
