@@ -5,7 +5,7 @@ pipeline {
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
-    HOME=.
+    HOME='.'
   }
   stages {
     stage('Functional Test') {
