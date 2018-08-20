@@ -5,7 +5,6 @@ pipeline {
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
-    HOME='.'
   }
   stages {
     stage('Functional Test') {
@@ -16,7 +15,7 @@ pipeline {
 
             docker.withTool('default') {
               withDockerServer([uri: 'tcp://localhost:2375']) {
-                def testingImage = docker.build('functionaltestcont', './')
+                def testingImage = docker.build('functionaltestcont', '--build-arg -u 0:0 ./')
 
                 testingImage.inside {
                   setup_tunnel {
