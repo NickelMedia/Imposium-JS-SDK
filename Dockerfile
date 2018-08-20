@@ -4,6 +4,6 @@ WORKDIR /sdk
 
 COPY . /sdk
 
-RUN apt-get install zip
+RUN apt-get install zip unzip
 
 RUN npm i 
