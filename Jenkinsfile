@@ -15,15 +15,18 @@ pipeline {
 
             docker.withTool('default') {
               withDockerServer([uri: 'tcp://localhost:2375']) {
-                def testingImage = docker.build('functionaltestcont', '--build-arg -u 0:0 ./')
+                def testingImage = docker.build('functionaltestcont', './')
 
                 testingImage.inside {
-                  sh "npm i"
-                  
-                  setup_tunnel {
-                    sh "ls -a"
-                    sh "mocha ./tests/trial.js --timeout 60000"
+                  withEnv(['npm_config_cache=npm-cache', 'HOME=.']) {
+                    sh "npm i"
+
+                    setup_tunnel {
+                      sh "ls -a"
+                      sh "mocha ./tests/trial.js --timeout 60000"
+                    }
                   }
+   
                 }
               }
             }
