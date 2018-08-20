@@ -6,7 +6,7 @@ const remote    = require('selenium-webdriver/remote');
 const tempHost = 'http://patrickchisholm1.browserstack.com';
 const example  = '/examples/web/basic-deeplink.html';
 const caption  = 'This is a test.';
-const imgPath  = `${process.cwd()}/test.jpg`;
+const imgPath  = `${process.cwd()}/tests/test.jpg`;
 const expect   = 'Video ready for viewing.'
 const waitFor  = 50000;
 
