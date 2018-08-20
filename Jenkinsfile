@@ -19,8 +19,9 @@ pipeline {
 
                 testingImage.inside {
                   setup_tunnel {
-                    sh "cd ./tests"
-                    sh "mocha ./trial.js --timeout 60000"
+                    sh "ls -a"
+                    // sh "cd ./tests"
+                    // sh "mocha ./trial.js --timeout 60000"
                   }
                 }
               }
