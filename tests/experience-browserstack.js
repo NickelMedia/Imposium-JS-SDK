@@ -22,8 +22,8 @@ const freshTimeout    = 50000;
 
 // Base capability that all Browserstack test specs need to share
 const baseCapability = {
-    'browserstack.user': 'patrickchisholm1',
-    'browserstack.key': 'kqExpNPZDere7GszwkgL',
+    'browserstack.user': 'stub',
+    'browserstack.key': 'stub',
     'browserstack.localIdentifier': 'sdktest',
     'browserstack.local': 'true'
 };
@@ -40,6 +40,7 @@ const doQuit = (driver, cb, e = null) => {
         cb(e);
     });
 }
+
 
 console.log(JSON.stringify(capabilities, null, 2));
 // // Do remote tests in parallel
