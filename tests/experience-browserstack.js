@@ -41,7 +41,7 @@ const doQuit = (driver, cb, e = null) => {
     });
 }
 
-
+console.log(creds)
 console.log(JSON.stringify(capabilities, null, 2));
 // // Do remote tests in parallel
 // parallel('Deeplink Suite', () => {
