@@ -24,7 +24,7 @@ pipeline {
                   withEnv(['npm_config_cache=npm-cache', 'HOME=.']) {
                     // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                     sh "npm i"
-                    sh "node ./tests/experience-browserstack.js --timeout 0"
+                    sh "echo ${env.BS_CREDS}"
 
                     // setup_tunnel {
                     //   sh "mocha ./tests/trial.js --timeout 0"
