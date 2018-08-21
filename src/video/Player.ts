@@ -83,7 +83,6 @@ export default class ImposiumPlayer extends VideoPlayer {
     };
 
     private hlsSupport: string = '';
-    private singleFile: boolean = false;
     private hlsPlayer: any = null;
     private experienceCache: any[] = [];
     private clientRef: Client = null;
@@ -141,7 +140,6 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {id, output: {videos, images}} = experience;
         let poster = '';
 
-        this.singleFile = false;
         this.setExperienceId(id);
         experienceCache.push(experience);
 
@@ -375,7 +373,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
         try {
             if (videos.hasOwnProperty(qualityOverride)) {
-                this.setPlayerData(videos[qualityOverride].url, poster);
+                this.setPlayerData(videos[qualityOverride].url, true, poster);
             } else {
                 throw new PlayerConfigurationError('badQualityOverride', null);
             }
@@ -394,20 +392,19 @@ export default class ImposiumPlayer extends VideoPlayer {
         const hasStream = videos.hasOwnProperty(STREAM);
 
         if (hasStream && hlsSupport) {
-            this.setPlayerData(videos[STREAM].url, poster);
+            this.setPlayerData(videos[STREAM].url, true, poster);
         } else {
             const formatKeys = Object.keys(videos);
 
             if (formatKeys.length === 1) {
-                this.singleFile = true;
-                this.setPlayerData(videos[formatKeys[0]].url, poster);
+                this.setPlayerData(videos[formatKeys[0]].url, false, poster);
             } else {
                 this.checkBandwidth(videos)
                 .then((format: string) => {
-                    this.setPlayerData(videos[format].url, poster);
+                    this.setPlayerData(videos[format].url, false, poster);
                 })
                 .catch((lowestQuality: string) => {
-                    this.setPlayerData(videos[lowestQuality].url, poster);
+                    this.setPlayerData(videos[lowestQuality].url, false, poster);
                 });
             }
         }
@@ -447,15 +444,11 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Set player data once video file was selected
      */
-    private setPlayerData = (videoSrc: string, posterSrc: string = null): void => {
-        const {hlsSupport, singleFile} = this;
-        const {hlsSupportLevels: {NATIVE, HLSJS}} = ImposiumPlayer;
+    private setPlayerData = (videoSrc: string, doStream: boolean, posterSrc: string = null): void => {
+        const {hlsSupport} = this;
+        const {hlsSupportLevels: {HLSJS}} = ImposiumPlayer;
 
-        if (this.imposiumPlayerConfig.qualityOverride) {
-            this.node.src = videoSrc;
-        } else if (hlsSupport === NATIVE || !hlsSupport || singleFile) {
-            this.node.src = videoSrc;
-        } else if (hlsSupport === HLSJS) {
+        if (doStream && hlsSupport === HLSJS) {
             if (this.hlsPlayer) {
                 this.hlsPlayer.destroy();
             }
@@ -463,6 +456,8 @@ export default class ImposiumPlayer extends VideoPlayer {
             this.hlsPlayer = new hls();
             this.hlsPlayer.attachMedia(this.node);
             this.hlsPlayer.loadSource(videoSrc);
+        } else {
+            this.node.src = videoSrc;
         }
 
         if (posterSrc) {
