@@ -3,7 +3,7 @@
 LOCAL_IDENTIFIER="sdktest"
 PROJECT_DIR=./
 
-curl https://www.browserstack.com/browserstack-local/BrowserStackLocal-${type}.zip > /var/tmp/BrowserStackLocal.zip
+curl https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip > /var/tmp/BrowserStackLocal.zip
 unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal
 
 nohup /var/tmp/BrowserStackLocal \
