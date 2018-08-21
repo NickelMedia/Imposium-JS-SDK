@@ -5,6 +5,8 @@ const platforms = require('./platforms.json');
 const webdriver = require('selenium-webdriver');
 const remote    = require('selenium-webdriver/remote');
 
+const creds = process.env.BS_CREDS;
+
 const base = 'http://patrickchisholm1.browserstack.com/examples/web/basic-deeplink.html';
 const hash = '#e8bb7871-3c60-4af5-9666-ca7d328da4c8';
 
@@ -39,80 +41,83 @@ const doQuit = (driver, cb, e = null) => {
     });
 }
 
-// Do remote tests in parallel
-parallel('Deeplink Suite', () => {
-    capabilities.forEach((capability, i) => {
-        const {browserName} = capability;
+console.log(JSON.stringify(capabilities, null, 2));
+// // Do remote tests in parallel
+// parallel('Deeplink Suite', () => {
+//     capabilities.forEach((capability, i) => {
+//         const {browserName} = capability;
 
-        it(`${browserName} - Existing experience should load.`, (done) => {
-            const driver = new webdriver.Builder()
-                .usingServer('http://hub-cloud.browserstack.com/wd/hub')
-                .withCapabilities(capability)
-                .build();
+//         // Get an existing experience on the remote via deeplink example
+//         it(`${browserName} - Existing experience should load.`, (done) => {
+//             const driver = new webdriver.Builder()
+//                 .usingServer('http://hub-cloud.browserstack.com/wd/hub')
+//                 .withCapabilities(capability)
+//                 .build();
 
-            // This will allow the driver to use local image files for testing
-            driver.setFileDetector(new remote.FileDetector);
+//             // This will allow the driver to use local image files for uploading
+//             driver.setFileDetector(new remote.FileDetector);
             
-            driver.get(`${base}${hash}`)
-            .then(() => {
-                driver.wait(() => {
-                    return new Promise((resolve, reject) => {
-                        driver.findElement(webdriver.By.id('dynamic-video'))
-                        .then((player) => {
-                            player.getAttribute('src')
-                            .then((src) => {
-                                resolve(src.length === srcLengthExpected);
-                            });
-                        });
-                    });
-                }, existingTimeout)
-                .then((v) => {
-                    doQuit(driver, done);
-                })
-                .catch((e) => {
-                    doQuit(driver, done, e);
-                });
-            });
-        });
+//             driver.get(`${base}${hash}`)
+//             .then(() => {
+//                 driver.wait(() => {
+//                     return new Promise((resolve, reject) => {
+//                         driver.findElement(webdriver.By.id('dynamic-video'))
+//                         .then((player) => {
+//                             player.getAttribute('src')
+//                             .then((src) => {
+//                                 resolve(src.length === srcLengthExpected);
+//                             });
+//                         });
+//                     });
+//                 }, existingTimeout)
+//                 .then((v) => {
+//                     doQuit(driver, done);
+//                 })
+//                 .catch((e) => {
+//                     doQuit(driver, done, e);
+//                 });
+//             });
+//         });
 
-        it(`${browserName} - New experience should be generated.`, (done) => {
-            const driver = new webdriver.Builder()
-                .usingServer('http://hub-cloud.browserstack.com/wd/hub')
-                .withCapabilities(capability)
-                .build();
+//         // Run experience generation test on remote via deeplink example
+//         it(`${browserName} - New experience should be generated.`, (done) => {
+//             const driver = new webdriver.Builder()
+//                 .usingServer('http://hub-cloud.browserstack.com/wd/hub')
+//                 .withCapabilities(capability)
+//                 .build();
 
-            // This will allow the driver to use local image files for testing
-            driver.setFileDetector(new remote.FileDetector);
+//             // This will allow the driver to use local image files for testing
+//             driver.setFileDetector(new remote.FileDetector);
 
-            driver.get(base)
-            .then(() => {
-                driver.findElement(webdriver.By.id('caption')).sendKeys(caption)
-                .then(() => {
-                    driver.findElement(webdriver.By.id('image')).sendKeys(imgPath)
-                    .then(() => {
-                        driver.findElement(webdriver.By.id('btn-submit')).click()
-                        .then(() => {
-                            driver.wait(() => {
-                                return new Promise((resolve, reject) => {
-                                    driver.findElement(webdriver.By.id('status'))
-                                    .then((statusElement) => {
-                                        statusElement.getText()
-                                        .then((strippedText) => {
-                                            resolve(strippedText === captionExpected);
-                                        });
-                                    });
-                                });
-                            }, freshTimeout)
-                            .then((v) => {
-                                doQuit(driver, done);
-                            })
-                            .catch((e) => {
-                                doQuit(driver, done, e);
-                            }); 
-                        });
-                    });
-                });
-            });
-        });
-    });
-});
+//             driver.get(base)
+//             .then(() => {
+//                 driver.findElement(webdriver.By.id('caption')).sendKeys(caption)
+//                 .then(() => {
+//                     driver.findElement(webdriver.By.id('image')).sendKeys(imgPath)
+//                     .then(() => {
+//                         driver.findElement(webdriver.By.id('btn-submit')).click()
+//                         .then(() => {
+//                             driver.wait(() => {
+//                                 return new Promise((resolve, reject) => {
+//                                     driver.findElement(webdriver.By.id('status'))
+//                                     .then((statusElement) => {
+//                                         statusElement.getText()
+//                                         .then((strippedText) => {
+//                                             resolve(strippedText === captionExpected);
+//                                         });
+//                                     });
+//                                 });
+//                             }, freshTimeout)
+//                             .then((v) => {
+//                                 doQuit(driver, done);
+//                             })
+//                             .catch((e) => {
+//                                 doQuit(driver, done, e);
+//                             }); 
+//                         });
+//                     });
+//                 });
+//             });
+//         });
+//     });
+// });

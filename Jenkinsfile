@@ -5,6 +5,7 @@ pipeline {
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
+    BS_CREDS = 
   }
   stages {
     stage('Functional Test') {
@@ -25,7 +26,7 @@ pipeline {
                     sh "npm i"
 
                     setup_tunnel {
-                      sh "mocha ./tests/trial.js --timeout 60000"
+                      sh "mocha ./tests/trial.js --timeout 0"
                     }
                   }
    
