@@ -19,6 +19,7 @@
     "eslint": "^5.2.0",
     "eslint-plugin-html": "^4.0.5",
     "mocha": "^5.2.0",
+    "mocha.parallel": "^0.15.5",
     "selenium-webdriver": "^4.0.0-alpha.1",
     "tslint": "^5.11.0",
     "typescript": "^2.5.3",
