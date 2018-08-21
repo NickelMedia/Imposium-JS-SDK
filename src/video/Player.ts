@@ -425,18 +425,23 @@ export default class ImposiumPlayer extends VideoPlayer {
             Promise.all(testPromises)
             .then((speeds: number[]) => {
                 const speed = calculateAverageMbps(speeds);
-                const has1080 = (videos.hasOwnProperty(compressionLevels.HIGH));
+                let scaleMap = {};
 
-                if (speed >= bandwidthRatings.LOW && speed <= bandwidthRatings.MID) {
-                    resolve(compressionLevels.MID);
-                } else if (speed >= bandwidthRatings.MID && !has1080) {
-                    resolve(compressionLevels.MID);
-                } else if (speed >= bandwidthRatings.MID && has1080) {
-                    resolve(compressionLevels.HIGH);
-                }
+                Object.keys(videos).forEach((key) => {
+                    const {height} = videos[key];
+                    const scaledHeight = height / 100;
+
+                    scaleMap[scaledHeight] = key;
+                });
+
+                const bestFit = Object.keys(scaleMap).map((key) => parseFloat(key)).reduce((curr, prev) =>
+                    (Math.abs(curr - speed) < Math.abs(prev - speed)) ? curr : prev
+                );
+
+                resolve(scaleMap[bestFit]);
             })
             .catch((e) => {
-                reject(compressionLevels.LOW);
+                reject(Object.keys(videos)[0]);
             });
         });
     }
