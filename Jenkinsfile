@@ -51,7 +51,7 @@ def setup_tunnel(doTests) {
   }
 
   // Nohup the tunnel invocation so we can move on with the session, save pid in tmp for killing on success / fail
-  sh "nohup /var/tmp/BrowserStackLocal \
+  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal \
     --key ${env.BS_CREDS_PSW} \
     --local-identifier ${env.LOCAL_IDENTIFIER} \
     --folder ${env.PROJECT_DIR} \
