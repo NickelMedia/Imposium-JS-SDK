@@ -25,7 +25,7 @@ pipeline {
                     // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                     sh "npm i"
 
-                    setup_tunnel {
+                    setup_tunnel $key, {
                       sh "mocha ./tests/experience-browserstack.js --timeout 0 $BS_CREDS_USR $BS_CREDS_PSW"
                     }
                   }
@@ -42,7 +42,7 @@ pipeline {
   }
 }
 
-def setup_tunnel(doTests) {
+def setup_tunnel(key, doTests) {
   
   // Download Browserstack local, unzip and make it executable, may still exist if many deployments fire at once
   if (!fileExists('/var/tmp/BrowserStackLocal')) {
@@ -52,7 +52,7 @@ def setup_tunnel(doTests) {
 
   // Nohup the tunnel invocation so we can move on with the session, save pid in tmp for killing on success / fail
   sh "nohup /var/tmp/BrowserStackLocal \
-    --key ${env.BS_CREDS_PSW} \
+    --key ${key} \
     --local-identifier ${env.LOCAL_IDENTIFIER} \
     --folder ${env.PROJECT_DIR} \
     > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
