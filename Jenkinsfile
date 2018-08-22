@@ -42,7 +42,7 @@ pipeline {
   }
 }
 
-def setup_tunnel(key, doTests) {
+def setup_tunnel(doTests) {
   
   // Download Browserstack local, unzip and make it executable, may still exist if many deployments fire at once
   if (!fileExists('/var/tmp/BrowserStackLocal')) {
