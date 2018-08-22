@@ -55,7 +55,7 @@ def setup_tunnel(doTests) {
   sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal \
     --key ${env.BS_CREDS_PSW} \
     --local-identifier ${env.LOCAL_IDENTIFIER} \
-    --folder ${curr} \
+    --folder $curr \
     > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
 
   try {
