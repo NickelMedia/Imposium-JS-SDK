@@ -2,6 +2,7 @@
     "compilerOptions": {
         "outDir": "./lib",
         "sourceMap": true,
+        "declaration": true,
         "noImplicitAny": false,
         "module": "commonjs",
         "target": "es5",

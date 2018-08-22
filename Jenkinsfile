@@ -5,7 +5,6 @@ pipeline {
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
-    BS_CREDS = credentials('browserstack-creds')
   }
   stages {
     stage('Functional Test') {
@@ -22,6 +21,9 @@ pipeline {
                 testingImage.inside {
                   // Ensure that running an npm install doesn't result in an EACCES error
                   withEnv(['npm_config_cache=npm-cache', 'HOME=.']) {
+                    withCredentials([string(credentialsId: 'browserstack-creds', variable: 'creds')]) {
+                        sh "echo $creds"
+                    }
                     // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                     sh "npm i"
                     sh "printenv"
@@ -53,7 +55,7 @@ def setup_tunnel(doTests) {
 
   // Nohup the tunnel invocation so we can move on with the session, save pid in tmp for killing on success / fail
   sh "nohup /var/tmp/BrowserStackLocal \
-    --key ${env.BS_CREDS} \
+    --key ${env.BS_CREDS_PSW} \
     --local-identifier ${env.LOCAL_IDENTIFIER} \
     --folder ${env.PROJECT_DIR} \
     > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
