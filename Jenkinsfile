@@ -4,7 +4,6 @@ pipeline {
   agent any
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
-    PROJECT_DIR = './'
     BS_CREDS = credentials('browserstack-creds')
   }
   stages {
@@ -25,9 +24,9 @@ pipeline {
                     // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                     sh "npm i"
 
-                    setup_tunnel {
-                      sh "mocha ./tests/experience-browserstack.js --timeout 0"
-                    }
+                    // setup_tunnel {
+                    //   sh "mocha ./tests/experience-browserstack.js --timeout 0"
+                    // }
                   }
    
                 }
@@ -58,7 +57,7 @@ def setup_tunnel(doTests) {
     > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
 
   sh "sleep 10"
-  
+
   try {
     doTests()
   } finally {
