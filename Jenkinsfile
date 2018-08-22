@@ -50,11 +50,12 @@ def setup_tunnel(doTests) {
     sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal"
   }
 
+  sh "pwd=`pwd`"
   // Nohup the tunnel invocation so we can move on with the session, save pid in tmp for killing on success / fail
   sh "/var/tmp/BrowserStackLocal \
     --key ${env.BS_CREDS_PSW} \
     --local-identifier ${env.LOCAL_IDENTIFIER} \
-    --folder ${env.PROJECT_DIR} \
+    --folder ${pwd} \
     --force-local"
 
   try {
