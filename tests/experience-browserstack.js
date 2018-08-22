@@ -25,6 +25,7 @@ const freshTimeout    = 50000;
 const baseCapability = {
     'browserstack.user': user,
     'browserstack.key': key,
+    'browserstack.localIdentifier': process.env.LOCAL_IDENTIFIER,
     'browserstack.local': 'true'
 };
 
