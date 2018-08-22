@@ -50,6 +50,8 @@ def setup_tunnel(doTests) {
     sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal"
   }
 
+  sh "echo ${env.LOCAL_IDENTIFIER}"
+
   // Nohup the tunnel invocation so we can move on with the session, save pid in tmp for killing on success / fail
   sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal \
     --key ${env.BS_CREDS_PSW} \
