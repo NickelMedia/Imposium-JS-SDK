@@ -24,7 +24,7 @@ pipeline {
                 testingImage.inside {
                   // Ensure that running an npm install doesn't result in an EACCES error
                   withEnv(['npm_config_cache=npm-cache', 'HOME=.']) {
-                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId:'mycreds', usernameVariable: 'BS_USER', passwordVariable: 'BS_KEY']]) {
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId:'browserstack-creds', usernameVariable: 'BS_USER', passwordVariable: 'BS_KEY']]) {
                       // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                       sh "npm i"
                       sh "node ./tests/experience-browserstack.js $BS_USER $BS_KEY $BS_CREDS"

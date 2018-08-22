@@ -1,0 +1,9 @@
+export declare const isNode: () => boolean;
+export declare const prepConfig: (config: any, defaults: any) => void;
+export declare const inRangeNumeric: (n: number, min: number, max: number) => boolean;
+export declare const isFunc: (f: any) => boolean;
+export declare const keyExists: (o: any, key: string) => number;
+export declare const cloneWithKeys: (o: any) => {};
+export declare const calculateMbps: (startTime: number, filesize: number) => number;
+export declare const calculateAverageMbps: (speeds: number[]) => number;
+export declare const inventoryToFormData: (s: string, i: any) => any;
