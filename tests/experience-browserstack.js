@@ -41,7 +41,6 @@ const doQuit = (driver, cb, e = null) => {
     });
 }
 
-console.log(JSON.stringify(process.argv, null, 2));
 // // Do remote tests in parallel
 // parallel('Deeplink Suite', () => {
 //     capabilities.forEach((capability, i) => {
