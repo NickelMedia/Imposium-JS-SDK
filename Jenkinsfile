@@ -25,7 +25,7 @@ pipeline {
                     // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                     sh "npm i"
 
-                    setup_tunnel $key, {
+                    setup_tunnel $BS_CREDS_PSW, {
                       sh "mocha ./tests/experience-browserstack.js --timeout 0 $BS_CREDS_USR $BS_CREDS_PSW"
                     }
                   }
