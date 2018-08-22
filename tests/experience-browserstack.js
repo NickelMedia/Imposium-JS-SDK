@@ -5,7 +5,10 @@ const platforms = require('./platforms.json');
 const webdriver = require('selenium-webdriver');
 const remote    = require('selenium-webdriver/remote');
 
-const base = `http://${process.argv[5]}.browserstack.com/examples/web/basic-deeplink.html`;
+const user = process.env.BS_CREDS_USR;
+const key  = process.env.BS_CREDS_PSW;
+
+const base = `http://${user}.browserstack.com/examples/web/basic-deeplink.html`;
 const hash = '#e8bb7871-3c60-4af5-9666-ca7d328da4c8';
 
 // Existing experience test props
@@ -20,9 +23,9 @@ const freshTimeout    = 50000;
 
 // Base capability that all Browserstack test specs need to share
 const baseCapability = {
-    'browserstack.user': process.argv[5],
-    'browserstack.key': process.argv[6],
-    'browserstack.localIdentifier': 'sdktest',
+    'browserstack.user': user,
+    'browserstack.key': key,
+    'browserstack.localIdentifier': process.env.LOCAL_IDENTIFIER,
     'browserstack.local': 'true'
 };
 

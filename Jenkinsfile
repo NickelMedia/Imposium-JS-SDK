@@ -26,7 +26,7 @@ pipeline {
                     sh "npm i"
 
                     setup_tunnel {
-                      sh "mocha ./tests/experience-browserstack.js --timeout 0 ${env.BS_CREDS_USR} ${env.BS_CREDS_PSW}"
+                      sh "mocha ./tests/experience-browserstack.js --timeout 0"
                     }
                   }
    
