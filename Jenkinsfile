@@ -5,6 +5,7 @@ pipeline {
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
+    BS_CREDS = credentials('browserstack-creds')
   }
   stages {
     stage('Functional Test') {
@@ -21,13 +22,9 @@ pipeline {
                 testingImage.inside {
                   // Ensure that running an npm install doesn't result in an EACCES error
                   withEnv(['npm_config_cache=npm-cache', 'HOME=.']) {
-                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'browserstack-creds',
-                      usernameVariable: 'BS_USER', passwordVariable: 'BS_KEY']]) {
-                        sh "echo $BS_USER && echo $BS_KEY"
-                    }
                     // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                     sh "npm i"
-                    sh "printenv"
+                    sh "node ./tests/experience-browserstack.js $BS_CREDS_USR $BS_CREDS_PSW $BS_CREDS"
 
                     // setup_tunnel {
                     //   sh "mocha ./tests/trial.js --timeout 0"
