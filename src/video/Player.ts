@@ -425,7 +425,7 @@ export default class ImposiumPlayer extends VideoPlayer {
             Promise.all(testPromises)
             .then((speeds: number[]) => {
                 const speed = calculateAverageMbps(speeds);
-                let scaleMap = {};
+                const scaleMap = {};
 
                 Object.keys(videos).forEach((key) => {
                     const {height} = videos[key];
@@ -434,14 +434,14 @@ export default class ImposiumPlayer extends VideoPlayer {
                     scaleMap[scaledHeight] = key;
                 });
 
-                const bestFit = Object.keys(scaleMap).map((key) => parseFloat(key)).reduce((curr, prev) =>
-                    (Math.abs(curr - speed) < Math.abs(prev - speed)) ? curr : prev
-                );
+                const bestFit = Object.keys(scaleMap)
+                    .map((key) => parseFloat(key))
+                    .reduce((c, p) => (Math.abs(c - speed) < Math.abs(p - speed)) ? c : p);
 
                 resolve(scaleMap[bestFit]);
             })
             .catch((e) => {
-                reject(Object.keys(videos)[0]);
+                reject(Object.keys(videos).slice(-1).pop());
             });
         });
     }
@@ -449,11 +449,11 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Set player data once video file was selected
      */
-    private setPlayerData = (videoSrc: string, doStream: boolean, posterSrc: string = null): void => {
+    private setPlayerData = (videoSrc: string, invokeHls: boolean, posterSrc: string = null): void => {
         const {hlsSupport} = this;
         const {hlsSupportLevels: {HLSJS}} = ImposiumPlayer;
 
-        if (doStream && hlsSupport === HLSJS) {
+        if (invokeHls && hlsSupport === HLSJS) {
             if (this.hlsPlayer) {
                 this.hlsPlayer.destroy();
             }
