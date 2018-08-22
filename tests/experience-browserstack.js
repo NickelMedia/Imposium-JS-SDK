@@ -20,7 +20,7 @@ const caption         = 'This is a test.';
 const imgPath         = `${process.cwd()}/tests/test.jpg`;
 const captionExpected = 'Video ready for viewing.';
 const freshTimeout    = 50000;
-
+console.log('local id', process.env.LOCAL_IDENTIFIER)
 // Base capability that all Browserstack test specs need to share
 const baseCapability = {
     'browserstack.user': user,
