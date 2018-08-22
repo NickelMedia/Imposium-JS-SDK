@@ -49,7 +49,7 @@ def setup_tunnel(doTests) {
     sh "curl https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip > /var/tmp/BrowserStackLocal.zip"
     sh "unzip -o /var/tmp/BrowserStackLocal.zip -d /var/tmp && chmod +x /var/tmp/BrowserStackLocal"
   }
-  
+
   // Nohup the tunnel invocation so we can move on with the session, save pid in tmp for killing on success / fail
   sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal \
     --key ${env.BS_CREDS_PSW} \
@@ -57,6 +57,8 @@ def setup_tunnel(doTests) {
     --folder `pwd` \
     > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
 
+  sh "sleep 10"
+  
   try {
     doTests()
   } finally {
