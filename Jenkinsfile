@@ -5,10 +5,12 @@ pipeline {
   environment {
     LOCAL_IDENTIFIER = 'sdktest'
     PROJECT_DIR = './'
-    BS_CREDS = credentials('browserstack-creds')
   }
   stages {
     stage('Functional Test') {
+      environment {
+        BS_CREDS = credentials('browserstack-creds')
+      }
       steps {
         script {
           if (env.BRANCH_NAME == 'dev') { 
