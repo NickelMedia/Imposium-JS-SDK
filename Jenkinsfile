@@ -26,7 +26,7 @@ pipeline {
                     sh "npm i"
 
                     setup_tunnel {
-                      sh "mocha ./tests/trial.js --timeout 0"
+                      sh "mocha ./tests/experience-browserstack.js --timeout 0"
                     }
                   }
    
