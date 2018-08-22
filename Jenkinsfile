@@ -55,6 +55,7 @@ def setup_tunnel(doTests) {
     --key ${env.BS_CREDS_PSW} \
     --local-identifier ${env.LOCAL_IDENTIFIER} \
     --folder ${env.PROJECT_DIR} \
+    --forcelocal \
     > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
 
   try {
