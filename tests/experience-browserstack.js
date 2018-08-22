@@ -5,7 +5,7 @@ const platforms = require('./platforms.json');
 const webdriver = require('selenium-webdriver');
 const remote    = require('selenium-webdriver/remote');
 
-const base = 'http://patrickchisholm1.browserstack.com/examples/web/basic-deeplink.html';
+const base = `http://${process.argv[5]}.browserstack.com/examples/web/basic-deeplink.html`;
 const hash = '#e8bb7871-3c60-4af5-9666-ca7d328da4c8';
 
 // Existing experience test props
