@@ -20,8 +20,8 @@ const freshTimeout    = 50000;
 
 // Base capability that all Browserstack test specs need to share
 const baseCapability = {
-    'browserstack.user': 'stub',
-    'browserstack.key': 'stub',
+    'browserstack.user': process.argv[5],
+    'browserstack.key': process.argv[6],
     'browserstack.localIdentifier': 'sdktest',
     'browserstack.local': 'true'
 };
