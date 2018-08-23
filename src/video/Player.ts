@@ -17,7 +17,7 @@ import {
     PlayerConfigurationError
 } from '../scaffolding/Exceptions';
 
-interface IPlayerConfig {
+export interface IPlayerConfig {
     volume: number;
     preload: string;
     loop: boolean;

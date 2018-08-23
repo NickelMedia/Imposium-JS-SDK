@@ -22,7 +22,7 @@ import {
     isNode
 } from '../scaffolding/Helpers';
 
-interface IClientConfig {
+export interface IClientConfig {
     accessToken: string;
     storyId: string;
     actId: string;
