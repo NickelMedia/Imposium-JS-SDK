@@ -1,2 +1,9 @@
 /node_modules
 /src
+/tests
+Dockfile
+Jenkinsfile
+tsconfig.json
+tslint.json
+webpack.config.js
+generate-types.sh
