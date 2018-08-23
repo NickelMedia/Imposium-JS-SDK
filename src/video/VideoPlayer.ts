@@ -71,7 +71,7 @@ export default abstract class VideoPlayer {
     public setGaProperty = (gaProperty: string): void => {
         const {deferredGaCalls} = this;
 
-        // Flush out pending requests if the user changes a story 
+        // Flush out pending requests if the user changes a story
         if (this.gaProperty && this.gaProperty !== gaProperty && !deferredGaCalls.isEmpty()) {
             deferredGaCalls.reset();
         }
