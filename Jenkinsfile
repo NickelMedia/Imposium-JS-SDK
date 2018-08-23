@@ -24,6 +24,8 @@ pipeline {
                     // Run npm i from jenkins as project isn't mounted in dockerfile workdir
                     sh "npm i"
 
+                    sh "tslint -c 'tslint.json' './src/**/*.ts'"
+
                     // setup_tunnel {
                     //   sh "mocha ./tests/experience-browserstack.js --timeout 0"
                     // }

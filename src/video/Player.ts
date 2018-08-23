@@ -413,7 +413,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Adapt quality manually if HLS cannot be supported
      */
-    private checkBandwidth = (videos: any): Promise<string> => {
+    private checkBandwidth = (videos:any): Promise<string> => {
         const {bandwidthRatings, compressionLevels, BANDWIDTH_SAMPLES} = ImposiumPlayer;
         const testPromises: Array<Promise<number>> = [];
 
@@ -440,7 +440,7 @@ export default class ImposiumPlayer extends VideoPlayer {
                 const bestFit = Object.keys(scaleMap)
                     .map((key) => parseFloat(key))
                     .reduce((c, p) => (Math.abs(c - speed) < Math.abs(p - speed)) ? c : p);
-                    
+
                 resolve(scaleMap[bestFit]);
             })
             .catch((e) => {
