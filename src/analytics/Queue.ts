@@ -16,6 +16,10 @@ export default class Queue {
         this.q.splice(0, 1);
     }
 
+    public reset = (): void => {
+        this.q = [];
+    }
+
     public peek = (): any => {
         return this.q[0];
     }

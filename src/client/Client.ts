@@ -293,16 +293,18 @@ export default class Client {
         .then((story: any) => {
             const {gaTrackingId} = story;
 
-            this.gaProperty = gaTrackingId;
+            if (gaTrackingId) {
+                this.gaProperty = gaTrackingId;
 
-            if (this.player) {
-                this.player.setGaProperty(gaTrackingId);
+                if (this.player) {
+                    this.player.setGaProperty(gaTrackingId);
+                }
+
+                Analytics.setup();
+
+                this.doPageView();
+                window.addEventListener('popstate', () => this.doPageView());
             }
-
-            Analytics.setup();
-
-            this.doPageView();
-            window.addEventListener('popstate', () => this.doPageView());
         })
         .catch((e) => {
             const wrappedError = new NetworkError('httpFailure', null, e);
