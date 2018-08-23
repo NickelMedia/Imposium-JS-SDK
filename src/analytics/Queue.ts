@@ -1,6 +1,3 @@
-/*
-    Simple queue for storing URL strings
- */
 export default class Queue {
     private q: any[];
 
