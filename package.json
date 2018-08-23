@@ -1,11 +1,18 @@
 {
   "name": "imposium-js-sdk",
   "version": "2.0.0",
-  "description": "",
+  "license": "MIT",
   "author": [
     "Greg Webber",
     "Patrick Chisholm"
   ],
+  "description": "Javascript client and video player for Imposium",
+  "keywords": "imposium dynamic video nickel media",
+  "homepage": "https://github.com/NickelMedia/Imposium-JS-SDK",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NickelMedia/Imposium-JS-SDK.git"
+  },
   "main": "lib/imposium.min.js",
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.55",
