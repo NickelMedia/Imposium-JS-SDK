@@ -424,20 +424,23 @@ export default class ImposiumPlayer extends VideoPlayer {
         return new Promise((resolve, reject) => {
             Promise.all(testPromises)
             .then((speeds: number[]) => {
+                // Get sampled mbps value
                 const speed = calculateAverageMbps(speeds);
                 const scaleMap = {};
 
+                // Calculate n pixels (downscaled) for each format and map
                 Object.keys(videos).forEach((key) => {
-                    const {height} = videos[key];
-                    const scaledHeight = height / 100;
+                    const {width, height} = videos[key];
+                    const scaledPixels = (width * height) / 100000;
 
-                    scaleMap[scaledHeight] = key;
+                    scaleMap[scaledPixels] = key;
                 });
 
+                // Convert scaled pixel values to arr of float vals and get closest val to mbps
                 const bestFit = Object.keys(scaleMap)
                     .map((key) => parseFloat(key))
                     .reduce((c, p) => (Math.abs(c - speed) < Math.abs(p - speed)) ? c : p);
-
+                    
                 resolve(scaleMap[bestFit]);
             })
             .catch((e) => {
