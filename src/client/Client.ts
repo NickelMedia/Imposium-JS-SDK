@@ -144,20 +144,20 @@ export default class Client {
                     const {id, output, rendering, moderation_status} = experience;
 
                     if (Object.keys(output).length > 0) {
+                        if (player) {
+                            player.experienceGenerated(experience);
+                        }
+
+                        if (GOT_EXPERIENCE) {
+                            GOT_EXPERIENCE(experience);
+                        }
+                    } else {
                         if (moderation_status === 'rejected') {
                             const moderationError = new ModerationError('rejection', id);
                             ExceptionPipe.trapError(moderationError, storyId, ERROR);
-                        } else {
-                            if (player) {
-                                player.experienceGenerated(experience);
-                            }
-
-                            if (GOT_EXPERIENCE) {
-                                GOT_EXPERIENCE(experience);
-                            }
+                        } else { 
+                            this.renderExperience(id, rendering);
                         }
-                    } else {
-                        this.renderExperience(id, rendering);
                     }
                 })
                 .catch((e) => {
