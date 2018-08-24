@@ -155,7 +155,7 @@ export default class Client {
                         if (moderation_status === 'rejected') {
                             const moderationError = new ModerationError('rejection', id);
                             ExceptionPipe.trapError(moderationError, storyId, ERROR);
-                        } else { 
+                        } else {
                             this.renderExperience(id, rendering);
                         }
                     }
