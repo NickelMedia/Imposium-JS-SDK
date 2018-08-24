@@ -4,9 +4,9 @@ declare module 'Imposium-JS-SDK/analytics/Queue' {
 	    constructor();
 	    enqueue: (item: any) => void;
 	    pop: () => void;
+	    reset: () => void;
 	    peek: () => any;
 	    isEmpty: () => boolean;
-	    isFull: (max: number) => boolean;
 	    getLength: () => number;
 	}
 
@@ -93,6 +93,11 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	    constructor(messageKey: string, type?: string);
 	    log: () => void;
 	}
+	export class ModerationError extends ImposiumError {
+	    private experienceId;
+	    constructor(messageKey: string, experienceId: string, type?: string);
+	    log: () => void;
+	}
 	export class ClientConfigurationError extends ImposiumError {
 	    private eventName;
 	    constructor(messageKey: string, eventName: string, type?: string);
@@ -114,6 +119,11 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	    constructor(messageKey: string, e: Error, type?: string);
 	    log: () => void;
 	}
+
+}
+declare module 'Imposium-JS-SDK/scaffolding/Version' {
+	export const version = "[AIV]{version}[/AIV]";
+	export const printVersion: () => void;
 
 }
 declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
@@ -204,7 +214,6 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    sceneId: string;
 	    environment: string;
 	}
-	export const version = "[AIV]{version}[/AIV]";
 	export default class Client {
 	    static events: {
 	        EXPERIENCE_CREATED: string;
