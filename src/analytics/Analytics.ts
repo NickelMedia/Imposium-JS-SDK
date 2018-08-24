@@ -65,7 +65,6 @@ export default class Analytics {
     private static broker: IBroker = {
         concurrency: settings.concurrency,
         frequency: settings.frequency,
-        enqueued: 0,
         defer: false,
         active: new Queue(),
         deferred: new Queue()
