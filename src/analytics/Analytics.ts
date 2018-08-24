@@ -190,7 +190,7 @@ export default class Analytics {
 
         if (!defer) {
             active.enqueue(url);
-            defer = !active.isFull(concurrency);
+            defer = !(active.getLength() < concurrency);
         } else {
             deferred.enqueue(url);
         }
@@ -234,22 +234,17 @@ export default class Analytics {
         Failed urls can also be passed as an optional param to
         enable retries.
      */
-    private static setRequestUrl = (failedUrl: any = null) => {
+    private static setRequestUrl = () => {
         const {makeRequest, scrapeDeferred, broker, emitter} = Analytics;
+        const {active} = broker;
+        const url = active.peek();
 
-        if (failedUrl) {
-            makeRequest(failedUrl);
+        if (url) {
+            active.pop();
+            makeRequest(url);
         } else {
-            const {active} = broker;
-            const url = active.peek();
-
-            if (url) {
-                active.pop();
-                makeRequest(url);
-            } else {
-                clearInterval(emitter);
-                scrapeDeferred();
-            }
+            clearInterval(emitter);
+            scrapeDeferred();
         }
     }
 

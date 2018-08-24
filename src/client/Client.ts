@@ -13,6 +13,7 @@ import {
     ClientConfigurationError,
     PlayerConfigurationError,
     EnvironmentError,
+    ModerationError,
     NetworkError
 } from '../scaffolding/Exceptions';
 
@@ -140,15 +141,20 @@ export default class Client {
             if (GOT_EXPERIENCE || player) {
                 api.getExperience(experienceId)
                 .then((experience: any) => {
-                    const {id, output, rendering} = experience;
+                    const {id, output, rendering, moderation_status} = experience;
 
                     if (Object.keys(output).length > 0) {
-                        if (player) {
-                            player.experienceGenerated(experience);
-                        }
+                        if (moderation_status === 'rejected') {
+                            const moderationError = new ModerationError('rejection', id);
+                            ExceptionPipe.trapError(moderationError, storyId, ERROR);
+                        } else {
+                            if (player) {
+                                player.experienceGenerated(experience);
+                            }
 
-                        if (GOT_EXPERIENCE) {
-                            GOT_EXPERIENCE(experience);
+                            if (GOT_EXPERIENCE) {
+                                GOT_EXPERIENCE(experience);
+                            }
                         }
                     } else {
                         this.renderExperience(id, rendering);

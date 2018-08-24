@@ -50,11 +50,14 @@ def setup_tunnel(doTests) {
   }
 
   // Nohup the tunnel invocation so we can move on with the session, save pid in tmp for killing on success / fail
-  sh "BUILD_ID=dontKillMe nohup /var/tmp/BrowserStackLocal \
+  bs_local_pid = sh (
+    script: "nohup /var/tmp/BrowserStackLocal \
     --key ${env.BS_CREDS_PSW} \
     --local-identifier ${env.LOCAL_IDENTIFIER} \
     --folder `pwd` \
-    > /var/tmp/browserstack.log 2>&1 & echo \$! > /var/tmp/browserstack.pid"
+    > /var/tmp/browserstack.log 2>&1 & echo \$!",
+    returnStdout: true
+  ).trim()
 
   sh "sleep 10"
 
@@ -62,6 +65,6 @@ def setup_tunnel(doTests) {
     doTests()
   } finally {
     // Kill browserstack local instance
-    sh "kill `cat /var/tmp/browserstack.pid`"
+    sh "kill $bs_local_pid"
   }
 }

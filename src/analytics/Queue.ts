@@ -25,10 +25,6 @@ export default class Queue {
         return (this.q.length === 0);
     }
 
-    public isFull = (max: number): boolean => {
-        return (this.q.length < max);
-    }
-
     public getLength = (): number => {
         return this.q.length;
     }

@@ -2,6 +2,7 @@ const errors = require('../conf/errors.json');
 
 const types = {
     ENV: 'environment',
+    MODERATION: 'moderation',
     CLIENT_CONFIG: 'clientConfiguration',
     PLAYER_CONFIG: 'playerConfiguration',
     NETWORK: 'network',
@@ -36,6 +37,25 @@ export class EnvironmentError extends ImposiumError {
     public log = (): void => {
         console.error(`${this.prefix}
             \nReason: Unavailable feature
+            \nMessage: ${this.message}`);
+    }
+}
+
+export class ModerationError extends ImposiumError {
+    private experienceId: string = null;
+
+    constructor(messageKey: string, experienceId: string, type: string = types.MODERATION) {
+        super(errors[type][messageKey], type);
+
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, EnvironmentError);
+        }
+    }
+
+    public log = (): void => {
+        console.error(`${this.prefix}
+            \nReason: Moderation Issue
+            \nExperience ID: ${this.experienceId}
             \nMessage: ${this.message}`);
     }
 }

@@ -5,6 +5,7 @@ import ExceptionPipe from '../../scaffolding/ExceptionPipe';
 
 import {
     EnvironmentError,
+    ModerationError,
     NetworkError
 } from '../../scaffolding/Exceptions';
 
@@ -131,15 +132,20 @@ export default class MessageConsumer {
         Parses the experience data into a prop delivered via gotScene
      */
     private emitSceneData = (experience: any): void => {
-        const {player, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
-        const {moderation_status} = experience;
+        const {player, storyId, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
+        const {id, moderation_status} = experience;
 
-        if (player) {
-            player.experienceGenerated(experience);
-        }
+        if (moderation_status === 'rejected') {
+            const moderationError = new ModerationError('rejection', id);
+            ExceptionPipe.trapError(moderationError, storyId, ERROR);
+        } else {
+            if (player) {
+                player.experienceGenerated(experience);
+            }
 
-        if (GOT_EXPERIENCE) {
-            GOT_EXPERIENCE(experience);
+            if (GOT_EXPERIENCE) {
+                GOT_EXPERIENCE(experience);
+            }
         }
     }
 
