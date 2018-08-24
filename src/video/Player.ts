@@ -141,7 +141,11 @@ export default class ImposiumPlayer extends VideoPlayer {
         let poster = '';
 
         this.setExperienceId(id);
-        experienceCache.push(experience);
+
+        /*
+            Will be used in upcoming features
+            experienceCache.push(experience);
+         */
 
         if (images && images.hasOwnProperty('poster')) {
             poster = images.poster;
