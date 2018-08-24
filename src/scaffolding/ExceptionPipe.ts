@@ -2,6 +2,7 @@ import Analytics from '../analytics/Analytics';
 import {version} from '../client/Client';
 import {ImposiumError, UncaughtError} from './Exceptions';
 
+const settings = require('../conf/settings.json').analytics;
 const warnings = require('../conf/warnings.json');
 
 export default class ExceptionPipe {
@@ -31,7 +32,7 @@ export default class ExceptionPipe {
         }
     }
 
-    private static readonly errorsProperty: string = 'UA-123315989-1';
+    private static readonly errorsProperty: string = settings.exceptionProp;
 
     private static logError = (e: any, storyId: string): void => {
         e.log();

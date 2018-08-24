@@ -31,6 +31,7 @@
 		"password": "Teehe1ceeMe7Pe1d"
 	},
 	"analytics": {
+		"exceptionProp": "UA-123315989-1",
 		"baseUrl": "https://ssl.google-analytics.com/collect",
 		"lsLookup": "imposium_js_ga_cid",
 		"gaPropPlaceholder": "[id_placeholder]",
