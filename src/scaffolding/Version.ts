@@ -1,4 +1,4 @@
-const version = '[AIV]{version}[/AIV]';
+export const version = '[AIV]{version}[/AIV]';
 
 export const printVersion = () => {
     console.log(

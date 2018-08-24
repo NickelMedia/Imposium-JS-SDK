@@ -1,6 +1,6 @@
 import Analytics from '../analytics/Analytics';
-import {version} from '../client/Client';
 import {ImposiumError, UncaughtError} from './Exceptions';
+import {version} from './Version';
 
 const settings = require('../conf/settings.json').analytics;
 const warnings = require('../conf/warnings.json');
