@@ -217,7 +217,7 @@ export default class Client {
                     }
                 })
                 .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', storyId, null, e);
+                    const wrappedError = new NetworkError('httpFailure', null, e);
                     ExceptionPipe.trapError(wrappedError, storyId, ERROR);
                 });
             } else {
