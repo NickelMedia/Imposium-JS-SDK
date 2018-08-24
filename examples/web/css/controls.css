@@ -1,0 +1,44 @@
+#dynamic-video {
+	margin-bottom: 0;
+}
+
+.controls {
+	max-width: 640px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	box-sizing: border-box;
+	border-top: 1px solid rgba(0, 0, 0, 0.15);
+	background-color: #ddd;
+}
+
+.sub-controls {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 7.5px 10px;
+	font-size: 12px;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.type {
+	margin-right: 5px;
+	padding: 5px;
+	border-radius: 3px;
+	background-color: royalblue;
+	color: white;
+	letter-spacing: 1.1px;
+}
+
+.label {
+	margin-left: 5px;
+	padding: 5px;
+	border-radius: 3px;
+	background-color: orange;
+	color: white;
+	font-weight: 800;
+}
+
+button {
+	margin: 2.5px;
+}

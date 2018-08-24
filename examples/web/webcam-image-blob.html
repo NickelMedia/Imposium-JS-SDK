@@ -1,0 +1,164 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Imposium JS Webcam Image Blob Example</title>
+        <link rel="stylesheet" href="./css/styles.css">
+        <link rel="stylesheet" href="./css/webcam.css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+    </head>
+
+    <body>
+    
+        <header>
+            <img class="logo" src="./img/imposium_logo@2x.png"/>
+            <h1>Webcam Image Blob Example</h1>
+            <p>This example demonstrates how you can pass Imposium.js and image Blob object, as opposed to a file uploaded via a file input. For this exemple, we use an image Blob recorded via the webcam. Enter a caption, hit "Capture" to take the image, and hit "Submit" to create the dynamic video.</p>
+        </header>
+
+        <div id="inputs">
+            <section>
+                <label for="caption">
+                    Enter Caption:
+                </label>
+                <br/>
+                <input 
+                    id="caption" 
+                    name="caption" 
+                    type="text" 
+                    placeholder="<Witty Caption>"/>             
+            </section>
+        </div>
+        
+        <section id="capture-wrapper">
+            <label>
+                Capture Image
+            </label>
+            <button 
+                id="btn-capture" 
+                class="btn capture">
+                Capture
+            </button>
+            <br/>
+            <video autoplay id="capture-video"></video>
+            <canvas id="capture-canvas"></canvas>
+            <br/>
+        </section>
+
+        <button 
+            disabled
+            id="btn-submit" 
+            class="btn submit">
+            Submit
+        </button>
+
+        <section id="player-wrapper">
+            <p id = "status"></p>
+            <video id="dynamic-video" />
+        </section>
+
+        <script type = "text/javascript" src = "../../lib/imposium.js"></script>
+        <script type = "text/javascript">
+            
+            //Store all required HTML refs
+            var btnSubmit = document.getElementById('btn-submit'),
+                btnCapture = document.getElementById('btn-capture'),
+                videoNode = document.getElementById('dynamic-video'),
+                captionInput = document.getElementById('caption'),
+                statusField = document.getElementById('status'),
+                captureNode = document.getElementById('capture-video'),
+                captureCanvas = document.getElementById('capture-canvas');
+
+            //Create an instance of the Client and Player
+            var client = new Imposium.Client({
+                accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+                storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
+            });
+            var player = new Imposium.Player(videoNode, client);
+
+            var width = 360,
+                height = 360,
+                captured = false;
+
+            //Media Capture contraints
+            var constraints = {
+                audio:false,
+                video:{
+                    width:width,
+                    height:height
+                }
+            };
+
+            //Listen to the client STATUS_UPDATE event to populate the status field
+            client.on(Imposium.Events.STATUS_UPDATE, setStatus);
+
+            //Listen for input event to trigger input validation
+            captionInput.addEventListener('input', validateForm);
+            btnSubmit.addEventListener('click', submit);
+            btnCapture.addEventListener('click', capture);
+
+            //Get webcam access
+            navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
+
+            function submit(e){
+
+                e.preventDefault();
+
+                //Get the image blob from the canvas
+                captureCanvas.toBlob(function(blob){
+
+                    //Build the inventory object
+                    var inventory = {
+                        text:captionInput.value,
+                        image:blob
+                    }
+
+                    //Create the Imposium Experience
+                    client.createExperience(inventory);
+                });
+            }
+
+            //Capture a frame from the video, and display it on the canvas
+            function capture(){
+
+                captureCanvas.width = width;
+                captureCanvas.height = height;
+                captureCanvas.getContext('2d').drawImage(captureNode, 0, 0, width, height);
+                captured = true;
+
+                validateForm();
+            }
+
+            //Set the content of the status update field
+            function setStatus(e){
+
+                statusField.innerHTML = e.status;
+            }
+
+            //Validate the two inputs in the inputs field, enable the submit button if they are filled out.
+            function validateForm(){
+
+                if(captionInput.value != '' && captured){
+                    btnSubmit.disabled = false;
+                }else{
+                    btnSubmit.disabled = true;
+                }
+            }
+
+            //Pass the stream from the webcam into the video node
+            function handleSuccess(stream) {
+
+                window.stream = stream;
+                captureNode.srcObject = stream;
+            }
+
+            //Handle any webcam / stream errors
+            function handleError(error) {
+
+                console.error('navigator.getUserMedia error: ', error);
+            }
+
+        </script>
+    </body>
+</html>

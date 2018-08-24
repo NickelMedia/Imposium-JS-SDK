@@ -1,0 +1,166 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Imposium JS Player Controls Example</title>
+        <link rel="stylesheet" href="./css/styles.css">
+        <link rel="stylesheet" href="./css/controls.css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+    </head>
+
+    <body>
+
+        <header>
+            <img class="logo" src="./img/imposium_logo@2x.png"/>
+            <h1>Player Controls Example</h1>
+            <p>This example will demonstrate how to use the Imposium Player API if you want to use custom video controls / markup for your example.</p>
+        </header>
+
+        <section id="player-wrapper">
+            <p id = "status"></p>
+            <video id="dynamic-video" />
+        </section>
+
+        <div class="controls">
+            <div class="sub-controls playback">
+                <span class="type">Playback</span>
+                <button onclick="doPlay()">Play</button>
+                <button onclick="doPause()">Pause</button>
+                <button onclick="doReplay()">Replay</button>
+                <span class="label" id="playback-label"></span>
+            </div>
+
+            <div class="sub-controls volume">
+                <span class="type">Volume</span>
+                <button onclick="doMute()">Mute</button>
+                <button onclick="adjustVolume(.1)">+</button>
+                <button onclick="adjustVolume(-.1)">-</button>
+                <span class="label" id="volume-label"></span>
+                <span class="label" id="mute-label"></span>
+            </div>
+            
+            <div class="sub-controls seek">
+                <span class="type">Seek</span>
+                <button onclick="doSeek(-1)"><<</button>
+                <button onclick="doSeek(1)">>></button>
+                <span class="label" id="seek-label"></span>
+            </div>
+        </div>
+
+        <script type = "text/javascript" src = "../../lib/imposium.js"></script>
+
+        <script type = "text/javascript">
+            
+            //NOTE: PULL THIS EXPERIENCE ID FROM THE URL, this is hardcoded for sample purposes only
+            var experienceID = 'bdc8ca2e-6c68-4c37-8396-bae2c65964d9';
+
+            //Store all required HTML refs
+            var videoNode = document.getElementById('dynamic-video');
+            var playbackLabel = document.getElementById('playback-label');
+            var volumeLabel = document.getElementById('volume-label');
+            var muteLabel = document.getElementById('mute-label');
+            var seekLabel = document.getElementById('seek-label');
+
+            //Create an instance of the Client
+            var client = new Imposium.Client({
+                accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+                storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
+            });
+
+            //Turns off default media controls
+            var playerConfig = {
+                controls: false
+            };
+
+            //Setup an instance of the Player
+            var player = new Imposium.Player(videoNode, client, playerConfig);
+
+            //Setup player events that will update the DOM
+            player.on(player.events.COMPLETE, onComplete);
+            player.on(player.events.TIME, onTimeUpdate);
+
+            //Print default player values
+            setupLabels();
+
+            //Pull in the already created experience
+            client.getExperience(experienceID);
+
+            //Play video
+            function doPlay() {
+                player.play();
+                updatePlaybackLabel();
+            }
+
+            //Pause video
+            function doPause() {
+                player.pause();
+                updatePlaybackLabel();
+            }
+
+            //Replay video
+            function doReplay() {
+                player.replay();
+                updatePlaybackLabel();
+            }
+
+            //Toggle mute state
+            function doMute() {
+                var muted = player.getMute();
+                player.setMute(!muted);
+                updateVolumeLabel();
+            }
+
+            //Change the volume level of the video
+            function adjustVolume(offset) {
+                var currentVolume = player.getVolume();
+
+                var offsetVolume = currentVolume + offset;
+                player.setVolume(offsetVolume);
+                updateVolumeLabel();
+            }
+
+            //Seek to an offset time within the duration
+            function doSeek(offset) {
+                var currentTime = player.getPosition();
+                var seekTo = currentTime + offset;
+
+                player.seek(seekTo);
+                updateSeekLabel();
+            }
+
+            //Callback fired when playback ends
+            function onComplete() {
+                updatePlaybackLabel();
+            }
+
+            //Callback fired when current time updates
+            function onTimeUpdate() {
+                updateSeekLabel();
+            }
+
+            //Update DOM element with playback state
+            function updatePlaybackLabel() {
+                playbackLabel.innerHTML = player.getPlaybackState();
+            }
+
+            //Update DOM element with volume state
+            function updateVolumeLabel() {
+                volumeLabel.innerHTML = player.getVolume();
+                muteLabel.innerHTML = (player.getMute()) ? 'muted' : 'unmuted';
+            }
+
+            //Update DOM element with current time state
+            function updateSeekLabel() {
+                seekLabel.innerHTML = Math.floor(player.getPosition()) + 's';
+            }
+
+            //Ensures player properties are displayed when page loads
+            function setupLabels() {
+                updatePlaybackLabel();
+                updateVolumeLabel();
+                updateSeekLabel();
+            }
+        </script>
+    </body>
+</html>

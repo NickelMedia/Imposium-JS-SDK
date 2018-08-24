@@ -1,30 +1,50 @@
 {
   "name": "imposium-js-sdk",
-  "version": "1.4.3",
-  "description": "",
+  "version": "2.0.0",
+  "license": "MIT",
   "author": [
     "Greg Webber",
     "Patrick Chisholm"
   ],
+  "description": "Javascript client and video player for Imposium",
+  "keywords": "imposium dynamic video nickel media",
+  "homepage": "https://github.com/NickelMedia/Imposium-JS-SDK",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NickelMedia/Imposium-JS-SDK.git"
+  },
   "main": "lib/imposium.min.js",
   "devDependencies": {
-    "awesome-typescript-loader": "^3.2.3",
-    "del": "~0.1.3",
-    "path": "~0.4.9",
+    "@babel/core": "^7.0.0-beta.55",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.55",
+    "@babel/preset-env": "^7.0.0-beta.55",
+    "@types/node": "^10.3.4",
+    "awesome-typescript-loader": "^5.1.1",
+    "babel-core": "^7.0.0-0",
+    "babel-loader": "^7.1.5",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^5.2.0",
+    "eslint-plugin-html": "^4.0.5",
+    "mocha": "^5.2.0",
+    "mocha.parallel": "^0.15.5",
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "tslint": "^5.11.0",
     "typescript": "^2.5.3",
-    "webpack": "^3.8.1",
-    "webpack-node-externals": "^1.6.0",
-    "webpack-notifier": "^1.5.0",
-    "yargs": "~4.7.1"
+    "uglifyjs-webpack-plugin": "^1.2.5",
+    "webpack": "^4.16.4",
+    "webpack-auto-inject-version": "^1.1.0",
+    "webpack-cli": "^3.1.0"
   },
   "dependencies": {
-    "apisauce": "^0.14.1",
+    "axios": "^0.18.0",
+    "axios-retry": "^3.1.1",
     "babel-polyfill": "^6.26.0",
-    "event-emitter": "^0.3.5",
     "form-data": "^2.3.1",
-    "websocket-client": "^1.0.0",
+    "hls.js": "^0.10.1",
+    "isomorphic-ws": "^4.0.1",
+    "jwt-decode": "^2.2.0",
     "webstomp-client": "^1.2.0",
-    "window": "^4.2.1",
     "ws": "^3.2.0"
-  }
+  },
+  "typings": "./index.d.ts"
 }

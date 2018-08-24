@@ -1,0 +1,114 @@
+<!doctype html>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Imposium JS Basic Example</title>
+		<link rel="stylesheet" href="./css/styles.css">
+		<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+	</head>
+
+	<body>
+
+		<header>
+			<img class="logo" src="./img/imposium_logo@2x.png"/>
+			<h1>Basic Example</h1>
+			<p>This example represents a typical Imposium JavaScript integration. It includes a text and image input, simple client-side validation, and a status message as the video renders. Fill out the form and hit "Submit" to create your dynamic video.</p>
+		</header>
+		
+		<div id="inputs">
+			<section>
+				<label for="caption">
+					Enter Caption:
+				</label>
+				<br/>
+				<input 
+					id="caption" 
+					name="caption" 
+					type="text" 
+					placeholder="<Witty Caption>"/>				
+			</section>
+
+			<section>
+				<label for="image">
+					Choose Image:
+				</label>
+				<br/>
+				<input 
+					id="image" 
+					name="image" 
+					type="file" 
+					accept=".jpg, .jpeg, .png" />
+			</section>
+
+			<button 
+				disabled
+				id="btn-submit" 
+				class="btn submit">
+				Submit
+			</button>
+		</div>
+
+		<section id="player-wrapper">
+			<p id = "status"></p>
+			<video id="dynamic-video" />
+		</section>
+
+		<script type = "text/javascript" src = "../../lib/imposium.js"></script>
+		<script type = "text/javascript">
+			
+			//Store all required HTML refs
+			var btnSubmit = document.getElementById('btn-submit'),
+				videoNode = document.getElementById('dynamic-video'),
+				captionInput = document.getElementById('caption'),
+				statusField = document.getElementById('status'),
+				imageInput = document.getElementById('image');
+
+			//Create an instance of the Client and Player
+			var client = new Imposium.Client({
+				accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+				storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
+			});
+			var player = new Imposium.Player(videoNode, client);
+
+			//Listen to the client STATUS_UPDATE event to populate the status field
+			client.on(Imposium.Events.STATUS_UPDATE, setStatus);
+
+			//Listen for input event to trigger input validation
+			captionInput.addEventListener('change', validateForm);
+			imageInput.addEventListener('change', validateForm);
+			btnSubmit.addEventListener('click', submit);
+
+			function submit(e){
+
+				e.preventDefault();
+
+				//Build the inventory object
+				var inventory = {
+					text:captionInput.value,
+					image:imageInput.files[0]
+				}
+
+				//Create the Imposium Experience
+				client.createExperience(inventory);
+			}
+
+			//Set the content of the status update field
+			function setStatus(e){
+
+				statusField.innerHTML = e.status;
+			}
+
+			//Validate the two inputs in the inputs field, enable the submit button if they are filled out
+			function validateForm(){
+
+				if(captionInput.value != '' && imageInput.files.length > 0){
+					btnSubmit.disabled = false;
+				}else{
+					btnSubmit.disabled = true;
+				}
+			}
+
+		</script>
+	</body>
+</html>

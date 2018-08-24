@@ -1,0 +1,250 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Imposium JS Uploaded Image Blob Example</title>
+        <link rel="stylesheet" href="./css/styles.css">
+        <link rel="stylesheet" href="./css/upload.css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+    </head>
+
+    <body>
+    
+        <header>
+            <img class="logo" src="./img/imposium_logo@2x.png"/>
+            <h1>Uploaded Image Blob Example</h1>
+            <p>This example demonstrates how you can pass Imposium.js and image Blob object, created via manipulating an uploaded image on an HTML5 Canvas element. Enter a caption, hit "Capture" to take the image, and hit "Submit" to create the dynamic video.</p>
+            <p></p>
+        </header>
+
+        <div id="inputs">
+            <section>
+                <label for="caption">
+                    Enter Caption:
+                </label>
+                <br/>
+                <input 
+                    id="caption" 
+                    name="caption" 
+                    type="text" 
+                    placeholder="<Witty Caption>"/>             
+            </section>
+        </div>
+        
+        <section id="capture-wrapper">
+            <label for ="image">
+                Upload Image
+            </label>
+            <input 
+                id="image" 
+                name="image" 
+                type="file" 
+                accept=".jpg, .jpeg, .png" />
+            <br/>
+            <canvas width = "360" height = "360" id="img-canvas"></canvas>
+            
+            <div class = "btn-container">            
+                <button disabled class = "btn-canvas" id = "btn-left">Move Left</button><br/>
+                <button disabled class = "btn-canvas" id = "btn-right">Move Right</button><br/>
+                <button disabled class = "btn-canvas" id = "btn-up">Move Up</button><br/>
+                <button disabled class = "btn-canvas" id = "btn-down">Move Down</button><br/>
+                <button disabled class = "btn-canvas" id = "btn-zoom-in">Zoom In</button><br/>
+                <button disabled class = "btn-canvas" id = "btn-zoom-out">Zoom Out</button>
+            </div>
+            
+        </section>
+
+        <button 
+            disabled
+            id="btn-submit" 
+            class="btn submit">
+            Submit
+        </button>   
+
+        <section id="player-wrapper">
+            <p id = "status"></p>
+            <video id="dynamic-video" />
+        </section>
+
+        <script type = "text/javascript" src = "../../lib/imposium.js"></script>
+        <script type = "text/javascript">
+            
+            //Store all required HTML refs
+            var btnSubmit = document.getElementById('btn-submit'),
+                videoNode = document.getElementById('dynamic-video'),
+                captionInput = document.getElementById('caption'),
+                statusField = document.getElementById('status'),
+                imageInput = document.getElementById('image'),
+                imgCanvas = document.getElementById('img-canvas'),
+                ctx = imgCanvas.getContext('2d'),
+                btnLeft = document.getElementById('btn-left'),
+                btnRight = document.getElementById('btn-right'),
+                btnUp = document.getElementById('btn-up'),
+                btnDown = document.getElementById('btn-down'),
+                btnZoomIn = document.getElementById('btn-zoom-in'),
+                btnZoomOut = document.getElementById('btn-zoom-out');
+
+            //Create an instance of the Client and Player
+            var client = new Imposium.Client({
+                accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+                storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
+            });
+            var player = new Imposium.Player(videoNode, client);
+
+            //Variables specific to loading and drawing the image on the canvas
+            var img,
+                imgW,
+                imgH,
+                imgX,
+                imgY,
+                cvsW = 360,
+                cvsH = 360,
+                offset = 10,
+                imgScale = 1;
+
+            //Listen to the client STATUS_UPDATE event to populate the status field
+            client.on(Imposium.Events.STATUS_UPDATE, setStatus);
+
+            //Listen for input event to trigger input validation
+            captionInput.addEventListener('change', validateForm);
+            imageInput.addEventListener('change', imageUploaded);
+            btnSubmit.addEventListener('click', submit);
+
+            //Listen for click events on canvas manipulation buttons
+            btnLeft.addEventListener('click', moveLeft);
+            btnRight.addEventListener('click', moveRight);
+            btnUp.addEventListener('click', moveUp);
+            btnDown.addEventListener('click', moveDown);
+            btnZoomIn.addEventListener('click', zoomIn);
+            btnZoomOut.addEventListener('click', zoomOut);
+
+            //Create the Imposium Experience
+            function submit(e){
+
+                e.preventDefault();
+
+                //Get the image blob from the canvas
+                imgCanvas.toBlob(function(blob){
+
+                    //Build the inventory object
+                    var inventory = {
+                        text:captionInput.value,
+                        image:blob
+                    }
+
+                    //Create the Imposium Experience
+                    client.createExperience(inventory);
+                });
+            }
+
+            //This function writes the image to the canvas, taking into account all placement variables set via user input
+            function writeImageToCanvas(){
+
+                //Wipe the canvas
+                clearCanvas();
+
+                //Draw the image
+                if(img){
+
+                    var w = imgW * imgScale,
+                        h = imgH * imgScale;
+
+                    ctx.drawImage(img, imgX, imgY, w, h);
+                }
+            }
+
+            //Creates an object URL from the uploaded file
+            function imageUploaded(){
+
+                var src = URL.createObjectURL(imageInput.files[0]);
+
+                img = new Image();
+                img.onload = function(){
+
+                    //set the image dimensions
+                    imgW = img.naturalWidth;
+                    imgH = img.naturalHeight;
+
+                    //set the initial X and Y of the image (center, center)
+                    imgX = (cvsW - imgW) / 2;
+                    imgY = (cvsH - imgH) / 2;
+
+                    //Write the image to the canvas
+                    writeImageToCanvas();
+
+                    btnLeft.disabled = false;
+                    btnRight.disabled = false;
+                    btnUp.disabled = false;
+                    btnDown.disabled = false;
+                    btnZoomIn.disabled = false;
+                    btnZoomOut.disabled = false;
+                };
+                img.src = src;
+
+                validateForm();
+            }
+
+            //Makes the canvas white again
+            function clearCanvas(){
+
+                ctx.clearRect(0, 0, cvsW, cvsH);
+            }
+
+            function moveLeft(){
+
+                imgX -= offset;
+                writeImageToCanvas();
+            }
+
+            function moveRight(){
+
+                imgX += offset;
+                writeImageToCanvas();
+            }
+
+            function moveUp(){
+
+                imgY -= offset;
+                writeImageToCanvas();
+            }
+
+            function moveDown(){
+
+                imgY += offset;
+                writeImageToCanvas();
+            }
+
+            function zoomIn(){
+
+                imgScale += 0.01;
+                writeImageToCanvas();
+            }
+
+            function zoomOut(){
+
+                if(imgScale > 0){
+                    imgScale -= 0.01;
+                    writeImageToCanvas();
+                }
+            }
+
+            //Set the content of the status update field
+            function setStatus(e){
+
+                statusField.innerHTML = e.status;
+            }
+
+            //Validate the two inputs in the inputs field, enable the submit button if they are filled out
+            function validateForm(){
+
+                if(captionInput.value != '' && imageInput.files.length > 0){
+                    btnSubmit.disabled = false;
+                }else{
+                    btnSubmit.disabled = true;
+                }
+            }
+
+        </script>
+    </body>
+</html>
