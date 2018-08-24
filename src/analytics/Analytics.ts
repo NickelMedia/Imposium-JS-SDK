@@ -1,5 +1,5 @@
 import API from '../client/http/API';
-import Queue from './Queue';
+import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 const settings = require('../conf/settings.json').analytics;
 
@@ -19,15 +19,6 @@ interface IRequest {
     baseUrl: string;
     cacheKey: string;
     clientId: string;
- }
-
-// Holds settings related to rate limiting
-interface IBroker {
-    concurrency: number;
-    frequency: number;
-    defer: boolean;
-    active: Queue;
-    deferred: Queue;
 }
 
 export default class Analytics {
@@ -43,14 +34,8 @@ export default class Analytics {
         Sends events off to the GA collect API
      */
     public static send = (event: any): void => {
-        const {emit, addToQueue, concatParams} = Analytics;
-        const {defer, active} = Analytics.broker;
-
-        if (active.isEmpty() && !defer) {
-            emit();
-        }
-
-        addToQueue(concatParams(event));
+        const {makeRequest, concatParams} = Analytics;
+        makeRequest(concatParams(event));
     }
 
     private static emitter: any = null;
@@ -60,14 +45,6 @@ export default class Analytics {
         baseUrl: settings.baseUrl,
         cacheKey: settings.lsLookup,
         clientId: settings.cidPlaceholder
-    };
-
-    private static broker: IBroker = {
-        concurrency: settings.concurrency,
-        frequency: settings.frequency,
-        defer: false,
-        active: new Queue(),
-        deferred: new Queue()
     };
 
     /*
@@ -151,8 +128,7 @@ export default class Analytics {
         url encoded to prevent errors.
      */
     private static concatParams = (event: any): string => {
-        const {getRandom} = Analytics;
-        const {baseUrl, clientId} = Analytics.request;
+        const {getRandom, request: {baseUrl, clientId}} = Analytics;
         const gaProperty = event.prp;
 
         delete event.prp;
@@ -167,100 +143,13 @@ export default class Analytics {
     }
 
     /*
-        Set request emitting interval
-     */
-    private static emit = () => {
-        const {setRequestUrl} = Analytics;
-        const {frequency} = Analytics.broker;
-
-        Analytics.emitter = setInterval(
-            () => setRequestUrl(),
-            frequency
-        );
-    }
-
-    /*
-        Determine if request needs to be deferred during a burst
-     */
-    private static addToQueue = (url: string): void => {
-        const {concurrency, active, deferred} = Analytics.broker;
-        let {defer} = Analytics.broker;
-
-        if (!defer) {
-            active.enqueue(url);
-            defer = !(active.getLength() < concurrency);
-        } else {
-            deferred.enqueue(url);
-        }
-    }
-
-    /*
-        If the deferral queue has urls in it, take 10 or queue length
-        and pass them to the active queue
-     */
-    private static scrapeDeferred = (): void => {
-        const {emit, broker, broker: {concurrency, active, deferred, defer}} = Analytics;
-
-        if (!deferred.isEmpty()) {
-            const enqueued = deferred.getLength();
-            let limit = 0;
-
-            if (enqueued > concurrency) {
-                limit = concurrency;
-            } else {
-                limit = enqueued;
-            }
-
-            for (let i = 0; i < limit; i++) {
-                active.enqueue(deferred.peek());
-                deferred.pop();
-            }
-
-            broker.defer = false;
-            emit();
-        } else {
-            broker.defer = false;
-        }
-    }
-
-    /*
-        Determine if the request is fresh, if so pop the request
-        off the head of the queue. Otherwise call scrapeDeferred.
-        Failed urls can also be passed as an optional param to
-        enable retries.
-     */
-    private static setRequestUrl = () => {
-        const {makeRequest, scrapeDeferred, broker, emitter} = Analytics;
-        const {active} = broker;
-        const url = active.peek();
-
-        if (url) {
-            active.pop();
-            makeRequest(url);
-        } else {
-            clearInterval(emitter);
-            scrapeDeferred();
-        }
-    }
-
-    /*
         Makes GET request to GA collect API with formatted query string, retrying
         is handled by axios-retry with exponential decay
      */
     private static makeRequest = (url: string): void => {
-        const {broker, emit, emitter} = Analytics;
-        const {active} = broker;
-
         API.getGATrackingPixel(url)
-        .then(() => {
-            if (active.isEmpty()) {
-                clearInterval(emitter);
-            }
-        })
         .catch((e) => {
-            clearInterval(emitter);
-            active.pop();
-            emit();
+            ExceptionPipe.logWarning('analytics', 'requestFailed');
         });
     }
 }

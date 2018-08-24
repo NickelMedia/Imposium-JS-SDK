@@ -1,4 +1,4 @@
-import Queue from '../analytics/Queue';
+import Queue from '../scaffolding/Queue';
 import Analytics from '../analytics/Analytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 

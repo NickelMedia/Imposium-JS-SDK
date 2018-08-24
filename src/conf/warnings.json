@@ -9,5 +9,8 @@
 		"seekNotReady": "Seek can't be called until the video metadata has loaded, please try again shortly.",
 		"invalidSeekTime": "Could not seek to time outside of current video duration.",
 		"invalidVolume": "Could not set volume outside of range (double) 0.0 - 1.0."
+	},
+	"analytics": {
+		"requestFailed": "Failed to record Imposium metric."
 	}
 }

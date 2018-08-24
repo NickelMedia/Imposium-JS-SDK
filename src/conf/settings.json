@@ -35,9 +35,7 @@
 		"baseUrl": "https://ssl.google-analytics.com/collect",
 		"lsLookup": "imposium_js_ga_cid",
 		"gaPropPlaceholder": "[id_placeholder]",
-		"cidPlaceholder": "[cid_placeholder]",
-		"concurrency": 10,
-		"frequency": 50
+		"cidPlaceholder": "[cid_placeholder]"
 	},
 	"videoPlayer": {
 		"defaultConfig": {

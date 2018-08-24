@@ -1,13 +1,54 @@
-declare module 'Imposium-JS-SDK/analytics/Queue' {
-	export default class Queue {
-	    private q;
-	    constructor();
-	    enqueue: (item: any) => void;
-	    pop: () => void;
-	    reset: () => void;
-	    peek: () => any;
-	    isEmpty: () => boolean;
-	    getLength: () => number;
+declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
+	export abstract class ImposiumError extends Error {
+	    log: () => void;
+	    protected prefix: string;
+	    protected type: string;
+	    constructor(message: string, type: string);
+	}
+	export class EnvironmentError extends ImposiumError {
+	    constructor(messageKey: string, type?: string);
+	    log: () => void;
+	}
+	export class ModerationError extends ImposiumError {
+	    private experienceId;
+	    constructor(messageKey: string, experienceId: string, type?: string);
+	    log: () => void;
+	}
+	export class ClientConfigurationError extends ImposiumError {
+	    private eventName;
+	    constructor(messageKey: string, eventName: string, type?: string);
+	    log: () => void;
+	}
+	export class PlayerConfigurationError extends ImposiumError {
+	    private eventName;
+	    constructor(messageKey: string, eventName: string, type?: string);
+	    log: () => void;
+	}
+	export class NetworkError extends ImposiumError {
+	    private experienceId;
+	    private networkError;
+	    constructor(messageKey: string, experienceId: string, e: Error, type?: string);
+	    log: () => void;
+	}
+	export class UncaughtError extends ImposiumError {
+	    private uncaughtError;
+	    constructor(messageKey: string, e: Error, type?: string);
+	    log: () => void;
+	}
+
+}
+declare module 'Imposium-JS-SDK/scaffolding/Version' {
+	export const version = "[AIV]{version}[/AIV]";
+	export const printVersion: () => void;
+
+}
+declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
+	export default class ExceptionPipe {
+	    static logWarning: (type: string, messageKey: string) => void;
+	    static trapError: (e: any, storyId: string, errorEvent?: (e: any) => any) => void;
+	    private static readonly errorsProperty;
+	    private static logError;
+	    private static traceError;
 	}
 
 }
@@ -18,17 +59,12 @@ declare module 'Imposium-JS-SDK/analytics/Analytics' {
 	    private static emitter;
 	    private static retryTimeout;
 	    private static request;
-	    private static broker;
 	    private static checkCache;
 	    private static setCache;
 	    private static s4;
 	    private static generateGuid;
 	    private static getRandom;
 	    private static concatParams;
-	    private static emit;
-	    private static addToQueue;
-	    private static scrapeDeferred;
-	    private static setRequestUrl;
 	    private static makeRequest;
 	}
 
@@ -82,57 +118,16 @@ declare module 'Imposium-JS-SDK/client/tcp/Stomp' {
 	}
 
 }
-declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
-	export abstract class ImposiumError extends Error {
-	    log: () => void;
-	    protected prefix: string;
-	    protected type: string;
-	    constructor(message: string, type: string);
-	}
-	export class EnvironmentError extends ImposiumError {
-	    constructor(messageKey: string, type?: string);
-	    log: () => void;
-	}
-	export class ModerationError extends ImposiumError {
-	    private experienceId;
-	    constructor(messageKey: string, experienceId: string, type?: string);
-	    log: () => void;
-	}
-	export class ClientConfigurationError extends ImposiumError {
-	    private eventName;
-	    constructor(messageKey: string, eventName: string, type?: string);
-	    log: () => void;
-	}
-	export class PlayerConfigurationError extends ImposiumError {
-	    private eventName;
-	    constructor(messageKey: string, eventName: string, type?: string);
-	    log: () => void;
-	}
-	export class NetworkError extends ImposiumError {
-	    private experienceId;
-	    private networkError;
-	    constructor(messageKey: string, experienceId: string, e: Error, type?: string);
-	    log: () => void;
-	}
-	export class UncaughtError extends ImposiumError {
-	    private uncaughtError;
-	    constructor(messageKey: string, e: Error, type?: string);
-	    log: () => void;
-	}
-
-}
-declare module 'Imposium-JS-SDK/scaffolding/Version' {
-	export const version = "[AIV]{version}[/AIV]";
-	export const printVersion: () => void;
-
-}
-declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
-	export default class ExceptionPipe {
-	    static logWarning: (type: string, messageKey: string) => void;
-	    static trapError: (e: any, storyId: string, errorEvent?: (e: any) => any) => void;
-	    private static readonly errorsProperty;
-	    private static logError;
-	    private static traceError;
+declare module 'Imposium-JS-SDK/scaffolding/Queue' {
+	export default class Queue {
+	    private q;
+	    constructor();
+	    enqueue: (item: any) => void;
+	    pop: () => void;
+	    reset: () => void;
+	    peek: () => any;
+	    isEmpty: () => boolean;
+	    getLength: () => number;
 	}
 
 }
