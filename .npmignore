@@ -1,9 +1,10 @@
 /node_modules
 /src
 /tests
-Dockfile
+Dockerfile
 Jenkinsfile
 tsconfig.json
 tslint.json
 webpack.config.js
 generate-types.sh
+.babelrc
