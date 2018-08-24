@@ -114,7 +114,7 @@ export default class Client {
         const {clientConfig: {storyId}, eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
         try {
-            if (eventName !== '') {
+            if (eventName) {
                 if (keyExists(Client.events, eventName)) {
                     eventDelegateRefs[eventName] = null;
                 } else {
