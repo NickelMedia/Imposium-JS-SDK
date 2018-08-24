@@ -25,7 +25,6 @@ interface IRequest {
 interface IBroker {
     concurrency: number;
     frequency: number;
-    enqueued: number;
     defer: boolean;
     active: Queue;
     deferred: Queue;
@@ -201,14 +200,11 @@ export default class Analytics {
         and pass them to the active queue
      */
     private static scrapeDeferred = (): void => {
-        const {emit} = Analytics;
-        const {concurrency, active, deferred} = Analytics.broker;
-        let {enqueued, defer} = Analytics.broker;
+        const {emit, broker, broker: {concurrency, active, deferred, defer}} = Analytics;
 
         if (!deferred.isEmpty()) {
+            const enqueued = deferred.getLength();
             let limit = 0;
-
-            enqueued = deferred.getLength();
 
             if (enqueued > concurrency) {
                 limit = concurrency;
@@ -221,10 +217,10 @@ export default class Analytics {
                 deferred.pop();
             }
 
-            defer = false;
+            broker.defer = false;
             emit();
         } else {
-            defer = false;
+            broker.defer = false;
         }
     }
 
