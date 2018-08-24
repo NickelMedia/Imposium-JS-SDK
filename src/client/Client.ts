@@ -7,6 +7,8 @@ import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
+import {printVersion} from '../scaffolding/Version';
+
 import {
     ClientConfigurationError,
     PlayerConfigurationError,
@@ -32,17 +34,8 @@ export interface IClientConfig {
 
 const settings = require('../conf/settings.json').client;
 
-/*
-    Log out Imposium.js Version in the console
- */
-export const version = '[AIV]{version}[/AIV]';
-
 if (!isNode()) {
-    console.log(`%cPowered By%c Imposium%c v${version}%c https://imposium.com`,
-        'text-transform: uppercase; padding: 5px 0px 5px 5px; background-color: black; color: white;',
-        'text-transform: uppercase; padding: 5px 0px 5px 0px; background-color: black; color: #a1b83a;',
-        'padding: 5px 5px 5px 0px; background-color: black; color: white;',
-        'padding: 5px 5px 5px 0px;');
+    printVersion();
 }
 
 export default class Client {
