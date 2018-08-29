@@ -58,7 +58,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         HLSJS  : settings.hlsSupportLevels.hlsjs
     };
 
-    public events = {
+    public static events = {
         PLAY: 'play',
         PAUSE: 'pause',
         COMPLETE: 'ended',
@@ -166,7 +166,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
         try {
             if (isFunc(callback)) {
-                if (keyExists(this.events, eventName)) {
+                if (keyExists(ImposiumPlayer.events, eventName)) {
                     const event = eventDelegateRefs[eventName];
 
                     // Add ptr for future removal
@@ -194,7 +194,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {storyId, eventDelegateRefs} = this;
 
         try {
-            if (keyExists(this.events, eventName)) {
+            if (keyExists(ImposiumPlayer.events, eventName)) {
                 const event = eventDelegateRefs[eventName];
 
                 // Remove node based event listener
@@ -249,7 +249,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Seek to a point in the video (s)
      */
-    public seek = (seekTo: number, retry: number = -1): void => {
+    public seek = (seekTo: number): void => {
         const {node: {duration}} = this;
 
         if (!isNaN(duration)) {
