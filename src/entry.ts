@@ -25,10 +25,11 @@
 import Client from './client/Client';
 import Player from './video/Player';
 
-const e = Client.events;
+const [clientEvents, playerEvents] = [Client.events, Player.events];
 
 export {
     Client,
     Player,
-    e as Events
+    clientEvents as Events,
+    playerEvents as PlayerEvents
 };
