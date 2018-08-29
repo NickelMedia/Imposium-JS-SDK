@@ -77,8 +77,8 @@
             var player = new Imposium.Player(videoNode, client, playerConfig);
 
             //Setup player events that will update the DOM
-            player.on(player.events.COMPLETE, onComplete);
-            player.on(player.events.TIME, onTimeUpdate);
+            player.on(Imposium.PlayerEvents.COMPLETE, onComplete);
+            player.on(Imposium.PlayerEvents.TIME, onTimeUpdate);
 
             //Print default player values
             setupLabels();
