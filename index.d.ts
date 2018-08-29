@@ -260,7 +260,7 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	    private static readonly bandwidthRatings;
 	    private static readonly compressionLevels;
 	    private static readonly hlsSupportLevels;
-	    events: {
+	    static events: {
 	        PLAY: string;
 	        PAUSE: string;
 	        COMPLETE: string;
@@ -287,7 +287,7 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	    getPlaybackState: () => string;
 	    getPosition: () => number;
 	    getDuration: () => number;
-	    seek: (seekTo: number, retry?: number) => void;
+	    seek: (seekTo: number) => void;
 	    getMute: () => boolean;
 	    setMute: (mute: boolean) => void;
 	    getVolume: () => number;
@@ -307,13 +307,7 @@ declare module 'Imposium-JS-SDK/video/Player' {
 }
 declare module 'Imposium-JS-SDK/entry' {
 	import Client from 'Imposium-JS-SDK/client/Client';
-	import Player from 'Imposium-JS-SDK/video/Player'; const e: {
-	    EXPERIENCE_CREATED: string;
-	    UPLOAD_PROGRESS: string;
-	    GOT_EXPERIENCE: string;
-	    STATUS_UPDATE: string;
-	    ERROR: string;
-	};
-	export { Client, Player, e as Events };
+	import Player from 'Imposium-JS-SDK/video/Player';
+	export { Client, Player, clientEvents as Events, playerEvents as PlayerEvents };
 
 }
