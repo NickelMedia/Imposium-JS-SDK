@@ -1,75 +1,75 @@
 {
-	"client": {
-		"defaultConfig": {
-			"accessToken": "",
-			"storyId": "",
-			"actId": "",
-			"sceneId": "",
-			"environment": "production"
-		}
-	},
-	"api": {
-		"production": "https://api.imposium.com",
-		"staging": "https://api.staging.imposium.com",
-		"local": "https://api",
-		"currentVersion": "2.0.0",
-		"version": "X-Imposium-Api-Version",
-		"hmac": "X-Imposium-Access-Key",
-		"jwt": "Authorization",
-		"img":"https://cdn.imposium.com/SampleJPGImage_1mb.jpg"
-	},
-	"messageConsumer": {
-		"maxReconnects": 5,
-		"minReconnects": 0,
-		"errorOverTcp": "Server failure.",
-		"videoSceneKey": "VideoScene01"
-	},
-	"stomp": {
-		"production": "wss://stomp.prod.k8s.nickel.media/ws",
-		"staging": "wss://stomp.staging.k8s.nickel.media/ws",
-		"local": "ws://127.0.0.1:15674/ws",
-		"exchange": "/exchange/imposium/",
-		"username": "imposium_stomp",
-		"password": "Teehe1ceeMe7Pe1d"
-	},
-	"analytics": {
-		"exceptionProp": "UA-123315989-1",
-		"baseUrl": "https://ssl.google-analytics.com/collect",
-		"lsLookup": "imposium_js_ga_cid",
-		"gaPropPlaceholder": "[id_placeholder]",
-		"cidPlaceholder": "[cid_placeholder]"
-	},
-	"videoPlayer": {
-		"defaultConfig": {
-			"volume": 1,
-			"preload": "auto",
-			"loop": false,
-			"muted": false,
-			"autoLoad": true,
-			"autoPlay": true,
-			"controls": true,
-			"crossOrigin": "anonymous",
-			"qualityOverride":null
-		},
-		"playbackEvents": [0.25, 0.5, 0.75],
-		"checkPlaybackRateMs": 100,
-		"volumeMin": 0,
-		"volumeMax": 1,
-		"bandwidth": {
-			"low": 2.4,
-			"mid": 8
-		},
-		"compression": {
-			"stream": "m3u8",
-			"low": "mp4_480",
-			"mid": "mp4_720",
-			"high": "mp4_1080"
-		},
-		"bandwidthSamples": 5,
-		"hlsSupportLevels": {
-			"native": "native",
-			"hlsjs": "hls-js"
-		},
-		"streamType": "application/vnd.apple.mpegurl"
-	}
+    "client": {
+        "defaultConfig": {
+            "accessToken": "",
+            "storyId": "",
+            "actId": "",
+            "sceneId": "",
+            "environment": "production"
+        }
+    },
+    "api": {
+        "production": "https://api.imposium.com",
+        "staging": "https://api.staging.imposium.com",
+        "local": "https://api",
+        "currentVersion": "2.0.0",
+        "version": "X-Imposium-Api-Version",
+        "hmac": "X-Imposium-Access-Key",
+        "jwt": "Authorization",
+        "img":"https://cdn.imposium.com/SampleJPGImage_1mb.jpg"
+    },
+    "messageConsumer": {
+        "maxReconnects": 5,
+        "minReconnects": 0,
+        "errorOverTcp": "Server failure.",
+        "videoSceneKey": "VideoScene01"
+    },
+    "stomp": {
+        "production": "wss://stomp.prod.k8s.nickel.media/ws",
+        "staging": "wss://stomp.staging.k8s.nickel.media/ws",
+        "local": "ws://127.0.0.1:15674/ws",
+        "exchange": "/exchange/imposium/",
+        "username": "imposium_stomp",
+        "password": "Teehe1ceeMe7Pe1d"
+    },
+    "analytics": {
+        "exceptionProp": "UA-123315989-1",
+        "baseUrl": "https://ssl.google-analytics.com/collect",
+        "lsLookup": "imposium_js_ga_cid",
+        "gaPropPlaceholder": "[id_placeholder]",
+        "cidPlaceholder": "[cid_placeholder]"
+    },
+    "videoPlayer": {
+        "defaultConfig": {
+            "volume": 1,
+            "preload": "auto",
+            "loop": false,
+            "muted": false,
+            "autoLoad": true,
+            "autoPlay": true,
+            "controls": true,
+            "crossOrigin": "anonymous",
+            "qualityOverride":null
+        },
+        "playbackEvents": [0.25, 0.5, 0.75],
+        "checkPlaybackRateMs": 100,
+        "volumeMin": 0,
+        "volumeMax": 1,
+        "bandwidth": {
+            "low": 2.4,
+            "mid": 8
+        },
+        "compression": {
+            "stream": "m3u8",
+            "low": "mp4_480",
+            "mid": "mp4_720",
+            "high": "mp4_1080"
+        },
+        "bandwidthSamples": 5,
+        "hlsSupportLevels": {
+            "native": "native",
+            "hlsjs": "hls-js"
+        },
+        "streamType": "application/vnd.apple.mpegurl"
+    }
 }
