@@ -60,16 +60,16 @@ export default class Client {
         Initialize Imposium client
      */
     constructor(config: any) {
-        const {eventDelegateRefs: {ERROR}} = this;
-
-        try {
-            if (config.storyId) {
-                this.assignConfigOpts(config);
-            } else {
+        if (config.storyId && config.accessToken) {
+            this.assignConfigOpts(config);
+        } else {
+            if (!config.storyId) {
                 throw new ClientConfigurationError('storyId', null);
             }
-        } catch (e) {
-            ExceptionPipe.trapError(e, null, ERROR);
+
+            if (!config.accessToken) {
+                throw new ClientConfigurationError('accessToken', null);
+            }
         }
     }
 
@@ -84,14 +84,12 @@ export default class Client {
         Set current video player ref
      */
     public setPlayer = (player: VideoPlayer, isFallback: boolean = false) => {
-        const {clientConfig} = this;
+        const {clientConfig: {storyId}} = this;
 
-        if (clientConfig) {
-            this.playerIsFallback = isFallback;
-            this.player = player;
+        this.playerIsFallback = isFallback;
+        this.player = player;
 
-            player.setStoryId(clientConfig.storyId);
-        }
+        player.setStoryId(storyId);
     }
 
     /*
@@ -245,6 +243,22 @@ export default class Client {
     }
 
     /*
+        Invokes rendering processes and starts listening for messages
+     */
+    public renderExperience = (experienceId: string, isRendering: boolean): void => {
+        const {consumer} = this;
+
+        if (!consumer) {
+            this.makeConsumer(experienceId, isRendering);
+        } else {
+            consumer.kill()
+            .then(() => {
+                this.makeConsumer(experienceId, isRendering);
+            });
+        }
+    }
+
+    /*
         Sets up analytics using fallback video player wrapper class
      */
     public captureAnalytics = (playerRef: HTMLVideoElement = null): void => {
@@ -271,8 +285,8 @@ export default class Client {
         Copies supplied config object to settings for sharing with sub components
      */
     private assignConfigOpts = (config: any) => {
-        const prevConfig = this.clientConfig;
         const {defaultConfig} = settings;
+        const prevConfig = this.clientConfig || defaultConfig;
 
         prepConfig(config, defaultConfig);
         this.clientConfig = {...prevConfig, ...config};
@@ -363,21 +377,5 @@ export default class Client {
             delegates,
             player
         );
-    }
-
-    /*
-        Invokes rendering processes and starts listening for messages
-     */
-    private renderExperience = (experienceId: string, isRendering: boolean): void => {
-        const {consumer} = this;
-
-        if (!consumer) {
-            this.makeConsumer(experienceId, isRendering);
-        } else {
-            consumer.kill()
-            .then(() => {
-                this.makeConsumer(experienceId, isRendering);
-            });
-        }
     }
 }

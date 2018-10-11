@@ -92,7 +92,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    configureClient: (accessToken: string, env: string) => void;
 	    getStory: (storyId: string) => Promise<any>;
 	    getExperience: (experienceId: string) => Promise<any>;
-	    postExperience: (storyId: string, inventory: any, progress?: (e: any) => any) => Promise<any>;
+	    postExperience: (storyId: string, inventory: any, render: boolean, progress?: (e: any) => any) => Promise<any>;
 	    invokeStream: (experienceId: string) => Promise<null>;
 	    private getAuthHeader;
 	    private doPostExperience;
@@ -231,13 +231,13 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    off: (eventName?: string) => void;
 	    getExperience: (experienceId: string) => void;
 	    createExperience: (inventory: any, render?: boolean) => void;
+	    renderExperience: (experienceId: string, isRendering: boolean) => void;
 	    captureAnalytics: (playerRef?: HTMLVideoElement) => void;
 	    private assignConfigOpts;
 	    private getAnalyticsProperty;
 	    private doPageView;
 	    private startMessaging;
 	    private makeConsumer;
-	    private renderExperience;
 	}
 
 }
