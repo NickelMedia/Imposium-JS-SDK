@@ -116,7 +116,7 @@ export default class API {
     /*
         Wait async for POST /experience, resolve response data
      */
-    public postExperience = (storyId: string, inventory: any, progress: (e) => any = null): Promise<any> => {
+    public postExperience = (storyId: string, inventory: any, render: boolean, progress: (e) => any = null): Promise<any> => {
         const {doPostExperience, uploadProgress} = this;
         const formData = inventoryToFormData(storyId, inventory);
 
@@ -126,10 +126,10 @@ export default class API {
         };
 
         if (!isNode()) {
-            return doPostExperience(formData, config);
+            return doPostExperience(render, formData, config);
         } else {
             config.headers = formData.getHeaders();
-            return doPostExperience(formData, config);
+            return doPostExperience(render, formData, config);
         }
     }
 
@@ -167,11 +167,12 @@ export default class API {
     /*
         Make create experience POST request and resolve
      */
-    private doPostExperience = (formData: any, config: any): Promise<any> => {
+    private doPostExperience = (render: boolean, formData: any, config: any): Promise<any> => {
         const {http: {post}} = this;
-
+        const route: string  = (render) ? '/experience/render' : '/experience';
+        
         return new Promise((resolve, reject) => {
-            post(`/experience/render`, formData, config)
+            post(route, formData, config)
             .then((res) => {
                 const {data} = res;
                 resolve(data);

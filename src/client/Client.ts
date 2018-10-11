@@ -60,11 +60,16 @@ export default class Client {
         Initialize Imposium client
      */
     constructor(config: any) {
+        const {eventDelegateRefs: {ERROR}} = this;
 
-        if (config.accessToken && config.storyId) {
-            this.assignConfigOpts(config);
-        } else {
-            // do throw setup err, make new one for this that spits our creds??
+        try {
+            if (config.storyId) {
+                this.assignConfigOpts(config);
+            } else {
+                throw new ClientConfigurationError('storyId', null);
+            }
+        } catch (e) {
+            ExceptionPipe.trapError(e, null, ERROR);
         }
     }
 
@@ -79,12 +84,14 @@ export default class Client {
         Set current video player ref
      */
     public setPlayer = (player: VideoPlayer, isFallback: boolean = false) => {
-        const {clientConfig: {storyId}} = this;
+        const {clientConfig} = this;
 
-        this.playerIsFallback = isFallback;
-        this.player = player;
+        if (clientConfig) {
+            this.playerIsFallback = isFallback;
+            this.player = player;
 
-        player.setStoryId(storyId);
+            player.setStoryId(clientConfig.storyId);
+        }
     }
 
     /*
@@ -202,7 +209,7 @@ export default class Client {
                     STATUS_UPDATE({status: 'Creating Experience'});
                 }
 
-                api.postExperience(storyId, inventory, UPLOAD_PROGRESS)
+                api.postExperience(storyId, inventory, render, UPLOAD_PROGRESS)
                 .then((experience: any) => {
                     const {clientConfig: {sceneId, actId}} = this;
                     const {id, rendering} = experience;
@@ -268,7 +275,7 @@ export default class Client {
         const {defaultConfig} = settings;
 
         prepConfig(config, defaultConfig);
-        this.clientConfig = {...defaultConfig, ...config};
+        this.clientConfig = {...prevConfig, ...config};
 
         if (!this.api) {
             this.api = new API(this.clientConfig.accessToken, this.clientConfig.environment);

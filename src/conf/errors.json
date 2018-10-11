@@ -6,6 +6,7 @@
 		"rejection": "This experience was rejected."
 	},
 	"clientConfiguration": {
+        "storyId": "No storyId was found in your Imposium configuration.",
 		"invalidEventName": "Invalid client event name.",
 		"invalidCallbackType": "The callback reference set for this client event is not of type function.",
 		"eventNotConfigured": "You cannot invoke this client event without a callback set."

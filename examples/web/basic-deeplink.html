@@ -67,7 +67,8 @@
             //Create an instance of the Client and Player
             var client = new Imposium.Client({
                 accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
-                storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
+                storyId:'295a80d0-871c-4def-a579-8a375d6942fc',
+                environment: 'staging'
             });
             var player = new Imposium.Player(videoNode, client);
 
@@ -102,7 +103,7 @@
                 }
 
                 //Create the Imposium Experience
-                client.createExperience(inventory);
+                client.createExperience(inventory, false);
             }
 
             //Writes the experience ID to the URL
