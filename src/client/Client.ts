@@ -220,7 +220,7 @@ export default class Client {
                         if (STATUS_UPDATE && render) {
                             STATUS_UPDATE({status: 'Added job to queue...'});
                         }
-                        
+
                         this.renderExperience(id, rendering);
                     }
                 })

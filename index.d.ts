@@ -255,11 +255,6 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	    qualityOverride: string;
 	}
 	export default class ImposiumPlayer extends VideoPlayer {
-	    private static readonly STREAM_TYPE;
-	    private static readonly BANDWIDTH_SAMPLES;
-	    private static readonly bandwidthRatings;
-	    private static readonly compressionLevels;
-	    private static readonly hlsSupportLevels;
 	    static events: {
 	        PLAY: string;
 	        PAUSE: string;
@@ -271,6 +266,11 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	        MUTE: string;
 	        CONTROLS: string;
 	    };
+	    private static readonly STREAM_TYPE;
+	    private static readonly BANDWIDTH_SAMPLES;
+	    private static readonly bandwidthRatings;
+	    private static readonly compressionLevels;
+	    private static readonly hlsSupportLevels;
 	    private eventDelegateRefs;
 	    private hlsSupport;
 	    private hlsPlayer;

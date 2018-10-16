@@ -38,6 +38,18 @@ if (!isNode()) {
 
 export default class ImposiumPlayer extends VideoPlayer {
 
+    public static events = {
+        PLAY: 'play',
+        PAUSE: 'pause',
+        COMPLETE: 'ended',
+        ERROR: 'error',
+        SEEK: 'seeked',
+        TIME: 'timeupdate',
+        VOLUME: 'volumechange',
+        MUTE: 'muted',
+        CONTROLS: 'controlsset'
+    };
+
     private static readonly STREAM_TYPE = settings.streamType;
     private static readonly BANDWIDTH_SAMPLES: number = settings.bandwidthSamples;
 
@@ -56,18 +68,6 @@ export default class ImposiumPlayer extends VideoPlayer {
     private static readonly hlsSupportLevels: any = {
         NATIVE : settings.hlsSupportLevels.native,
         HLSJS  : settings.hlsSupportLevels.hlsjs
-    };
-
-    public static events = {
-        PLAY: 'play',
-        PAUSE: 'pause',
-        COMPLETE: 'ended',
-        ERROR: 'error',
-        SEEK: 'seeked',
-        TIME: 'timeupdate',
-        VOLUME: 'volumechange',
-        MUTE: 'muted',
-        CONTROLS: 'controlsset'
     };
 
     private eventDelegateRefs: any = {
