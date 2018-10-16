@@ -93,7 +93,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    getStory: (storyId: string) => Promise<any>;
 	    getExperience: (experienceId: string) => Promise<any>;
 	    postExperience: (storyId: string, inventory: any, render: boolean, progress?: (e: any) => any) => Promise<any>;
-	    invokeStream: (experienceId: string) => Promise<null>;
+	    invokeStream: (experienceId: string) => Promise<string>;
 	    private getAuthHeader;
 	    private doPostExperience;
 	    private uploadProgress;

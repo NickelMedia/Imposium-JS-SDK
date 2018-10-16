@@ -136,13 +136,14 @@ export default class API {
     /*
         Wait async for POST /experience/{expId}/trigger-event, resolve on success
      */
-    public invokeStream = (experienceId: string): Promise<null> => {
+    public invokeStream = (experienceId: string): Promise<string> => {
         const {http: {post}} = this;
 
         return new Promise((resolve, reject) => {
             post(`/experience/${experienceId}/trigger-event`)
             .then((res) => {
-                resolve();
+                const {data: {job_id}} = res;
+                resolve(job_id);
             })
             .catch((e) => {
                 reject(e);

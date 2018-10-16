@@ -203,8 +203,8 @@ export default class Client {
             if (permitRender || permitCreate) {
                 const {api} = this;
 
-                if (STATUS_UPDATE) {
-                    STATUS_UPDATE({status: 'Creating Experience'});
+                if (STATUS_UPDATE && render) {
+                    STATUS_UPDATE({status: 'Adding job to queue...'});
                 }
 
                 api.postExperience(storyId, inventory, render, UPLOAD_PROGRESS)
@@ -217,6 +217,10 @@ export default class Client {
                     }
 
                     if (render) {
+                        if (STATUS_UPDATE && render) {
+                            STATUS_UPDATE({status: 'Added job to queue...'});
+                        }
+                        
                         this.renderExperience(id, rendering);
                     }
                 })
@@ -348,10 +352,15 @@ export default class Client {
     /*
         Invokes the streaming process
      */
-    private startMessaging = (experienceId): void => {
-        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
+    private startMessaging = (experienceId: string): void => {
+        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR, STATUS_UPDATE}} = this;
 
         api.invokeStream(experienceId)
+        .then((jobId: string) => {
+            if (jobId) {
+                STATUS_UPDATE({status: 'Added job to queue...'});
+            }
+        })
         .catch((e) => {
             const wrappedError = new NetworkError('httpFailure', experienceId, e);
             ExceptionPipe.trapError(wrappedError, storyId, ERROR);
