@@ -30,11 +30,11 @@ export interface IPlayerConfig {
 
 const settings = require('../conf/settings.json').videoPlayer;
 
-let hls = null;
+let hls = (window as any).hls;
 
-if (!isNode()) {
-    hls = require('hls.js/dist/hls.light.min');
-}
+// if (!isNode()) {
+//     hls = require('hls.js/dist/hls.light.min');
+// }
 
 export default class ImposiumPlayer extends VideoPlayer {
 
@@ -362,8 +362,10 @@ export default class ImposiumPlayer extends VideoPlayer {
 
         if (this.node.canPlayType(ImposiumPlayer.STREAM_TYPE)) {
             this.hlsSupport = NATIVE;
-        } else if (hls.isSupported()) {
-            this.hlsSupport = HLSJS;
+        } else if (typeof hls !== 'undefined') {
+            if (hls.isSupported()) {
+                this.hlsSupport = HLSJS;
+            }
         }
     }
 
@@ -434,10 +436,12 @@ export default class ImposiumPlayer extends VideoPlayer {
 
                 // Calculate n pixels (downscaled) for each format and map
                 Object.keys(videos).forEach((key) => {
-                    const {width, height} = videos[key];
-                    const scaledPixels = (width * height) / 100000;
+                    if (key !== 'm3u8') {
+                        const {width, height} = videos[key];
+                        const scaledPixels = (width * height) / 100000;
 
-                    scaleMap[scaledPixels] = key;
+                        scaleMap[scaledPixels] = key;
+                    }
                 });
 
                 // Convert scaled pixel values to arr of float vals and get closest val to mbps

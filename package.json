@@ -1,6 +1,6 @@
 {
   "name": "imposium-js-sdk",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "license": "MIT",
   "author": [
     "Greg Webber",
@@ -40,7 +40,6 @@
     "axios-retry": "^3.1.1",
     "babel-polyfill": "^6.26.0",
     "form-data": "^2.3.1",
-    "hls.js": "^0.10.1",
     "isomorphic-ws": "^4.0.1",
     "jwt-decode": "^2.2.0",
     "webstomp-client": "^1.2.0",
