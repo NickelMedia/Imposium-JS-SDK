@@ -1,6 +1,6 @@
 {
   "name": "imposium-js-sdk",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "license": "MIT",
   "author": [
     "Greg Webber",
@@ -36,6 +36,7 @@
     "webpack-cli": "^3.1.0"
   },
   "dependencies": {
+    "array.prototype.find": "^2.0.4",
     "axios": "^0.18.0",
     "axios-retry": "^3.1.1",
     "babel-polyfill": "^6.26.0",

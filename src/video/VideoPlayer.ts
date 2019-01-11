@@ -124,20 +124,53 @@ export default abstract class VideoPlayer {
         analytics calls
      */
     private onPlay = (): void => {
+        const {gaProperty, experienceId, deferredGaCalls} = this;
+
         clearInterval(this.playbackInterval);
 
         this.playbackInterval = setInterval(
             () => this.checkPlayback(),
             VideoPlayer.intervalRate
         );
+
+        if (this.node.currentTime > 0) {
+            const call = {
+                prp: gaProperty,
+                t: 'event',
+                ec: 'video_player',
+                ea: 'play',
+                el: experienceId
+            };
+
+            if (gaProperty) {
+                Analytics.send(call);
+            } else {
+                deferredGaCalls.enqueue(call);
+            }
+        }
     }
 
     /*
         Clear the interval on pause to ensure no false analytics calls occur
      */
     private onPause = (): void => {
-        const {playbackInterval} = this;
+        const {gaProperty, experienceId, deferredGaCalls, playbackInterval} = this;
+
         clearInterval(playbackInterval);
+
+        const call = {
+            prp: gaProperty,
+            t: 'event',
+            ec: 'video_player',
+            ea: 'pause',
+            el: experienceId
+        };
+
+        if (gaProperty) {
+            Analytics.send(call);
+        } else {
+            deferredGaCalls.enqueue(call);
+        }
     }
 
     /*
