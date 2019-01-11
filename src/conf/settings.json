@@ -51,7 +51,7 @@
 			"crossOrigin": "anonymous",
 			"qualityOverride":null
 		},
-		"playbackEvents": [0.25, 0.5, 0.75],
+		"playbackEvents": [0, 0.25, 0.5, 0.75],
 		"checkPlaybackRateMs": 100,
 		"volumeMin": 0,
 		"volumeMax": 1,
