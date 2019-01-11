@@ -126,6 +126,14 @@ export default abstract class VideoPlayer {
     private onPlay = (): void => {
         const {gaProperty, experienceId, deferredGaCalls} = this;
 
+        const call = {
+            prp: gaProperty,
+            t: 'event',
+            ec: 'video_player',
+            ea: 'play',
+            el: experienceId
+        };
+
         clearInterval(this.playbackInterval);
 
         this.playbackInterval = setInterval(
@@ -133,20 +141,10 @@ export default abstract class VideoPlayer {
             VideoPlayer.intervalRate
         );
 
-        if (this.node.currentTime > 0) {
-            const call = {
-                prp: gaProperty,
-                t: 'event',
-                ec: 'video_player',
-                ea: 'play',
-                el: experienceId
-            };
-
-            if (gaProperty) {
-                Analytics.send(call);
-            } else {
-                deferredGaCalls.enqueue(call);
-            }
+        if (gaProperty) {
+            Analytics.send(call);
+        } else {
+            deferredGaCalls.enqueue(call);
         }
     }
 
@@ -154,9 +152,7 @@ export default abstract class VideoPlayer {
         Clear the interval on pause to ensure no false analytics calls occur
      */
     private onPause = (): void => {
-        const {gaProperty, experienceId, deferredGaCalls, playbackInterval} = this;
-
-        clearInterval(playbackInterval);
+        const {gaProperty, experienceId, deferredGaCalls, playbackInterval, node} = this;
 
         const call = {
             prp: gaProperty,
@@ -166,10 +162,14 @@ export default abstract class VideoPlayer {
             el: experienceId
         };
 
-        if (gaProperty) {
-            Analytics.send(call);
-        } else {
-            deferredGaCalls.enqueue(call);
+        clearInterval(playbackInterval);
+        
+        if (node.duration !== node.currentTime) {
+            if (gaProperty) {
+                Analytics.send(call);
+            } else {
+                deferredGaCalls.enqueue(call);
+            }
         }
     }
 
