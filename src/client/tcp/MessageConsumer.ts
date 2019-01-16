@@ -4,7 +4,6 @@ import VideoPlayer from '../../video/VideoPlayer';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
 
 import {
-    EnvironmentError,
     ModerationError,
     NetworkError
 } from '../../scaffolding/Exceptions';
@@ -154,7 +153,6 @@ export default class MessageConsumer {
      */
     private stompError = (e: any): void => {
         const {retried, storyId, experienceId, stomp, clientDelegates: {ERROR}} = this;
-        const {wasClean} = e;
 
         if (!e.wasClean) {
             ++this.retried;

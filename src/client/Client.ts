@@ -1,5 +1,3 @@
-import 'babel-polyfill';
-
 import API from './http/API';
 import MessageConsumer from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
@@ -12,7 +10,6 @@ import {printVersion} from '../scaffolding/Version';
 import {
     ClientConfigurationError,
     PlayerConfigurationError,
-    EnvironmentError,
     ModerationError,
     NetworkError
 } from '../scaffolding/Exceptions';
@@ -21,8 +18,7 @@ import {
     prepConfig,
     keyExists,
     cloneWithKeys,
-    isFunc,
-    isNode
+    isFunc
 } from '../scaffolding/Helpers';
 
 export interface IClientConfig {
@@ -34,10 +30,6 @@ export interface IClientConfig {
 }
 
 const settings = require('../conf/settings.json').client;
-
-if (!isNode()) {
-    printVersion();
-}
 
 export default class Client {
 
@@ -60,6 +52,8 @@ export default class Client {
         Initialize Imposium client
      */
     constructor(config: any) {
+        printVersion();
+
         if (config.storyId && config.accessToken) {
             this.assignConfigOpts(config);
         } else {
@@ -269,16 +263,11 @@ export default class Client {
         const {clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
         try {
-            if (!isNode()) {
-                if (playerRef instanceof HTMLVideoElement) {
-                    this.setPlayer(new FallbackPlayer(playerRef), true);
-                } else {
-                    // Prop passed wasn't of type HTMLVideoElement
-                    throw new PlayerConfigurationError('invalidPlayerRef', null);
-                }
+            if (playerRef instanceof HTMLVideoElement) {
+                this.setPlayer(new FallbackPlayer(playerRef), true);
             } else {
-                // Cancels out initialization in NodeJS
-                throw new EnvironmentError('node');
+                // Prop passed wasn't of type HTMLVideoElement
+                throw new PlayerConfigurationError('invalidPlayerRef', null);
             }
         } catch (e) {
             ExceptionPipe.trapError(e, storyId, ERROR);
@@ -301,10 +290,7 @@ export default class Client {
             this.api.configureClient(this.clientConfig.accessToken, this.clientConfig.environment);
         }
 
-        // Prep for analytics in browser
-        if (!isNode()) {
-            this.getAnalyticsProperty();
-        }
+        this.getAnalyticsProperty();
     }
 
     /*

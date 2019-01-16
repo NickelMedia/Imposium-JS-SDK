@@ -9,17 +9,8 @@ config = {
     mode: 'development',
     entry: __dirname + '/src/entry.ts',
     devtool: 'source-map',
-    target: 'node',
-    node: {
-        process: false
-    },
     resolve: {
         extensions: ['.ts', '.js']
-    },
-    externals: {
-        'form-data': 'form-data',
-        'isomorphic-ws': 'isomorphic-ws',
-        'has-flag': 'has-flag'
     },
     module: {
         rules: [
@@ -27,19 +18,6 @@ config = {
                 test: /\.ts$/,
                 use: 'awesome-typescript-loader',
                 exclude: /node_modules/
-            }, {
-                test: /\.js$/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ["@babel/preset-env"]
-                    }
-                },
-                exclude: /node_modules\/(?!(has-flag|supports-color))/,
-                include: [
-                    path.join(__dirname, 'node_modules', 'has-flag'),
-                    path.join(__dirname, 'node_modules', 'supports-color')
-                ]
             }
         ]
     },
@@ -51,10 +29,7 @@ config = {
                     tag: 'Version: {version}'
                 }
             }            
-        }),
-        new webpack.DefinePlugin({
-          'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
-        }),
+        })
     ],
     optimization: {
         namedChunks: true,
@@ -70,10 +45,7 @@ config = {
     },
     output: {
         library: LIB_NAME,
-        libraryTarget: 'umd',
-        umdNamedDefine: true,
-        path: __dirname + '/lib',
-        globalObject: 'this'
+        path: __dirname + '/lib'
     }
 };
 

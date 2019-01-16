@@ -3,19 +3,15 @@ import VideoPlayer, {IVideo} from './VideoPlayer';
 import Client from '../client/Client';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
+import {PlayerConfigurationError} from '../scaffolding/Exceptions';
+
 import {
     calculateAverageMbps,
     inRangeNumeric,
     prepConfig,
     isFunc,
-    isNode,
     keyExists
 } from '../scaffolding/Helpers';
-
-import {
-    EnvironmentError,
-    PlayerConfigurationError
-} from '../scaffolding/Exceptions';
 
 export interface IPlayerConfig {
     volume: number;
@@ -30,11 +26,7 @@ export interface IPlayerConfig {
 
 const settings = require('../conf/settings.json').videoPlayer;
 
-let hls = (window as any).hls;
-
-// if (!isNode()) {
-//     hls = require('hls.js/dist/hls.light.min');
-// }
+const hls = (window as any).hls;
 
 export default class ImposiumPlayer extends VideoPlayer {
 
@@ -92,22 +84,17 @@ export default class ImposiumPlayer extends VideoPlayer {
         super(node);
 
         try {
-            if (!isNode()) {
-                if (node instanceof HTMLVideoElement) {
-                    if (client) {
-                        client.setPlayer(this);
-                        this.init(config);
-                        this.setupHls();
-                    } else {
-                        throw new PlayerConfigurationError('noClient', null);
-                    }
+            if (node instanceof HTMLVideoElement) {
+                if (client) {
+                    client.setPlayer(this);
+                    this.init(config);
+                    this.setupHls();
                 } else {
-                    // Prop passed wasn't of type HTMLVideoElement
-                    throw new PlayerConfigurationError('invalidPlayerRef', null);
+                    throw new PlayerConfigurationError('noClient', null);
                 }
             } else {
-                // Cancels out initialization in NodeJS
-                throw new EnvironmentError('node');
+                // Prop passed wasn't of type HTMLVideoElement
+                throw new PlayerConfigurationError('invalidPlayerRef', null);
             }
         } catch (e) {
             ExceptionPipe.trapError(e, client.clientConfig.storyId);

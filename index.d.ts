@@ -5,10 +5,6 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	    protected type: string;
 	    constructor(message: string, type: string);
 	}
-	export class EnvironmentError extends ImposiumError {
-	    constructor(messageKey: string, type?: string);
-	    log: () => void;
-	}
 	export class ModerationError extends ImposiumError {
 	    private experienceId;
 	    constructor(messageKey: string, experienceId: string, type?: string);
@@ -70,7 +66,6 @@ declare module 'Imposium-JS-SDK/analytics/Analytics' {
 
 }
 declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
-	export const isNode: () => boolean;
 	export const prepConfig: (config: any, defaults: any) => void;
 	export const inRangeNumeric: (n: number, min: number, max: number) => boolean;
 	export const isFunc: (f: any) => boolean;
@@ -78,7 +73,7 @@ declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
 	export const cloneWithKeys: (o: any) => {};
 	export const calculateMbps: (startTime: number, filesize: number) => number;
 	export const calculateAverageMbps: (speeds: number[]) => number;
-	export const inventoryToFormData: (s: string, i: any) => any;
+	export const inventoryToFormData: (storyId: string, inventory: any) => any;
 
 }
 declare module 'Imposium-JS-SDK/client/http/API' {
@@ -200,7 +195,6 @@ declare module 'Imposium-JS-SDK/video/FallbackPlayer' {
 
 }
 declare module 'Imposium-JS-SDK/client/Client' {
-	import 'babel-polyfill';
 	import VideoPlayer from 'Imposium-JS-SDK/video/VideoPlayer';
 	export interface IClientConfig {
 	    accessToken: string;
@@ -306,6 +300,9 @@ declare module 'Imposium-JS-SDK/video/Player' {
 
 }
 declare module 'Imposium-JS-SDK/entry' {
+	import 'core-js/es6/promise';
+	import 'core-js/es6/symbol';
+	import 'core-js/es6/object';
 	import Client from 'Imposium-JS-SDK/client/Client';
 	import Player from 'Imposium-JS-SDK/video/Player';
 	export { Client, Player, clientEvents as Events, playerEvents as PlayerEvents };

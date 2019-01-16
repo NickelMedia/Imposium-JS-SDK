@@ -25,22 +25,6 @@ export abstract class ImposiumError extends Error {
     }
 }
 
-export class EnvironmentError extends ImposiumError {
-    constructor(messageKey: string, type: string = types.ENV) {
-        super(errors[type][messageKey], type);
-
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, EnvironmentError);
-        }
-    }
-
-    public log = (): void => {
-        console.error(`${this.prefix}
-            \nReason: Unavailable feature
-            \nMessage: ${this.message}`);
-    }
-}
-
 export class ModerationError extends ImposiumError {
     private experienceId: string = null;
 
@@ -48,7 +32,7 @@ export class ModerationError extends ImposiumError {
         super(errors[type][messageKey], type);
 
         if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, EnvironmentError);
+            Error.captureStackTrace(this, ModerationError);
         }
     }
 
