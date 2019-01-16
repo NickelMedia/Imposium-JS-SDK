@@ -9,3 +9,4 @@ webpack.config.js
 generate-types.sh
 .babelrc
 index.d.ts
+publish.sh
