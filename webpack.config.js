@@ -45,6 +45,8 @@ config = {
     },
     output: {
         library: LIB_NAME,
+        libraryTarget: 'umd',
+        umdNamedDefine: true,
         path: __dirname + '/lib'
     }
 };
