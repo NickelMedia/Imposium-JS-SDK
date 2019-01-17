@@ -1,18 +1,27 @@
 #!/bin/bash
 
+set -e
+
+checkout_linebreak=
 git_branch=$(git branch | grep \* | cut -d ' ' -f2)
+
+print_checkout_step () {
+    echo -e "\n==============================\n$1"
+}
 
 if [ "$git_branch" == "master" ]; then
     current_version=$(cat ./package.json | jq -r ".version")
 
-    echo "Preparing for publication on NPM..."
+    echo -e "Preparing for publication on NPM...\n"
 
     read -e -p "Please enter a new version number: "  fresh_version
     read -e -p "Version $fresh_version will replace version $current_version, are you sure this is correct? [y / n]: " confirmation
 
     if [ "$confirmation" == "y" ]; then
+        echo "Process will exit on errors."
+
         npm whoami > /dev/null 2>&1
-        if [ $? == 1 ]; then 
+        if [ $? == 1 ]; then
             echo "Please login to NPM..."
             npm login
         fi
@@ -20,16 +29,16 @@ if [ "$git_branch" == "master" ]; then
         tmpFile=$(mktemp)
         jq ".version = \"$fresh_version\"" ./package.json > "$tmpFile" && mv "$tmpFile" ./package.json
 
-        echo "Linting the project..."
-        tslint ./src/**/*.ts || { echo 'Please address lint errors before publishing.' ; exit 1; }
+        print_checkout_step "Linting the project..."
+        tslint ./src/**/*.ts
 
-        echo "Preparing bundled code..."
-        webpack && webpack -p || { echo 'Please review code before publishing.' ; exit 1; }
+        print_checkout_step "Preparing bundled code..."
+        webpack --bail && webpack --bail -p || { exit 1; }
 
-        echo "Generating type definitions..."
-        ./generate-types.sh  || { echo 'Could not aggregate types, please review TS configurations before publishing.' ; exit 1; }
+        print_checkout_step "Generating type definitions...\n"
+        ./generate-types.sh
 
-        echo "Publishing Imposium JS SDK"
+        print_checkout_step "Publishing Imposium JS SDK"
         npm publish --access=public
     fi
 else

@@ -87,13 +87,13 @@ export default class ImposiumPlayer extends VideoPlayer {
             if (node instanceof HTMLVideoElement) {
                 if (client) {
                     client.setPlayer(this);
+
                     this.init(config);
                     this.setupHls();
                 } else {
                     throw new PlayerConfigurationError('noClient', null);
                 }
             } else {
-                // Prop passed wasn't of type HTMLVideoElement
                 throw new PlayerConfigurationError('invalidPlayerRef', null);
             }
         } catch (e) {
