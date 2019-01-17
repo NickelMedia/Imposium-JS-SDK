@@ -17,8 +17,8 @@ current_npm_version=$(cat ./package.json | jq -r ".version")
 
 echo -e "Preparing for publication on NPM...\n"
 
-read -e -p "Please enter a new version number: "  fresh_version
-read -e -p "Version $fresh_version will replace version $current_version, are you sure this is correct? [y / n]: " confirmation
+read -e -p "Please enter a new version number: "  fresh_npm_version
+read -e -p "Version $fresh_npm_version will replace version $current_npm_version, are you sure this is correct? [y / n]: " confirmation
 
 if [ "$confirmation" == "y" ]; then
     echo "Process will exit on errors."
@@ -30,7 +30,7 @@ if [ "$confirmation" == "y" ]; then
     fi
 
     tmpFile=$(mktemp)
-    jq ".version = \"$fresh_version\"" ./package.json > "$tmpFile" && mv "$tmpFile" ./package.json
+    jq ".version = \"$fresh_npm_version\"" ./package.json > "$tmpFile" && mv "$tmpFile" ./package.json
 
     print_checkout_step "Linting the project..."
     tslint ./src/**/*.ts
