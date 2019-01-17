@@ -2,7 +2,6 @@
 
 set -e
 
-checkout_linebreak=
 git_branch=$(git branch | grep \* | cut -d ' ' -f2)
 
 print_checkout_step () {
