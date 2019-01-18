@@ -7,28 +7,29 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	}
 	export class ModerationError extends ImposiumError {
 	    private experienceId;
-	    constructor(messageKey: string, experienceId: string, type?: string);
+	    constructor(messageKey: string, experienceId: string);
 	    log: () => void;
 	}
 	export class ClientConfigurationError extends ImposiumError {
 	    private eventName;
-	    constructor(messageKey: string, eventName: string, type?: string);
+	    constructor(messageKey: string, eventName: string);
 	    log: () => void;
 	}
 	export class PlayerConfigurationError extends ImposiumError {
 	    private eventName;
-	    constructor(messageKey: string, eventName: string, type?: string);
+	    constructor(messageKey: string, eventName: string);
 	    log: () => void;
 	}
 	export class NetworkError extends ImposiumError {
 	    private experienceId;
 	    private networkError;
-	    constructor(messageKey: string, experienceId: string, e: Error, type?: string);
+	    private lazy;
+	    constructor(messageKey: string, experienceId: string, e: Error, lazy?: boolean);
 	    log: () => void;
 	}
 	export class UncaughtError extends ImposiumError {
 	    private uncaughtError;
-	    constructor(messageKey: string, e: Error, type?: string);
+	    constructor(messageKey: string, e: Error);
 	    log: () => void;
 	}
 
@@ -202,6 +203,7 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    actId: string;
 	    sceneId: string;
 	    environment: string;
+	    pollLifetime: number;
 	}
 	export default class Client {
 	    static events: {
@@ -212,24 +214,31 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	        ERROR: string;
 	    };
 	    clientConfig: IClientConfig;
+	    private readonly defaultPollRate;
+	    private readonly backoffAtInterval;
+	    private readonly maxPollFrequency;
 	    private eventDelegateRefs;
 	    private api;
 	    private player;
 	    private consumer;
 	    private gaProperty;
 	    private playerIsFallback;
+	    private getExperienceTimeout;
+	    private pollLifetimeTimeout;
 	    constructor(config: any);
 	    setup: (config: any) => void;
 	    setPlayer: (player: VideoPlayer, isFallback?: boolean) => void;
 	    on: (eventName: string, callback: any) => void;
 	    off: (eventName?: string) => void;
-	    getExperience: (experienceId: string) => void;
+	    getExperience: (experienceId: string, interval?: number, frequency?: number) => void;
 	    createExperience: (inventory: any, render?: boolean) => void;
 	    renderExperience: (experienceId: string, isRendering: boolean) => void;
 	    captureAnalytics: (playerRef?: HTMLVideoElement) => void;
 	    private assignConfigOpts;
 	    private getAnalyticsProperty;
 	    private doPageView;
+	    private doPoll;
+	    private killPoll;
 	    private startMessaging;
 	    private makeConsumer;
 	}

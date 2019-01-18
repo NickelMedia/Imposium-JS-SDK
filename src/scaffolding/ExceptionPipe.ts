@@ -21,7 +21,7 @@ export default class ExceptionPipe {
             } else {
                 if (e.networkError.hasOwnProperty('config')) {
                     ExceptionPipe.logError(e, storyId);
-                } else if (e.networkError.hasOwnProperty('isTrusted')) {
+                } else if (e.lazy) {
                     ExceptionPipe.logError(e, storyId);
                 } else {
                     const u = new UncaughtError('generic', e.networkError);

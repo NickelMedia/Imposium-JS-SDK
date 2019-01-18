@@ -409,6 +409,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     private checkBandwidth = (videos: any): Promise<string> => {
         const {bandwidthRatings, compressionLevels, BANDWIDTH_SAMPLES} = ImposiumPlayer;
         const testPromises: Array<Promise<number>> = [];
+        const mp4FormatList: string[] = Object.keys(videos).filter((f) => f !== 'm3u8');
 
         for (let i = 0; i < BANDWIDTH_SAMPLES; i++) {
             testPromises.push(API.checkBandwidth());
@@ -422,7 +423,7 @@ export default class ImposiumPlayer extends VideoPlayer {
                 const scaleMap = {};
 
                 // Calculate n pixels (downscaled) for each format and map
-                Object.keys(videos).forEach((key) => {
+                mp4FormatList.forEach((key) => {
                     if (key !== 'm3u8') {
                         const {width, height} = videos[key];
                         const scaledPixels = (width * height) / 100000;
@@ -439,7 +440,7 @@ export default class ImposiumPlayer extends VideoPlayer {
                 resolve(scaleMap[bestFit]);
             })
             .catch((e) => {
-                reject(Object.keys(videos).slice(-1).pop());
+                reject(mp4FormatList.slice(-1).pop());
             });
         });
     }

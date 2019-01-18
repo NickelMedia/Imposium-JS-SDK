@@ -27,6 +27,7 @@ export interface IClientConfig {
     actId: string;
     sceneId: string;
     environment: string;
+    pollLifetime: number;
 }
 
 const settings = require('../conf/settings.json').client;
@@ -40,13 +41,21 @@ export default class Client {
         STATUS_UPDATE: 'STATUS_UPDATE',
         ERROR: 'ERROR'
     };
+
     public clientConfig: IClientConfig = null;
+
+    private readonly defaultPollRate: number = settings.defaultPollRate;
+    private readonly backoffAtInterval: number = settings.backoffAtInterval;
+    private readonly maxPollFrequency: number = settings.maxPollFrequency;
+
     private eventDelegateRefs: any = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
     private consumer: MessageConsumer = null;
     private gaProperty: string = '';
     private playerIsFallback: boolean = false;
+    private getExperienceTimeout: any = null;
+    private pollLifetimeTimeout: any = null;
 
     /*
         Initialize Imposium client
@@ -131,10 +140,16 @@ export default class Client {
     }
 
     /*
-        Get experience data
+        Get experience data via http
      */
-    public getExperience = (experienceId: string): void => {
-        const {api, player, gaProperty, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
+    public getExperience = (experienceId: string, interval: number = -1, frequency: number = -1): void => {
+        const {
+            api,
+            player,
+            gaProperty,
+            clientConfig: {storyId},
+            eventDelegateRefs: {GOT_EXPERIENCE, STATUS_UPDATE, ERROR}
+        } = this;
 
         try {
             if (GOT_EXPERIENCE || player) {
@@ -147,15 +162,22 @@ export default class Client {
                             player.experienceGenerated(experience);
                         }
 
+                        if (STATUS_UPDATE) {
+                            STATUS_UPDATE({status: 'Video ready for viewing.'});
+                        }
+
                         if (GOT_EXPERIENCE) {
                             GOT_EXPERIENCE(experience);
                         }
                     } else {
                         if (moderation_status === 'rejected') {
-                            const moderationError = new ModerationError('rejection', id);
-                            ExceptionPipe.trapError(moderationError, storyId, ERROR);
-                        } else {
+                            throw new ModerationError('rejection', id);
+                        }
+
+                        if (interval < 0) {
                             this.renderExperience(id, rendering);
+                        } else {
+                            this.doPoll(experienceId, interval, frequency);
                         }
                     }
                 })
@@ -336,6 +358,46 @@ export default class Client {
     }
 
     /*
+        Runs a poll if STOMP / socket fails
+     */
+    private doPoll = (experienceId: string, interval: number, frequency: number) => {
+        const {backoffAtInterval, maxPollFrequency, clientConfig: {pollLifetime}} = this;
+
+        let adjustedFrequency: number = 0;
+
+        if (interval <= backoffAtInterval) {
+            adjustedFrequency = frequency;
+        } else {
+            const frequencyExpo: number = frequency * 2;
+            adjustedFrequency = (frequencyExpo >= maxPollFrequency) ? frequency : frequencyExpo;
+        }
+
+        interval = interval + 1;
+
+        if (!this.pollLifetimeTimeout) {
+            this.pollLifetimeTimeout = setTimeout(
+                () => this.killPoll(experienceId),
+                pollLifetime
+            );
+        }
+
+        if (this.pollLifetimeTimeout) {
+            this.getExperienceTimeout = setTimeout(
+                () => this.getExperience(experienceId, interval, adjustedFrequency),
+                adjustedFrequency
+            );
+        }
+    }
+
+    private killPoll = (experienceId: string): void => {
+        const {eventDelegateRefs: {ERROR}, clientConfig: {storyId}} = this;
+        const wrappedError = new NetworkError('pollTimeout', experienceId, null);
+
+        clearTimeout(this.getExperienceTimeout);
+        ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+    }
+
+    /*
         Invokes the streaming process
      */
     private startMessaging = (experienceId: string): void => {
@@ -357,11 +419,14 @@ export default class Client {
         Make a new consumer w/ delegates
      */
     private makeConsumer = (experienceId: string, isRendering: boolean): void => {
-        const {clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
-        const start = (!isRendering) ? (id: string) => this.startMessaging(id) : null;
+        const {defaultPollRate, clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
+        const start = (!isRendering) ? () => this.startMessaging(experienceId) : null;
+        const invokePolling = () => this.getExperience(experienceId, 0, defaultPollRate);
+
         // Merge scoped startMessaging call with client events
         const delegates: any = {
             start,
+            invokePolling,
             ...eventDelegateRefs
         };
 

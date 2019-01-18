@@ -1,7 +1,4 @@
 {
-    "environment": {
-        "node": "Sorry, this feature is incompatible with NodeJS"
-    },
     "moderation": {
         "rejection": "This experience was rejected."
     },
@@ -24,7 +21,8 @@
         "httpFailure": "Unable to process request to the Imposium API.",
         "tcpFailure": "Unable to reach Imposium while processing this experience.",
         "errorOverTcp": "Something went wrong while processing this experience.",
-        "messageParseFailure": "Message data from Imposium was malformed."
+        "messageParseFailure": "Message data from Imposium was malformed.",
+        "pollTimeout": "Polling for the experience has timed out."
     },
     "uncaught": {
         "generic": "Something unexpected went wrong."

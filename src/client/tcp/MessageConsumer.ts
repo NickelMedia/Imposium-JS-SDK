@@ -15,15 +15,15 @@ export default class MessageConsumer {
     private static readonly MAX_RETRIES: number = settings.maxReconnects;
 
     private static readonly EVENT_NAMES: any = {
-        scene    : 'gotScene',
-        message  : 'gotMessage',
-        complete : 'actComplete'
+        scene: 'gotScene',
+        message: 'gotMessage',
+        complete: 'actComplete'
     };
 
     private stompDelegates: any = {
-        start : ()      => this.startConsuming(),
-        route : (m: any) => this.routeMessageData(m),
-        error : (e: any) => this.stompError(e)
+        start: () => this.startConsuming(),
+        route: (m: any) => this.routeMessageData(m),
+        error: (e: any) => this.stompError(e)
     };
 
     private env: string = '';
@@ -67,19 +67,18 @@ export default class MessageConsumer {
     }
 
     /*
-        Invoke delegate which starts message queueing on Imposium servers
-        if there is not output yet and the processing was deferred.
+        Triggers render if processing is not deferred
      */
     private startConsuming = (): void => {
-        const {experienceId, clientDelegates: {start}} = this;
+        const {clientDelegates: {start}} = this;
 
         if (start) {
-            start(experienceId);
+            start();
         }
     }
 
     /*
-        Manage incoming messages. Depending on their state the websocket
+        Filter incoming messages. Depending on their state the websocket
         may be terminated.
      */
     private routeMessageData = (msg: any): void => {
@@ -99,7 +98,8 @@ export default class MessageConsumer {
                 case scene:
                     this.emitSceneData(payload);
                     break;
-                default: break;
+                default:
+                    break;
             }
         } catch (e) {
             const wrappedError = new NetworkError('messageParseFailed', experienceId, e);
@@ -108,7 +108,7 @@ export default class MessageConsumer {
     }
 
     /*
-        Fire the gotMessage callback if the user is listening for this event
+        Fires the gotMessage callback if the user is listening for this event
      */
     private emitMessageData = (messageData: any): void => {
         const {storyId, clientDelegates: {STATUS_UPDATE, ERROR}} = this;
@@ -152,7 +152,7 @@ export default class MessageConsumer {
         Called on Stomp errors
      */
     private stompError = (e: any): void => {
-        const {retried, storyId, experienceId, stomp, clientDelegates: {ERROR}} = this;
+        const {retried, storyId, experienceId, stomp, clientDelegates: {invokePolling, ERROR}} = this;
 
         if (!e.wasClean) {
             ++this.retried;
@@ -165,8 +165,10 @@ export default class MessageConsumer {
                     this.establishConnection();
                 });
             } else {
-                const wrappedError = new NetworkError('tcpFailure', experienceId, e);
+                const wrappedError = new NetworkError('tcpFailure', experienceId, e, true);
+
                 ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+                invokePolling();
             }
         }
     }
