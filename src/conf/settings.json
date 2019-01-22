@@ -8,7 +8,7 @@
 			"environment": "production",
             "pollLifetime": 600000
 		},
-        "defaultPollRate": 100,
+        "defaultPollRate": 3000,
         "maxPollFrequency": 30000,
         "backoffAtInterval": 10
 	},
