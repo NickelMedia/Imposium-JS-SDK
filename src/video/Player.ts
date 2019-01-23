@@ -30,7 +30,11 @@ export interface IPlayerConfig {
 
 const settings = require('../conf/settings.json').videoPlayer;
 
-let hls = (window as any).hls;
+let hls: any;
+
+if (!isNode()) {
+    hls = (window as any).hls;
+}
 
 // if (!isNode()) {
 //     hls = require('hls.js/dist/hls.light.min');
