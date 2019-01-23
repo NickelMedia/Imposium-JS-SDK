@@ -34,7 +34,7 @@ let hls: any;
 
 if (!isNode()) {
     hls = (window as any).hls;
-}git 
+}
 
 // if (!isNode()) {
 //     hls = require('hls.js/dist/hls.light.min');
