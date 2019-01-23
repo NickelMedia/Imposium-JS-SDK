@@ -12,7 +12,7 @@
 		"production": "https://api.imposium.com",
 		"staging": "https://api.staging.imposium.com",
 		"local": "https://api",
-		"currentVersion": "2.0.0",
+		"currentVersion": "2.1.0",
 		"version": "X-Imposium-Api-Version",
 		"hmac": "X-Imposium-Access-Key",
 		"jwt": "Authorization",
@@ -28,7 +28,7 @@
 		"production": "wss://stomp.prod.k8s.nickel.media/ws",
 		"staging": "wss://stomp.staging.k8s.nickel.media/ws",
 		"local": "ws://127.0.0.1:15674/ws",
-		"exchange": "/exchange/imposium/",
+		"exchange": "/amq/queue/stomp-subscription-exp-",
 		"username": "imposium_stomp",
 		"password": "Teehe1ceeMe7Pe1d"
 	},
