@@ -116,7 +116,7 @@ export default class API {
     /*
         Wait async for POST /experience, resolve response data
      */
-    public postExperience = (storyId: string, inventory: any, render: boolean, progress: (e) => any = null): Promise<any> => {
+    public postExperience = (storyId: string, inventory: any, render: boolean, uuid: string, progress: (e) => any = null): Promise<any> => {
         const {doPostExperience, uploadProgress} = this;
         const formData = inventoryToFormData(storyId, inventory);
 
@@ -124,6 +124,8 @@ export default class API {
             headers: {},
             onUploadProgress: (e) => uploadProgress(e, progress)
         };
+
+        formData.append('id', uuid);
 
         if (!isNode()) {
             return doPostExperience(render, formData, config);

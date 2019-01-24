@@ -20,6 +20,7 @@ import {
 import {
     prepConfig,
     keyExists,
+    generateUUID,
     cloneWithKeys,
     isFunc,
     isNode
@@ -161,7 +162,11 @@ export default class Client {
                             const moderationError = new ModerationError('rejection', id);
                             ExceptionPipe.trapError(moderationError, storyId, ERROR);
                         } else {
-                            this.renderExperience(id, rendering);
+                            this.renderExperience(experienceId, true);
+
+                            if (!rendering) {
+                                api.invokeStream(experienceId);
+                            }
                         }
                     }
                 })
@@ -202,12 +207,17 @@ export default class Client {
         try {
             if (permitRender || permitCreate) {
                 const {api} = this;
+                const uuid: string = generateUUID();
 
                 if (STATUS_UPDATE && render) {
                     STATUS_UPDATE({status: 'Adding job to queue...'});
                 }
 
-                api.postExperience(storyId, inventory, render, UPLOAD_PROGRESS)
+                if (render) {
+                    this.renderExperience(uuid, true);
+                }
+
+                api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
                 .then((experience: any) => {
                     const {clientConfig: {sceneId, actId}} = this;
                     const {id, rendering} = experience;
@@ -217,11 +227,9 @@ export default class Client {
                     }
 
                     if (render) {
-                        if (STATUS_UPDATE && render) {
+                        if (STATUS_UPDATE) {
                             STATUS_UPDATE({status: 'Added job to queue...'});
                         }
-
-                        this.renderExperience(id, rendering);
                     }
                 })
                 .catch((e) => {
