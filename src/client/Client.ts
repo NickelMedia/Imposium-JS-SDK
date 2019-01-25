@@ -328,7 +328,7 @@ export default class Client {
                     }
 
                     if (render && STATUS_UPDATE) {
-                        STATUS_UPDATE({status: 'Added job to queue...'});
+                        STATUS_UPDATE({id: experience.id, status: 'Added job to queue...'});
                     }
                 })
                 .catch((e) => {
@@ -362,7 +362,7 @@ export default class Client {
     }
 
     /*
-        Invokes rendering processes and starts listening for messages
+        Open stomp conn held by message consumer
      */
     private warmConsumer = (experienceId: string): Promise<undefined> => {
         const {player, eventDelegateRefs, clientConfig: {storyId, environment}} = this;
