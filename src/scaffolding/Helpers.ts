@@ -62,6 +62,14 @@ export const inventoryToFormData = (s: string, i: any): any => {
 export const generateUUID = (): string => {
     let d = new Date().getTime();
 
+    if (!isNode()) {
+        const p = (performance as any);
+
+        if (typeof p !== 'undefined' && typeof p.now === 'function') {
+            d += p.now();
+        }
+    }
+
     const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
         const r = (d + Math.random() * 16) % 16 | 0;
 

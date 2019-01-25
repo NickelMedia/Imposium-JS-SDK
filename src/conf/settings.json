@@ -6,7 +6,8 @@
 			"actId": "",
 			"sceneId": "",
 			"environment": "production"
-		}
+		},
+        "maxCreateRetries": 3
 	},
 	"api": {
 		"production": "https://api.imposium.com",

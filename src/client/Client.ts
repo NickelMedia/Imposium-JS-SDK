@@ -50,6 +50,7 @@ export default class Client {
         ERROR: 'ERROR'
     };
     public clientConfig: IClientConfig = null;
+    private maxCreateRetries: number = settings.maxCreateRetries;
     private eventDelegateRefs: any = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
@@ -185,10 +186,11 @@ export default class Client {
     /*
         Create new experience & return relevant meta
      */
-    public createExperience = (inventory: any, render: boolean = true): void => {
+    public createExperience = (inventory: any, render: boolean = true, retry: number = 0): void => {
         const {
             player,
             playerIsFallback,
+            maxCreateRetries,
             clientConfig: {
                 storyId
             },
@@ -219,22 +221,25 @@ export default class Client {
 
                 api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
                 .then((experience: any) => {
-                    const {clientConfig: {sceneId, actId}} = this;
-                    const {id, rendering} = experience;
-
                     if (EXPERIENCE_CREATED) {
                         EXPERIENCE_CREATED(experience);
                     }
 
-                    if (render) {
-                        if (STATUS_UPDATE) {
-                            STATUS_UPDATE({status: 'Added job to queue...'});
-                        }
+                    if (render && STATUS_UPDATE) {
+                        STATUS_UPDATE({status: 'Added job to queue...'});
                     }
                 })
                 .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', null, e);
-                    ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+                    this.killConsumer()
+                    .then(() => {
+                        if (~e.message.indexOf('400') && retry < maxCreateRetries) {
+                            retry = retry + 1;
+                            this.createExperience(inventory, render, retry);
+                        } else {
+                            const wrappedError = new NetworkError('httpFailure', null, e);
+                            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+                        }
+                    });
                 });
             } else {
                 let eventType = null;
@@ -260,14 +265,10 @@ export default class Client {
     public renderExperience = (experienceId: string): void => {
         const {consumer} = this;
 
-        if (!consumer) {
+        this.killConsumer()
+        .then(() => {
             this.makeConsumer(experienceId);
-        } else {
-            consumer.kill()
-            .then(() => {
-                this.makeConsumer(experienceId);
-            });
-        }
+        });
     }
 
     /*
@@ -388,5 +389,23 @@ export default class Client {
             eventDelegateRefs,
             player
         );
+    }
+
+    /*
+        Kill stomp conn held by message consumer
+     */
+    private killConsumer = (): Promise<undefined> => {
+        return new Promise((resolve) => {
+            if (!this.consumer) {
+                resolve();
+            } else {
+                console.log('killing')
+                this.consumer.kill()
+                .then(() => {
+                    this.consumer = null;
+                    resolve();
+                });
+            }
+        });
     }
 }

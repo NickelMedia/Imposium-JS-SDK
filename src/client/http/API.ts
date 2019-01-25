@@ -84,7 +84,7 @@ export default class API {
         const {http: {get}} = this;
 
         return new Promise((resolve, reject) => {
-            get(`/story/${storyId}`)
+            get(`/story/${storyId}/ga`)
             .then((res) => {
                 const {data} = res;
                 resolve(data);

@@ -79,6 +79,7 @@ declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
 	export const calculateMbps: (startTime: number, filesize: number) => number;
 	export const calculateAverageMbps: (speeds: number[]) => number;
 	export const inventoryToFormData: (s: string, i: any) => any;
+	export const generateUUID: () => string;
 
 }
 declare module 'Imposium-JS-SDK/client/http/API' {
@@ -92,7 +93,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    configureClient: (accessToken: string, env: string) => void;
 	    getStory: (storyId: string) => Promise<any>;
 	    getExperience: (experienceId: string) => Promise<any>;
-	    postExperience: (storyId: string, inventory: any, render: boolean, progress?: (e: any) => any) => Promise<any>;
+	    postExperience: (storyId: string, inventory: any, render: boolean, uuid: string, progress?: (e: any) => any) => Promise<any>;
 	    invokeStream: (experienceId: string) => Promise<string>;
 	    private getAuthHeader;
 	    private doPostExperience;
@@ -183,7 +184,6 @@ declare module 'Imposium-JS-SDK/client/tcp/MessageConsumer' {
 	    constructor(env: string, storyId: string, experienceId: string, clientDelegates: any, player: VideoPlayer);
 	    kill: () => Promise<null>;
 	    private establishConnection;
-	    private startConsuming;
 	    private routeMessageData;
 	    private emitMessageData;
 	    private emitSceneData;
@@ -218,6 +218,7 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	        ERROR: string;
 	    };
 	    clientConfig: IClientConfig;
+	    private maxCreateRetries;
 	    private eventDelegateRefs;
 	    private api;
 	    private player;
@@ -230,14 +231,15 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    on: (eventName: string, callback: any) => void;
 	    off: (eventName?: string) => void;
 	    getExperience: (experienceId: string) => void;
-	    createExperience: (inventory: any, render?: boolean) => void;
-	    renderExperience: (experienceId: string, isRendering: boolean) => void;
+	    createExperience: (inventory: any, render?: boolean, retry?: number) => void;
+	    renderExperience: (experienceId: string) => void;
 	    captureAnalytics: (playerRef?: HTMLVideoElement) => void;
 	    private assignConfigOpts;
 	    private getAnalyticsProperty;
 	    private doPageView;
 	    private startMessaging;
 	    private makeConsumer;
+	    private killConsumer;
 	}
 
 }
