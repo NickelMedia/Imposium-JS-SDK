@@ -43,11 +43,25 @@ export default class MessageConsumer {
         if (player) {
             this.player = player;
         }
-
-        this.establishConnection();
     }
 
-    public kill = (): Promise<null> => {
+    /*
+        Initializes a stomp connection object
+     */
+    public connect = (): Promise<undefined> => {
+        const {experienceId, env, stompDelegates, clientDelegates: {ready}} = this;
+
+        this.stomp = new Stomp(experienceId, stompDelegates, env);
+
+        return new Promise((resolve) => {
+            this.stomp.init()
+            .then(() => {
+                resolve();
+            });
+        });
+    }
+
+    public kill = (): Promise<undefined> => {
         const {stomp} = this;
 
         return new Promise((resolve) => {
@@ -56,14 +70,6 @@ export default class MessageConsumer {
                 resolve();
             });
         });
-    }
-
-    /*
-        Initializes a stomp connection object
-     */
-    private establishConnection = (): void => {
-        const {experienceId, env, stompDelegates} = this;
-        this.stomp = new Stomp(experienceId, stompDelegates, env);
     }
 
     /*
@@ -149,12 +155,14 @@ export default class MessageConsumer {
             if (retried < MessageConsumer.MAX_RETRIES) {
                 ExceptionPipe.logWarning('network', 'tcpFailure');
 
-                stomp.disconnectAsync()
+                this.kill()
                 .then(() => {
-                    this.establishConnection();
+                    this.connect();
                 });
             } else {
                 const wrappedError = new NetworkError('tcpFailure', experienceId, e);
+                
+                this.stomp = null;
                 ExceptionPipe.trapError(wrappedError, storyId, ERROR);
             }
         }

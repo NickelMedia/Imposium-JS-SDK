@@ -163,10 +163,13 @@ export default class Client {
                             const moderationError = new ModerationError('rejection', id);
                             ExceptionPipe.trapError(moderationError, storyId, ERROR);
                         } else {
-                            this.renderExperience(experienceId);
+                            this.warmConsumer(experienceId);
 
                             if (!rendering) {
-                                api.invokeStream(experienceId);
+                                api.invokeStream(experienceId)
+                                .catch((e) => {
+                                    throw new NetworkError('httpFailure', experienceId, e);
+                                });
                             }
                         }
                     }
@@ -184,91 +187,19 @@ export default class Client {
     }
 
     /*
-        Create new experience & return relevant meta
+        Creates a new experience, pre warms a socket if returning video on demand
      */
-    public createExperience = (inventory: any, render: boolean = true, retry: number = 0): void => {
-        const {
-            player,
-            playerIsFallback,
-            maxCreateRetries,
-            clientConfig: {
-                storyId
-            },
-            eventDelegateRefs: {
-                GOT_EXPERIENCE,
-                EXPERIENCE_CREATED,
-                STATUS_UPDATE,
-                UPLOAD_PROGRESS,
-                ERROR
-            }
-        } = this;
+    public createExperience = (inventory: any, render: boolean = true, retry: number = 0) => {
+        const uuid: string = generateUUID();
 
-        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
-        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
-
-        try {
-            if (permitRender || permitCreate) {
-                const {api} = this;
-                const uuid: string = generateUUID();
-
-                if (STATUS_UPDATE && render) {
-                    STATUS_UPDATE({status: 'Adding job to queue...'});
-                }
-
-                if (render) {
-                    this.renderExperience(uuid);
-                }
-
-                api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
-                .then((experience: any) => {
-                    if (EXPERIENCE_CREATED) {
-                        EXPERIENCE_CREATED(experience);
-                    }
-
-                    if (render && STATUS_UPDATE) {
-                        STATUS_UPDATE({status: 'Added job to queue...'});
-                    }
-                })
-                .catch((e) => {
-                    this.killConsumer()
-                    .then(() => {
-                        if (~e.message.indexOf('400') && retry < maxCreateRetries) {
-                            retry = retry + 1;
-                            this.createExperience(inventory, render, retry);
-                        } else {
-                            const wrappedError = new NetworkError('httpFailure', null, e);
-                            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
-                        }
-                    });
-                });
-            } else {
-                let eventType = null;
-
-                if (!EXPERIENCE_CREATED) {
-                    eventType = Client.events.EXPERIENCE_CREATED;
-                }
-
-                if (render && !GOT_EXPERIENCE) {
-                    eventType = Client.events.GOT_EXPERIENCE;
-                }
-
-                throw new ClientConfigurationError('eventNotConfigured', eventType);
-            }
-        } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
+        if (render) {
+            this.warmConsumer(uuid)
+            .then(() => {
+                this.doCreateExperience(inventory, uuid, render, retry);
+            });
+        } else {
+            this.doCreateExperience(inventory, uuid, render, retry);
         }
-    }
-
-    /*
-        Invokes rendering processes and starts listening for messages
-     */
-    public renderExperience = (experienceId: string): void => {
-        const {consumer} = this;
-
-        this.killConsumer()
-        .then(() => {
-            this.makeConsumer(experienceId);
-        });
     }
 
     /*
@@ -359,36 +290,99 @@ export default class Client {
     }
 
     /*
-        Invokes the streaming process
+        Create new experience & return relevant meta
      */
-    private startMessaging = (experienceId: string): void => {
-        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR, STATUS_UPDATE}} = this;
-
-        api.invokeStream(experienceId)
-        .then((jobId: string) => {
-            if (jobId) {
-                STATUS_UPDATE({status: 'Added job to queue...'});
+    private doCreateExperience = (inventory: any, uuid: string, render: boolean, retry: number): void => {
+        const {
+            player,
+            playerIsFallback,
+            maxCreateRetries,
+            clientConfig: {
+                storyId
+            },
+            eventDelegateRefs: {
+                GOT_EXPERIENCE,
+                EXPERIENCE_CREATED,
+                STATUS_UPDATE,
+                UPLOAD_PROGRESS,
+                ERROR
             }
-        })
-        .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', experienceId, e);
-            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
-        });
+        } = this;
+
+        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
+        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
+
+        try {
+            if (permitRender || permitCreate) {
+                const {api} = this;
+
+                if (STATUS_UPDATE && render) {
+                    STATUS_UPDATE({status: 'Adding job to queue...'});
+                }
+
+                api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
+                .then((experience: any) => {
+                    if (EXPERIENCE_CREATED) {
+                        EXPERIENCE_CREATED(experience);
+                    }
+
+                    if (render && STATUS_UPDATE) {
+                        STATUS_UPDATE({status: 'Added job to queue...'});
+                    }
+                })
+                .catch((e) => {
+                    this.killConsumer()
+                    .then(() => {
+                        if (~e.message.indexOf('400') && retry < maxCreateRetries) {
+                            retry = retry + 1;
+                            this.createExperience(inventory, render, retry);
+                        } else {
+                            const wrappedError = new NetworkError('httpFailure', null, e);
+                            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+                        }
+                    });
+                });
+            } else {
+                let eventType = null;
+
+                if (!EXPERIENCE_CREATED) {
+                    eventType = Client.events.EXPERIENCE_CREATED;
+                }
+
+                if (render && !GOT_EXPERIENCE) {
+                    eventType = Client.events.GOT_EXPERIENCE;
+                }
+
+                throw new ClientConfigurationError('eventNotConfigured', eventType);
+            }
+        } catch (e) {
+            ExceptionPipe.trapError(e, storyId, ERROR);
+        }
     }
 
     /*
-        Make a new consumer w/ delegates
+        Invokes rendering processes and starts listening for messages
      */
-    private makeConsumer = (experienceId: string): void => {
-        const {clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
+    private warmConsumer = (experienceId: string): Promise<undefined> => {
+        const {consumer, player, eventDelegateRefs, clientConfig: {storyId, environment}} = this;
 
-        this.consumer = new MessageConsumer(
-            environment,
-            storyId,
-            experienceId,
-            eventDelegateRefs,
-            player
-        );
+        return new Promise((resolve) => {
+            this.killConsumer()
+            .then(() => {
+                this.consumer = new MessageConsumer(
+                    environment,
+                    storyId,
+                    experienceId,
+                    eventDelegateRefs,
+                    player
+                );
+
+                this.consumer.connect()
+                .then(() => {
+                    resolve();
+                });
+            });
+        });
     }
 
     /*
@@ -399,7 +393,6 @@ export default class Client {
             if (!this.consumer) {
                 resolve();
             } else {
-                console.log('killing')
                 this.consumer.kill()
                 .then(() => {
                     this.consumer = null;
