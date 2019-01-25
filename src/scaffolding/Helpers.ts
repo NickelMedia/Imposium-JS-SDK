@@ -74,11 +74,11 @@ export const generateUUID = (): string => {
         const r = (d + Math.random() * 16) % 16 | 0;
 
         d = Math.floor(d / 16);
-        return (c == 'x' ? r : (r & 0x7 | 0x8)).toString(16);
+        return (c === 'x' ? r : (r & 0x7 | 0x8)).toString(16);
     });
 
     return uuid;
-}
+};
 
 // Uses browser based FormData library to prep POST data
 const invToFDGlobal = (storyId: string, inventory: any): FormData => {

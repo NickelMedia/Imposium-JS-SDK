@@ -163,7 +163,7 @@ export default abstract class VideoPlayer {
         };
 
         clearInterval(playbackInterval);
-        
+
         if (node.duration !== node.currentTime) {
             if (gaProperty) {
                 Analytics.send(call);

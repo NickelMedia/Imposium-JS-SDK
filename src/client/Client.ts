@@ -189,7 +189,7 @@ export default class Client {
     /*
         Creates a new experience, pre warms a socket if returning video on demand
      */
-    public createExperience = (inventory: any, render: boolean = true, retry: number = 0) => {
+    public createExperience = (inventory: any, render: boolean = true, retry: number = 0): void => {
         const uuid: string = generateUUID();
 
         if (render) {
@@ -364,7 +364,7 @@ export default class Client {
         Invokes rendering processes and starts listening for messages
      */
     private warmConsumer = (experienceId: string): Promise<undefined> => {
-        const {consumer, player, eventDelegateRefs, clientConfig: {storyId, environment}} = this;
+        const {player, eventDelegateRefs, clientConfig: {storyId, environment}} = this;
 
         return new Promise((resolve) => {
             this.killConsumer()
