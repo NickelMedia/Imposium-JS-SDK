@@ -24,8 +24,36 @@ export default class Stomp {
         this.experienceId = experienceId;
         this.delegates = delegates;
         this.endpoint = settings[env];
+    }
 
-        this.init();
+    /*
+        Initializes the WebStomp client w/ handlers.
+
+        The debug method needs to be overridden as a rule of
+        this WebStomp library.
+     */
+    public init = (): Promise<undefined> => {
+        const {username, password} = Stomp;
+        const {endpoint, delegates: {error}} = this;
+
+        this.socket = (!isNode()) ? new WebSocket(endpoint) : new webSocketShim(endpoint);
+        this.client = WebStomp.over(this.socket);
+        this.client.debug = () => { return; };
+
+        return new Promise((resolve) => {
+            const onConnect = () => {
+                this.establishSubscription();
+                resolve();
+            };
+
+            this.client.connect
+            (
+                username,
+                password,
+                onConnect,
+                error
+            );
+        });
     }
 
     /*
@@ -35,9 +63,11 @@ export default class Stomp {
         const {client, client: {connected}, subscription} = this;
 
         return new Promise((resolve) => {
-            if (connected) {
+            if (subscription) {
                 subscription.unsubscribe();
+            }
 
+            if (client.ws.readyState == 1) {
                 client.disconnect(() => {
                     resolve();
                 });
@@ -45,29 +75,6 @@ export default class Stomp {
                 resolve();
             }
         });
-    }
-
-    /*
-        Initializes the WebStomp client w/ handlers.
-
-        The debug method needs to be overridden as a rule of
-        this WebStomp library.
-     */
-    private init = (): void => {
-        const {username, password} = Stomp;
-        const {endpoint, delegates: {error}} = this;
-
-        this.socket = (!isNode()) ? new WebSocket(endpoint) : new webSocketShim(endpoint);
-        this.client = WebStomp.over(this.socket);
-        this.client.debug = () => { return; };
-
-        this.client.connect
-        (
-            username,
-            password,
-            () => this.establishSubscription(),
-            error
-        );
     }
 
     /*
@@ -82,7 +89,5 @@ export default class Stomp {
             `${exchange}${experienceId}`,
             route
         );
-
-        start();
     }
 }

@@ -20,6 +20,7 @@ import {
 import {
     prepConfig,
     keyExists,
+    generateUUID,
     cloneWithKeys,
     isFunc,
     isNode
@@ -49,6 +50,7 @@ export default class Client {
         ERROR: 'ERROR'
     };
     public clientConfig: IClientConfig = null;
+    private maxCreateRetries: number = settings.maxCreateRetries;
     private eventDelegateRefs: any = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
@@ -161,7 +163,15 @@ export default class Client {
                             const moderationError = new ModerationError('rejection', id);
                             ExceptionPipe.trapError(moderationError, storyId, ERROR);
                         } else {
-                            this.renderExperience(id, rendering);
+                            this.warmConsumer(experienceId)
+                            .then(() => {
+                                if (!rendering) {
+                                    api.invokeStream(experienceId)
+                                    .catch((e) => {
+                                        throw new NetworkError('httpFailure', experienceId, e);
+                                    });
+                                }
+                            });
                         }
                     }
                 })
@@ -178,87 +188,18 @@ export default class Client {
     }
 
     /*
-        Create new experience & return relevant meta
+        Creates a new experience, pre warms a socket if returning video on demand
      */
-    public createExperience = (inventory: any, render: boolean = true): void => {
-        const {
-            player,
-            playerIsFallback,
-            clientConfig: {
-                storyId
-            },
-            eventDelegateRefs: {
-                GOT_EXPERIENCE,
-                EXPERIENCE_CREATED,
-                STATUS_UPDATE,
-                UPLOAD_PROGRESS,
-                ERROR
-            }
-        } = this;
+    public createExperience = (inventory: any, render: boolean = true, retry: number = 0): void => {
+        const uuid: string = generateUUID();
 
-        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
-        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
-
-        try {
-            if (permitRender || permitCreate) {
-                const {api} = this;
-
-                if (STATUS_UPDATE && render) {
-                    STATUS_UPDATE({status: 'Adding job to queue...'});
-                }
-
-                api.postExperience(storyId, inventory, render, UPLOAD_PROGRESS)
-                .then((experience: any) => {
-                    const {clientConfig: {sceneId, actId}} = this;
-                    const {id, rendering} = experience;
-
-                    if (EXPERIENCE_CREATED) {
-                        EXPERIENCE_CREATED(experience);
-                    }
-
-                    if (render) {
-                        if (STATUS_UPDATE && render) {
-                            STATUS_UPDATE({status: 'Added job to queue...'});
-                        }
-
-                        this.renderExperience(id, rendering);
-                    }
-                })
-                .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', null, e);
-                    ExceptionPipe.trapError(wrappedError, storyId, ERROR);
-                });
-            } else {
-                let eventType = null;
-
-                if (!EXPERIENCE_CREATED) {
-                    eventType = Client.events.EXPERIENCE_CREATED;
-                }
-
-                if (render && !GOT_EXPERIENCE) {
-                    eventType = Client.events.GOT_EXPERIENCE;
-                }
-
-                throw new ClientConfigurationError('eventNotConfigured', eventType);
-            }
-        } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
-        }
-    }
-
-    /*
-        Invokes rendering processes and starts listening for messages
-     */
-    public renderExperience = (experienceId: string, isRendering: boolean): void => {
-        const {consumer} = this;
-
-        if (!consumer) {
-            this.makeConsumer(experienceId, isRendering);
-        } else {
-            consumer.kill()
+        if (render) {
+            this.warmConsumer(uuid)
             .then(() => {
-                this.makeConsumer(experienceId, isRendering);
+                this.doCreateExperience(inventory, uuid, render, retry);
             });
+        } else {
+            this.doCreateExperience(inventory, uuid, render, retry);
         }
     }
 
@@ -350,41 +291,115 @@ export default class Client {
     }
 
     /*
-        Invokes the streaming process
+        Create new experience & return relevant meta
      */
-    private startMessaging = (experienceId: string): void => {
-        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR, STATUS_UPDATE}} = this;
-
-        api.invokeStream(experienceId)
-        .then((jobId: string) => {
-            if (jobId) {
-                STATUS_UPDATE({status: 'Added job to queue...'});
+    private doCreateExperience = (inventory: any, uuid: string, render: boolean, retry: number): void => {
+        const {
+            player,
+            playerIsFallback,
+            maxCreateRetries,
+            clientConfig: {
+                storyId
+            },
+            eventDelegateRefs: {
+                GOT_EXPERIENCE,
+                EXPERIENCE_CREATED,
+                STATUS_UPDATE,
+                UPLOAD_PROGRESS,
+                ERROR
             }
-        })
-        .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', experienceId, e);
-            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+        } = this;
+
+        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
+        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
+
+        try {
+            if (permitRender || permitCreate) {
+                const {api} = this;
+
+                if (STATUS_UPDATE && render) {
+                    STATUS_UPDATE({status: 'Adding job to queue...'});
+                }
+
+                api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
+                .then((experience: any) => {
+                    if (EXPERIENCE_CREATED) {
+                        EXPERIENCE_CREATED(experience);
+                    }
+
+                    if (render && STATUS_UPDATE) {
+                        STATUS_UPDATE({id: experience.id, status: 'Added job to queue...'});
+                    }
+                })
+                .catch((e) => {
+                    this.killConsumer()
+                    .then(() => {
+                        if (~e.message.indexOf('400') && retry < maxCreateRetries) {
+                            retry = retry + 1;
+                            this.createExperience(inventory, render, retry);
+                        } else {
+                            const wrappedError = new NetworkError('httpFailure', null, e);
+                            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+                        }
+                    });
+                });
+            } else {
+                let eventType = null;
+
+                if (!EXPERIENCE_CREATED) {
+                    eventType = Client.events.EXPERIENCE_CREATED;
+                }
+
+                if (render && !GOT_EXPERIENCE) {
+                    eventType = Client.events.GOT_EXPERIENCE;
+                }
+
+                throw new ClientConfigurationError('eventNotConfigured', eventType);
+            }
+        } catch (e) {
+            ExceptionPipe.trapError(e, storyId, ERROR);
+        }
+    }
+
+    /*
+        Open stomp conn held by message consumer
+     */
+    private warmConsumer = (experienceId: string): Promise<undefined> => {
+        const {player, eventDelegateRefs, clientConfig: {storyId, environment}} = this;
+
+        return new Promise((resolve) => {
+            this.killConsumer()
+            .then(() => {
+                this.consumer = new MessageConsumer(
+                    environment,
+                    storyId,
+                    experienceId,
+                    eventDelegateRefs,
+                    player
+                );
+
+                this.consumer.connect()
+                .then(() => {
+                    resolve();
+                });
+            });
         });
     }
 
     /*
-        Make a new consumer w/ delegates
+        Kill stomp conn held by message consumer
      */
-    private makeConsumer = (experienceId: string, isRendering: boolean): void => {
-        const {clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
-        const start = (!isRendering) ? (id: string) => this.startMessaging(id) : null;
-        // Merge scoped startMessaging call with client events
-        const delegates: any = {
-            start,
-            ...eventDelegateRefs
-        };
-
-        this.consumer = new MessageConsumer(
-            environment,
-            storyId,
-            experienceId,
-            delegates,
-            player
-        );
+    private killConsumer = (): Promise<undefined> => {
+        return new Promise((resolve) => {
+            if (!this.consumer) {
+                resolve();
+            } else {
+                this.consumer.kill()
+                .then(() => {
+                    this.consumer = null;
+                    resolve();
+                });
+            }
+        });
     }
 }

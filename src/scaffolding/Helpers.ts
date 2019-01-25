@@ -58,6 +58,28 @@ export const inventoryToFormData = (s: string, i: any): any => {
     return (!isNode()) ? invToFDGlobal(s, i) : invToFDShim(s, i);
 };
 
+// Generate uuidv4
+export const generateUUID = (): string => {
+    let d = new Date().getTime();
+
+    if (!isNode()) {
+        const p = (window as any).performance;
+
+        if (typeof p !== 'undefined' && typeof p.now === 'function') {
+            d += p.now();
+        }
+    }
+
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (d + Math.random() * 16) % 16 | 0;
+
+        d = Math.floor(d / 16);
+        return (c === 'x' ? r : (r & 0x7 | 0x8)).toString(16);
+    });
+
+    return uuid;
+};
+
 // Uses browser based FormData library to prep POST data
 const invToFDGlobal = (storyId: string, inventory: any): FormData => {
     const formData = new FormData();

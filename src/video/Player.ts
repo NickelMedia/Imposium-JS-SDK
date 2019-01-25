@@ -30,11 +30,11 @@ export interface IPlayerConfig {
 
 const settings = require('../conf/settings.json').videoPlayer;
 
-let hls = (window as any).hls;
+let hls: any;
 
-// if (!isNode()) {
-//     hls = require('hls.js/dist/hls.light.min');
-// }
+if (!isNode()) {
+    hls = (window as any).hls;
+}
 
 export default class ImposiumPlayer extends VideoPlayer {
 
@@ -422,6 +422,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     private checkBandwidth = (videos: any): Promise<string> => {
         const {bandwidthRatings, compressionLevels, BANDWIDTH_SAMPLES} = ImposiumPlayer;
         const testPromises: Array<Promise<number>> = [];
+        const mp4FormatList: string[] = Object.keys(videos).filter((f) => f !== 'm3u8');
 
         for (let i = 0; i < BANDWIDTH_SAMPLES; i++) {
             testPromises.push(API.checkBandwidth());
@@ -435,13 +436,11 @@ export default class ImposiumPlayer extends VideoPlayer {
                 const scaleMap = {};
 
                 // Calculate n pixels (downscaled) for each format and map
-                Object.keys(videos).forEach((key) => {
-                    if (key !== 'm3u8') {
-                        const {width, height} = videos[key];
-                        const scaledPixels = (width * height) / 100000;
+                mp4FormatList.forEach((key) => {
+                    const {width, height} = videos[key];
+                    const scaledPixels = (width * height) / 100000;
 
-                        scaleMap[scaledPixels] = key;
-                    }
+                    scaleMap[scaledPixels] = key;
                 });
 
                 // Convert scaled pixel values to arr of float vals and get closest val to mbps
@@ -452,7 +451,7 @@ export default class ImposiumPlayer extends VideoPlayer {
                 resolve(scaleMap[bestFit]);
             })
             .catch((e) => {
-                reject(Object.keys(videos).slice(-1).pop());
+                reject(mp4FormatList.slice(-1).pop());
             });
         });
     }
