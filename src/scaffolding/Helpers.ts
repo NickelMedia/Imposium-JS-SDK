@@ -63,7 +63,7 @@ export const generateUUID = (): string => {
     let d = new Date().getTime();
 
     if (!isNode()) {
-        const p = (performance as any);
+        const p = (window as any).performance;
 
         if (typeof p !== 'undefined' && typeof p.now === 'function') {
             d += p.now();
