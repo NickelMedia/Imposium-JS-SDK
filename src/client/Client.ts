@@ -163,14 +163,15 @@ export default class Client {
                             const moderationError = new ModerationError('rejection', id);
                             ExceptionPipe.trapError(moderationError, storyId, ERROR);
                         } else {
-                            this.warmConsumer(experienceId);
-
-                            if (!rendering) {
-                                api.invokeStream(experienceId)
-                                .catch((e) => {
-                                    throw new NetworkError('httpFailure', experienceId, e);
-                                });
-                            }
+                            this.warmConsumer(experienceId)
+                            .then(() => {
+                                if (!rendering) {
+                                    api.invokeStream(experienceId)
+                                    .catch((e) => {
+                                        throw new NetworkError('httpFailure', experienceId, e);
+                                    });
+                                }
+                            });
                         }
                     }
                 })
