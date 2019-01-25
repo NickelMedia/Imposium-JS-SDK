@@ -162,7 +162,7 @@ export default class Client {
                             const moderationError = new ModerationError('rejection', id);
                             ExceptionPipe.trapError(moderationError, storyId, ERROR);
                         } else {
-                            this.renderExperience(experienceId, true);
+                            this.renderExperience(experienceId);
 
                             if (!rendering) {
                                 api.invokeStream(experienceId);
@@ -214,7 +214,7 @@ export default class Client {
                 }
 
                 if (render) {
-                    this.renderExperience(uuid, true);
+                    this.renderExperience(uuid);
                 }
 
                 api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
@@ -257,15 +257,15 @@ export default class Client {
     /*
         Invokes rendering processes and starts listening for messages
      */
-    public renderExperience = (experienceId: string, isRendering: boolean): void => {
+    public renderExperience = (experienceId: string): void => {
         const {consumer} = this;
 
         if (!consumer) {
-            this.makeConsumer(experienceId, isRendering);
+            this.makeConsumer(experienceId);
         } else {
             consumer.kill()
             .then(() => {
-                this.makeConsumer(experienceId, isRendering);
+                this.makeConsumer(experienceId);
             });
         }
     }
@@ -378,20 +378,14 @@ export default class Client {
     /*
         Make a new consumer w/ delegates
      */
-    private makeConsumer = (experienceId: string, isRendering: boolean): void => {
+    private makeConsumer = (experienceId: string): void => {
         const {clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
-        const start = (!isRendering) ? (id: string) => this.startMessaging(id) : null;
-        // Merge scoped startMessaging call with client events
-        const delegates: any = {
-            start,
-            ...eventDelegateRefs
-        };
 
         this.consumer = new MessageConsumer(
             environment,
             storyId,
             experienceId,
-            delegates,
+            eventDelegateRefs,
             player
         );
     }

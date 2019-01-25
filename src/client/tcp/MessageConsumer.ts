@@ -22,7 +22,6 @@ export default class MessageConsumer {
     };
 
     private stompDelegates: any = {
-        start : ()      => this.startConsuming(),
         route : (m: any) => this.routeMessageData(m),
         error : (e: any) => this.stompError(e)
     };
@@ -65,18 +64,6 @@ export default class MessageConsumer {
     private establishConnection = (): void => {
         const {experienceId, env, stompDelegates} = this;
         this.stomp = new Stomp(experienceId, stompDelegates, env);
-    }
-
-    /*
-        Invoke delegate which starts message queueing on Imposium servers
-        if there is not output yet and the processing was deferred.
-     */
-    private startConsuming = (): void => {
-        const {experienceId, clientDelegates: {start}} = this;
-
-        if (start) {
-            start(experienceId);
-        }
     }
 
     /*

@@ -82,7 +82,5 @@ export default class Stomp {
             `${exchange}${experienceId}`,
             route
         );
-
-        start();
     }
 }
