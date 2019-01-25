@@ -63,11 +63,11 @@ export default class Stomp {
         const {client, client: {connected}, subscription} = this;
 
         return new Promise((resolve) => {
-            if (subscription) {
-                subscription.unsubscribe();
-            }
-
             if (client.ws.readyState == 1) {
+                if (subscription) {
+                    subscription.unsubscribe();
+                }
+
                 client.disconnect(() => {
                     resolve();
                 });
