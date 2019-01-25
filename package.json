@@ -43,7 +43,6 @@
     "form-data": "^2.3.1",
     "isomorphic-ws": "^4.0.1",
     "jwt-decode": "^2.2.0",
-    "uuid": "^3.3.2",
     "webstomp-client": "^1.2.0",
     "ws": "^3.2.0"
   },
