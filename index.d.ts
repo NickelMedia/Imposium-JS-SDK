@@ -113,8 +113,8 @@ declare module 'Imposium-JS-SDK/client/tcp/Stomp' {
 	    private client;
 	    private subscription;
 	    constructor(experienceId: string, delegates: any, env: string);
+	    init: () => Promise<undefined>;
 	    disconnectAsync: () => any;
-	    private init;
 	    private establishSubscription;
 	}
 
@@ -182,8 +182,8 @@ declare module 'Imposium-JS-SDK/client/tcp/MessageConsumer' {
 	    private player;
 	    private retried;
 	    constructor(env: string, storyId: string, experienceId: string, clientDelegates: any, player: VideoPlayer);
-	    kill: () => Promise<null>;
-	    private establishConnection;
+	    connect: () => Promise<undefined>;
+	    kill: () => Promise<undefined>;
 	    private routeMessageData;
 	    private emitMessageData;
 	    private emitSceneData;
@@ -232,13 +232,12 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    off: (eventName?: string) => void;
 	    getExperience: (experienceId: string) => void;
 	    createExperience: (inventory: any, render?: boolean, retry?: number) => void;
-	    renderExperience: (experienceId: string) => void;
 	    captureAnalytics: (playerRef?: HTMLVideoElement) => void;
 	    private assignConfigOpts;
 	    private getAnalyticsProperty;
 	    private doPageView;
-	    private startMessaging;
-	    private makeConsumer;
+	    private doCreateExperience;
+	    private warmConsumer;
 	    private killConsumer;
 	}
 
