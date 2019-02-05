@@ -1,0 +1,45 @@
+{
+  "name": "imposium-js-sdk",
+<<<<<<< HEAD
+  "version": "2.1.0",
+=======
+  "version": "2.0.14",
+>>>>>>> master
+  "license": "MIT",
+  "author": [
+    "Greg Webber",
+    "Patrick Chisholm"
+  ],
+  "description": "Javascript client and video player for Imposium",
+  "keywords": "imposium dynamic video nickel media",
+  "homepage": "https://github.com/NickelMedia/Imposium-JS-SDK",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NickelMedia/Imposium-JS-SDK.git"
+  },
+  "main": "lib/imposium.min.js",
+  "devDependencies": {
+    "@types/node": "^10.3.4",
+    "awesome-typescript-loader": "^5.1.1",
+    "eslint": "^5.2.0",
+    "eslint-plugin-html": "^4.0.5",
+    "mocha": "^5.2.0",
+    "mocha.parallel": "^0.15.5",
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "tslint": "^5.11.0",
+    "typescript": "^2.5.3",
+    "uglifyjs-webpack-plugin": "^1.2.5",
+    "webpack": "^4.16.4",
+    "webpack-auto-inject-version": "^1.1.0",
+    "webpack-cli": "^3.1.0"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "axios-retry": "^3.1.1",
+    "core-js": "^2.6.2",
+    "jwt-decode": "^2.2.0",
+    "webstomp-client": "^1.2.6",
+    "ws": "^3.2.0"
+  },
+  "typings": "./index.d.ts"
+}

@@ -1,12 +1,3 @@
-// Checks for NodeJS process data
-// export const isNode = (): boolean => {
-//     return (
-//         typeof process !== 'undefined' &&
-//         process + '' === '[object process]' &&
-//         typeof (((process || {}) as any).versions || {}).node !== 'undefined'
-//     );
-// };
-
 // Pull out unneeded keys
 export const prepConfig = (config: any, defaults: any) => {
     const validKeys = Object.keys(defaults);
@@ -49,6 +40,25 @@ export const calculateMbps = (startTime: number, filesize: number): number => {
 export const calculateAverageMbps = (speeds: number[]): number => {
     const sum: number = speeds.reduce((p, c) => p + c);
     return parseFloat((sum / speeds.length).toFixed(2));
+};
+
+// Generate uuidv4
+export const generateUUID = (): string => {
+    const p = (window as any).performance;
+    let d = new Date().getTime();
+
+    if (typeof p !== 'undefined' && typeof p.now === 'function') {
+        d += p.now();
+    }
+
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = (d + Math.random() * 16) % 16 | 0;
+
+        d = Math.floor(d / 16);
+        return (c === 'x' ? r : (r & 0x7 | 0x8)).toString(16);
+    });
+
+    return uuid;
 };
 
 // Convert inventory map to form data object
