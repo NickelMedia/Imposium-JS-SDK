@@ -1,7 +1,7 @@
 runPipeline {
     projectName = "imposium-js-sdk-docs"
     images = [
-        [imageName: "imposium-js-sdk"]
+        [imageName: "imposium-js-sdk-docs"]
     ]
     k8s = [
         dev: [
