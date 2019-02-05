@@ -74,6 +74,7 @@ declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
 	export const cloneWithKeys: (o: any) => {};
 	export const calculateMbps: (startTime: number, filesize: number) => number;
 	export const calculateAverageMbps: (speeds: number[]) => number;
+	export const generateUUID: () => string;
 	export const inventoryToFormData: (storyId: string, inventory: any) => any;
 
 }
@@ -88,7 +89,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    configureClient: (accessToken: string, env: string) => void;
 	    getStory: (storyId: string) => Promise<any>;
 	    getExperience: (experienceId: string) => Promise<any>;
-	    postExperience: (storyId: string, inventory: any, render: boolean, progress?: (e: any) => any) => Promise<any>;
+	    postExperience: (storyId: string, inventory: any, render: boolean, uuid: string, progress?: (e: any) => any) => Promise<any>;
 	    invokeStream: (experienceId: string) => Promise<string>;
 	    private getAuthHeader;
 	    private doPostExperience;
@@ -108,8 +109,8 @@ declare module 'Imposium-JS-SDK/client/tcp/Stomp' {
 	    private client;
 	    private subscription;
 	    constructor(experienceId: string, delegates: any, env: string);
+	    init: () => Promise<undefined>;
 	    disconnectAsync: () => any;
-	    private init;
 	    private establishSubscription;
 	}
 
@@ -177,9 +178,8 @@ declare module 'Imposium-JS-SDK/client/tcp/MessageConsumer' {
 	    private player;
 	    private retried;
 	    constructor(env: string, storyId: string, experienceId: string, clientDelegates: any, player: VideoPlayer);
-	    kill: () => Promise<null>;
-	    private establishConnection;
-	    private startConsuming;
+	    connect: () => Promise<undefined>;
+	    kill: () => Promise<undefined>;
 	    private routeMessageData;
 	    private emitMessageData;
 	    private emitSceneData;
@@ -214,33 +214,27 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	        ERROR: string;
 	    };
 	    clientConfig: IClientConfig;
-	    private readonly defaultPollRate;
-	    private readonly backoffAtInterval;
-	    private readonly maxPollFrequency;
+	    private maxCreateRetries;
 	    private eventDelegateRefs;
 	    private api;
 	    private player;
 	    private consumer;
 	    private gaProperty;
 	    private playerIsFallback;
-	    private getExperienceTimeout;
-	    private pollLifetimeTimeout;
 	    constructor(config: any);
 	    setup: (config: any) => void;
 	    setPlayer: (player: VideoPlayer, isFallback?: boolean) => void;
 	    on: (eventName: string, callback: any) => void;
 	    off: (eventName?: string) => void;
-	    getExperience: (experienceId: string, interval?: number, frequency?: number) => void;
-	    createExperience: (inventory: any, render?: boolean) => void;
-	    renderExperience: (experienceId: string, isRendering: boolean) => void;
+	    getExperience: (experienceId: string) => void;
+	    createExperience: (inventory: any, render?: boolean, retry?: number) => void;
 	    captureAnalytics: (playerRef?: HTMLVideoElement) => void;
 	    private assignConfigOpts;
 	    private getAnalyticsProperty;
 	    private doPageView;
-	    private doPoll;
-	    private killPoll;
-	    private startMessaging;
-	    private makeConsumer;
+	    private doCreateExperience;
+	    private warmConsumer;
+	    private killConsumer;
 	}
 
 }

@@ -17,6 +17,7 @@ import {
 import {
     prepConfig,
     keyExists,
+    generateUUID,
     cloneWithKeys,
     isFunc
 } from '../scaffolding/Helpers';
@@ -41,21 +42,14 @@ export default class Client {
         STATUS_UPDATE: 'STATUS_UPDATE',
         ERROR: 'ERROR'
     };
-
     public clientConfig: IClientConfig = null;
-
-    private readonly defaultPollRate: number = settings.defaultPollRate;
-    private readonly backoffAtInterval: number = settings.backoffAtInterval;
-    private readonly maxPollFrequency: number = settings.maxPollFrequency;
-
+    private maxCreateRetries: number = settings.maxCreateRetries;
     private eventDelegateRefs: any = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
     private consumer: MessageConsumer = null;
     private gaProperty: string = '';
     private playerIsFallback: boolean = false;
-    private getExperienceTimeout: any = null;
-    private pollLifetimeTimeout: any = null;
 
     /*
         Initialize Imposium client
@@ -140,16 +134,10 @@ export default class Client {
     }
 
     /*
-        Get experience data via http
+        Get experience data
      */
-    public getExperience = (experienceId: string, interval: number = -1, frequency: number = -1): void => {
-        const {
-            api,
-            player,
-            gaProperty,
-            clientConfig: {storyId},
-            eventDelegateRefs: {GOT_EXPERIENCE, STATUS_UPDATE, ERROR}
-        } = this;
+    public getExperience = (experienceId: string): void => {
+        const {api, player, gaProperty, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
 
         try {
             if (GOT_EXPERIENCE || player) {
@@ -162,22 +150,23 @@ export default class Client {
                             player.experienceGenerated(experience);
                         }
 
-                        if (STATUS_UPDATE) {
-                            STATUS_UPDATE({status: 'Video ready for viewing.'});
-                        }
-
                         if (GOT_EXPERIENCE) {
                             GOT_EXPERIENCE(experience);
                         }
                     } else {
                         if (moderation_status === 'rejected') {
-                            throw new ModerationError('rejection', id);
-                        }
-
-                        if (interval < 0) {
-                            this.renderExperience(id, rendering);
+                            const moderationError = new ModerationError('rejection', id);
+                            ExceptionPipe.trapError(moderationError, storyId, ERROR);
                         } else {
-                            this.doPoll(experienceId, interval, frequency);
+                            this.warmConsumer(experienceId)
+                            .then(() => {
+                                if (!rendering) {
+                                    api.invokeStream(experienceId)
+                                    .catch((e) => {
+                                        throw new NetworkError('httpFailure', experienceId, e);
+                                    });
+                                }
+                            });
                         }
                     }
                 })
@@ -194,87 +183,18 @@ export default class Client {
     }
 
     /*
-        Create new experience & return relevant meta
+        Creates a new experience, pre warms a socket if returning video on demand
      */
-    public createExperience = (inventory: any, render: boolean = true): void => {
-        const {
-            player,
-            playerIsFallback,
-            clientConfig: {
-                storyId
-            },
-            eventDelegateRefs: {
-                GOT_EXPERIENCE,
-                EXPERIENCE_CREATED,
-                STATUS_UPDATE,
-                UPLOAD_PROGRESS,
-                ERROR
-            }
-        } = this;
+    public createExperience = (inventory: any, render: boolean = true, retry: number = 0): void => {
+        const uuid: string = generateUUID();
 
-        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
-        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
-
-        try {
-            if (permitRender || permitCreate) {
-                const {api} = this;
-
-                if (STATUS_UPDATE && render) {
-                    STATUS_UPDATE({status: 'Adding job to queue...'});
-                }
-
-                api.postExperience(storyId, inventory, render, UPLOAD_PROGRESS)
-                .then((experience: any) => {
-                    const {clientConfig: {sceneId, actId}} = this;
-                    const {id, rendering} = experience;
-
-                    if (EXPERIENCE_CREATED) {
-                        EXPERIENCE_CREATED(experience);
-                    }
-
-                    if (render) {
-                        if (STATUS_UPDATE && render) {
-                            STATUS_UPDATE({status: 'Added job to queue...'});
-                        }
-
-                        this.renderExperience(id, rendering);
-                    }
-                })
-                .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', null, e);
-                    ExceptionPipe.trapError(wrappedError, storyId, ERROR);
-                });
-            } else {
-                let eventType = null;
-
-                if (!EXPERIENCE_CREATED) {
-                    eventType = Client.events.EXPERIENCE_CREATED;
-                }
-
-                if (render && !GOT_EXPERIENCE) {
-                    eventType = Client.events.GOT_EXPERIENCE;
-                }
-
-                throw new ClientConfigurationError('eventNotConfigured', eventType);
-            }
-        } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
-        }
-    }
-
-    /*
-        Invokes rendering processes and starts listening for messages
-     */
-    public renderExperience = (experienceId: string, isRendering: boolean): void => {
-        const {consumer} = this;
-
-        if (!consumer) {
-            this.makeConsumer(experienceId, isRendering);
-        } else {
-            consumer.kill()
+        if (render) {
+            this.warmConsumer(uuid)
             .then(() => {
-                this.makeConsumer(experienceId, isRendering);
+                this.doCreateExperience(inventory, uuid, render, retry);
             });
+        } else {
+            this.doCreateExperience(inventory, uuid, render, retry);
         }
     }
 
@@ -358,84 +278,115 @@ export default class Client {
     }
 
     /*
-        Runs a poll if STOMP / socket fails
+        Create new experience & return relevant meta
      */
-    private doPoll = (experienceId: string, interval: number, frequency: number) => {
-        const {backoffAtInterval, maxPollFrequency, clientConfig: {pollLifetime}} = this;
+    private doCreateExperience = (inventory: any, uuid: string, render: boolean, retry: number): void => {
+        const {
+            player,
+            playerIsFallback,
+            maxCreateRetries,
+            clientConfig: {
+                storyId
+            },
+            eventDelegateRefs: {
+                GOT_EXPERIENCE,
+                EXPERIENCE_CREATED,
+                STATUS_UPDATE,
+                UPLOAD_PROGRESS,
+                ERROR
+            }
+        } = this;
 
-        let adjustedFrequency: number = 0;
+        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
+        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
 
-        if (interval <= backoffAtInterval) {
-            adjustedFrequency = frequency;
-        } else {
-            const frequencyExpo: number = frequency * 2;
-            adjustedFrequency = (frequencyExpo >= maxPollFrequency) ? frequency : frequencyExpo;
+        try {
+            if (permitRender || permitCreate) {
+                const {api} = this;
+
+                if (STATUS_UPDATE && render) {
+                    STATUS_UPDATE({status: 'Adding job to queue...'});
+                }
+
+                api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
+                .then((experience: any) => {
+                    if (EXPERIENCE_CREATED) {
+                        EXPERIENCE_CREATED(experience);
+                    }
+
+                    if (render && STATUS_UPDATE) {
+                        STATUS_UPDATE({id: experience.id, status: 'Added job to queue...'});
+                    }
+                })
+                .catch((e) => {
+                    this.killConsumer()
+                    .then(() => {
+                        if (~e.message.indexOf('400') && retry < maxCreateRetries) {
+                            retry = retry + 1;
+                            this.createExperience(inventory, render, retry);
+                        } else {
+                            const wrappedError = new NetworkError('httpFailure', null, e);
+                            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+                        }
+                    });
+                });
+            } else {
+                let eventType = null;
+
+                if (!EXPERIENCE_CREATED) {
+                    eventType = Client.events.EXPERIENCE_CREATED;
+                }
+
+                if (render && !GOT_EXPERIENCE) {
+                    eventType = Client.events.GOT_EXPERIENCE;
+                }
+
+                throw new ClientConfigurationError('eventNotConfigured', eventType);
+            }
+        } catch (e) {
+            ExceptionPipe.trapError(e, storyId, ERROR);
         }
-
-        interval = interval + 1;
-
-        if (!this.pollLifetimeTimeout) {
-            this.pollLifetimeTimeout = setTimeout(
-                () => this.killPoll(experienceId),
-                pollLifetime
-            );
-        }
-
-        if (this.pollLifetimeTimeout) {
-            this.getExperienceTimeout = setTimeout(
-                () => this.getExperience(experienceId, interval, adjustedFrequency),
-                adjustedFrequency
-            );
-        }
-    }
-
-    private killPoll = (experienceId: string): void => {
-        const {eventDelegateRefs: {ERROR}, clientConfig: {storyId}} = this;
-        const wrappedError = new NetworkError('pollTimeout', experienceId, null);
-
-        clearTimeout(this.getExperienceTimeout);
-        ExceptionPipe.trapError(wrappedError, storyId, ERROR);
     }
 
     /*
-        Invokes the streaming process
+        Open stomp conn held by message consumer
      */
-    private startMessaging = (experienceId: string): void => {
-        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR, STATUS_UPDATE}} = this;
+    private warmConsumer = (experienceId: string): Promise<undefined> => {
+        const {player, eventDelegateRefs, clientConfig: {storyId, environment}} = this;
 
-        api.invokeStream(experienceId)
-        .then((jobId: string) => {
-            if (jobId) {
-                STATUS_UPDATE({status: 'Added job to queue...'});
-            }
-        })
-        .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', experienceId, e);
-            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+        return new Promise((resolve) => {
+            this.killConsumer()
+            .then(() => {
+                this.consumer = new MessageConsumer(
+                    environment,
+                    storyId,
+                    experienceId,
+                    eventDelegateRefs,
+                    player
+                );
+
+                this.consumer.connect()
+                .then(() => {
+                    resolve();
+                });
+            });
         });
     }
 
     /*
-        Make a new consumer w/ delegates
+        Kill stomp conn held by message consumer
      */
-    private makeConsumer = (experienceId: string, isRendering: boolean): void => {
-        const {defaultPollRate, clientConfig: {storyId, environment}, eventDelegateRefs, player} = this;
-        const start = (!isRendering) ? () => this.startMessaging(experienceId) : null;
-        const invokePolling = () => this.getExperience(experienceId, 0, defaultPollRate);
-
-        // Merge scoped startMessaging call with client events
-        const delegates: any = {
-            start,
-            invokePolling,
-            ...eventDelegateRefs
-        };
-
-        this.consumer = new MessageConsumer(
-            environment,
-            storyId,
-            experienceId,
-            delegates,
-            player
-        );
+    private killConsumer = (): Promise<undefined> => {
+        return new Promise((resolve) => {
+            if (!this.consumer) {
+                resolve();
+            } else {
+                this.consumer.kill()
+                .then(() => {
+                    this.consumer = null;
+                    resolve();
+                });
+            }
+        });
     }
 }

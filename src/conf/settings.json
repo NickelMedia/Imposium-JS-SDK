@@ -5,12 +5,9 @@
 			"storyId": "",
 			"actId": "",
 			"sceneId": "",
-			"environment": "production",
-            "pollLifetime": 600000
+			"environment": "production"
 		},
-        "defaultPollRate": 3000,
-        "maxPollFrequency": 30000,
-        "backoffAtInterval": 10
+        "maxCreateRetries": 3
 	},
 	"api": {
 		"production": "https://api.imposium.com",

@@ -424,12 +424,10 @@ export default class ImposiumPlayer extends VideoPlayer {
 
                 // Calculate n pixels (downscaled) for each format and map
                 mp4FormatList.forEach((key) => {
-                    if (key !== 'm3u8') {
-                        const {width, height} = videos[key];
-                        const scaledPixels = (width * height) / 100000;
+                    const {width, height} = videos[key];
+                    const scaledPixels = (width * height) / 100000;
 
-                        scaleMap[scaledPixels] = key;
-                    }
+                    scaleMap[scaledPixels] = key;
                 });
 
                 // Convert scaled pixel values to arr of float vals and get closest val to mbps
