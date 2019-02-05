@@ -60,6 +60,9 @@ export default class MessageConsumer {
         });
     }
 
+    /*
+        Kill stomp connection
+     */
     public kill = (): Promise<undefined> => {
         const {stomp} = this;
 
