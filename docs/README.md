@@ -18,7 +18,7 @@ The library consists of two main features:
 
 ```javascript
 // ES6 / TypeScript 
-import Imposium from 'imposium-js-sdk';
+import * as Imposium from 'imposium-js-sdk';
 
 // commonJS
 var Imposium = require('imposium-js-sdk');
