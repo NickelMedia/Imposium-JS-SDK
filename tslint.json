@@ -3,17 +3,21 @@
     "extends": [
         "tslint:recommended"
     ],
-    "jsRules": {},
     "rules": {
-        "quotemark":[true, "single"],
-        "trailing-comma":false,
+        "trailing-comma": false,
         "ordered-imports": false,
-        "object-literal-sort-keys":false,
-        "no-console":false,
-        "no-var-requires":false,
-        "no-bitwise":false,
-        "max-classes-per-file":false,
-        "variable-name":[true, "check-format"]
-    },
-    "rulesDirectory": []
+        "object-literal-sort-keys": false,
+        "no-console": false,
+        "no-var-requires": false,
+        "no-bitwise": false,
+        "max-classes-per-file": false,
+        "variable-name": [
+            true,
+            "check-format"
+        ],
+        "quotemark": [
+            true,
+            "single"
+        ]
+    }
 }

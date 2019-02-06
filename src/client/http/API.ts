@@ -6,7 +6,7 @@ import axiosRetry = require('axios-retry');
 
 import Analytics from '../../analytics/Analytics';
 
-import {isNode, inventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
+import {inventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
 
 const settings = require('../../conf/settings.json').api;
 
@@ -127,12 +127,7 @@ export default class API {
 
         formData.append('id', uuid);
 
-        if (!isNode()) {
-            return doPostExperience(render, formData, config);
-        } else {
-            config.headers = formData.getHeaders();
-            return doPostExperience(render, formData, config);
-        }
+        return doPostExperience(render, formData, config);
     }
 
     /*

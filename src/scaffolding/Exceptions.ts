@@ -25,30 +25,14 @@ export abstract class ImposiumError extends Error {
     }
 }
 
-export class EnvironmentError extends ImposiumError {
-    constructor(messageKey: string, type: string = types.ENV) {
-        super(errors[type][messageKey], type);
-
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, EnvironmentError);
-        }
-    }
-
-    public log = (): void => {
-        console.error(`${this.prefix}
-            \nReason: Unavailable feature
-            \nMessage: ${this.message}`);
-    }
-}
-
 export class ModerationError extends ImposiumError {
     private experienceId: string = null;
 
-    constructor(messageKey: string, experienceId: string, type: string = types.MODERATION) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, experienceId: string) {
+        super(errors[types.MODERATION][messageKey], types.MODERATION);
 
         if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, EnvironmentError);
+            Error.captureStackTrace(this, ModerationError);
         }
     }
 
@@ -63,8 +47,8 @@ export class ModerationError extends ImposiumError {
 export class ClientConfigurationError extends ImposiumError {
     private eventName: string = '';
 
-    constructor(messageKey: string, eventName: string, type: string = types.CLIENT_CONFIG) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, eventName: string) {
+        super(errors[types.CLIENT_CONFIG][messageKey], types.CLIENT_CONFIG);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, ClientConfigurationError);
@@ -84,8 +68,8 @@ export class ClientConfigurationError extends ImposiumError {
 export class PlayerConfigurationError extends ImposiumError {
     private eventName: string = '';
 
-    constructor(messageKey: string, eventName: string, type: string = types.PLAYER_CONFIG) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, eventName: string) {
+        super(errors[types.PLAYER_CONFIG][messageKey], types.PLAYER_CONFIG);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, PlayerConfigurationError);
@@ -105,9 +89,10 @@ export class PlayerConfigurationError extends ImposiumError {
 export class NetworkError extends ImposiumError {
     private experienceId: string = null;
     private networkError: Error = null;
+    private lazy: boolean = false;
 
-    constructor(messageKey: string, experienceId: string, e: Error, type: string = types.NETWORK) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, experienceId: string, e: Error, lazy: boolean = false) {
+        super(errors[types.NETWORK][messageKey], types.NETWORK);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, NetworkError);
@@ -115,6 +100,7 @@ export class NetworkError extends ImposiumError {
 
         this.experienceId = experienceId || '<not_set>';
         this.networkError = e;
+        this.lazy = lazy;
     }
 
     public log = (): void => {
@@ -129,8 +115,8 @@ export class NetworkError extends ImposiumError {
 export class UncaughtError extends ImposiumError {
     private uncaughtError = null;
 
-    constructor(messageKey: string, e: Error, type: string = types.UNCAUGHT) {
-        super(errors[type][messageKey], type);
+    constructor(messageKey: string, e: Error) {
+        super(errors[types.UNCAUGHT][messageKey], types.UNCAUGHT);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, NetworkError);

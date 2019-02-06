@@ -1,7 +1,4 @@
 {
-    "environment": {
-        "node": "Sorry, this feature is incompatible with NodeJS"
-    },
     "moderation": {
         "rejection": "This experience was rejected."
     },

@@ -1,8 +1,8 @@
 #### constructor
 
-`Imposium.Client(config: Object)`
+`new Imposium.Client(config: Object)`
 
-Clients provide simple tooling around the Imposium API and can also be configured to carry out performance monitoring sub-tasks in place of [`Imposium.Player`](/player). New clients require a configuration object containing your credentials and project settings. The required properties for your project will be outlined by our team and there is an additional setting that enables staging API access to assist with development envrionments.
+This class provides simple tooling around the Imposium API and can also be configured to record playback analytics in place of [`Imposium.Player`](/player). New clients require a configuration object containing your access credentials and project settings. These values will be provided to you by the Imposium team when your account and new projects are created.
 
 **Example**
 
@@ -18,18 +18,18 @@ var client = new Imposium.Client(config);
 
 **Configuration Options**
 
-| Property    | Description                                                                              | Type   |
-| ----------- | ---------------------------------------------------------------------------------------- | ------ |
-| accessToken | An access token provided by your Imposium account manager.                               | String |
-| storyId     | The story id associated with your project.                                               | String |
-| actId       | An id related to a specific act in your project.                                         | String |
-| sceneId     | An id related to a specific scene in your project.                                       | String |
-| environment | Controls the Imposium environment being used. Options: 'production' (default), 'staging' | String |
+| Property    | Description                                                                              | Type   | Optional   |
+| ----------- | ---------------------------------------------------------------------------------------- | ------ | ---------- |
+| accessToken | An access token provided by your Imposium account manager.                               | String | no         |
+| storyId     | The story id associated with your project.                                               | String | no         |
+| actId       | An id related to a specific act in your project.                                         | String | yes        |
+| sceneId     | An id related to a specific scene in your project.                                       | String | yes        |
+| environment | Controls the Imposium environment being used. Options: 'production' (default), 'staging' | String | yes        |
 
 
 #### setup
 
-`Imposium.Client.setup(config: Object)`
+`Imposium.Client.setup(config: Object): void`
 
 Calling setup will re-configure the client using the same properties described above.
 
@@ -49,15 +49,14 @@ client.setup(newConfig);
 
 #### on
 
-`Imposium.Client.on(eventName: String, callback: Function)`
+`Imposium.Client.on(eventName: String, callback: Function): void`
 
-Binds a callback function to an Imposium event. Depending on your use case, you may need to set callbacks for one or more of these events. Event names are referenced in `Imposium.Events`. See below for event details.
-
+Binds a callback function to an Imposium event.
 ##### EXPERIENCE_CREATED
 
 **Callback Signature:** `function experienceCreated(experience: Object)`
 
-Executes when an experience record is first created. This is helpful in SPA environments for use cases where writing the id for an experience to a url can be used for SEO purposes, sharing, etc. This event can also be useful for updating loading markup (i.e: uploading has finished, moving onto processing...) as it means any data that was submitted to our web servers by the user was effectively transmitted. 
+Triggered when an experience record is first created. This is helpful in SPA environments for use cases where writing the id for an experience to a url can be used for SEO purposes, sharing, etc. This event can also be useful for updating loading markup (i.e: uploading has finished, moving onto processing...) as it means any dynamic data that was submitted to our web servers by a consumer was effectively transmitted. 
 
 Note: If you are not using [`Imposium.Player`](/player) or [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) to consume data returned by our web servers, this event as a minimum is required to be set in order to call [`createExperience`](#createExperience).
 
@@ -91,7 +90,7 @@ client.on(Imposium.Events.EXPERIENCE_CREATED, experienceCreated);
 
 **Callback Signature:** `function gotExperience(experience: Object)`
 
-Executes when either existing experience data is retrieved or if processing has finished while the client has a WebSocket open. 
+Triggered when experience data is delivered to the client.
 
 Note: If you are not using [`Imposium.Player`](/player) this event is required to be set in order to call [`getExperience`](#getExperience). 
 
@@ -156,7 +155,7 @@ client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
 
 **Callback Signature:** `function gotStatusUpdate(status: Object)`
 
-Executes each time a processing step has finished, status updates are transmitted via WebSocket and are delivered as follows:
+Triggered each time a processing step has finished, status payloads are delivered as follows:
 
 **Sample JSON** 
 
@@ -184,7 +183,7 @@ client.on(Imposium.Events.STATUS_UPDATE, gotStatus);
 
 **Callback Signature:** `function gotUploadProgress(percent: Number)`
 
-Executes while user inputs are being uploaded. This is generally useful for controling loading markup when a project requires that large files be uploaded to our web servers as part of the [`createExperience`](#createExperience) call. 
+Triggers as dynamic data is progressively uploaded. This is generally useful for controling loading markup when a project requires that large files be uploaded to our web servers as part of the [`createExperience`](#createExperience) call. 
 
 **Example** 
 
@@ -202,7 +201,7 @@ client.on(Imposium.Events.UPLOAD_PROGRESS, gotUploadProgress);
 
 **Callback Signature:** `function errorHandler(error: Error)`
 
-Executes when critical errors occur. The client will handling logging out errors but it is good practice to use this event to help update markup, redirect users, or alert the user in the case of a breaking exception (repeated network failure, etc). 
+Triggers when critical errors occur. This is useful to perform actions (showing error markup on a page, etc.) when breaking exceptions (repeated network failure, etc) occur. 
 
 **Example**
 
@@ -217,9 +216,9 @@ client.on(Imposium.Events.ERROR, errorHandler);
 ```
 #### off
 
-`Imposium.Client.off(eventName: String)`
+`Imposium.Client.off(eventName: String): void`
 
-Unbinds a callback function from an Imposium event if it has already has been set. 
+Removes existing callback references from memory.
 
 **Example**
 
@@ -235,9 +234,9 @@ client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
 
 #### getExperience
 
-`Imposium.Client.getExperience(experienceId: String)`
+`Imposium.Client.getExperience(experienceId: String): void`
 
-Gets experiences by id and triggers the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) event on success. If processing the experience has not finished yet or is intentionally deferred until this call is made (i.e: rendering is invoked by the first visit to a deeplink) the client will open a WebSocket instead. The WebSocket will trigger [`STATUS_UPDATE`](#STATUS_UPDATE) until processing has finished and trigger [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) before ending the connection.
+Gets experiences by id and triggers the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) event on success. If processing an expereince is intentionally deferred until after an experience is created (i.e: rendering is invoked by the first visit to a deeplink) making this call will invoke processing.
 
 Note: If you are using [`Imposium.Player`](/player) to handle playback then you can skip setting [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) since the player will always consume processed experiences for you. It should be said though that setting this event can still be useful when using the player if you wish to update application state or markup when an experience becomes ready (i.e: hiding a 'loading' or 'now processing' view).
 
@@ -277,13 +276,11 @@ client.getExperience(experienceId);
 
 #### createExperience
 
-`Imposium.Client.createExperience(inventory: Object, render: Boolean [optional])`
+`Imposium.Client.createExperience(inventory: Object, render: Boolean [optional]): void`
 
-Creates a new instance of an experience. Once an experience record has been saved, the client opens a WebSocket and begins triggering [`STATUS_UPDATE`](#STATUS_UPDATE) until processing has finished and eventually triggers [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) before ending the connection.
+Creates a new instance of an experience. Processing will be automatically started but can optionally be turned off by passing in a second parameter of `false` for certain use cases where rendering on demand is preferred.
 
-createExperience also has an optional boolean parameter which defaults to true. Passing a falsy value will disable creating WebSockets. You will need to setup the [`EXPERIENCE_CREATED`](#EXPERIENCE_CREATED) event as a minimum to use this flow as processed data will not be delivered. This use case is not common but is available to support flows where video delivery is deferred to a later time or particular scenario.
-
-Note:  If you are using [`Imposium.Player`](/player) you will not need to setup any events to capture experience data. If not, you will need to set either the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) and / or [`EXPERIENCE_CREATED`](#EXPERIENCE_CREATED) events depending on your use case.
+Note:  If you are using [`Imposium.Player`](/player) you will not need to setup any events to capture experience data. If not, you will need to set either the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) or [`EXPERIENCE_CREATED`](#EXPERIENCE_CREATED) if render was set to `false`.
 
 **Example (with player)**
 
@@ -333,7 +330,7 @@ client.createExperience(inventory);
 
 #### captureAnalytics
 
-`Imposium.Client.captureAnalytics(player: HTMLVideoElement)`
+`Imposium.Client.captureAnalytics(player: HTMLVideoElement): void`
 
 Enables performance tracking to assist with reporting and project analytics. Passing in an HTML5 video element will configure a range of common browser events that are used to push supporting metrics. This call is designed for use cases where [`Imposium.Player`](/player) is not used.
 

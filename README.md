@@ -18,7 +18,7 @@ Basic Example
 var Imposium = require('imposium-js-sdk');
 
 // ES6 modules 
-import * as Imposium from 'imposium-js-sdk';
+import Imposium from 'imposium-js-sdk';
 
 // Include
 <script type = "text/javascript" src = "../lib/imposium.min.js"></script>

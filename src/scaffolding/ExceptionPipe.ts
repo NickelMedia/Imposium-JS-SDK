@@ -19,11 +19,13 @@ export default class ExceptionPipe {
             if (!e.networkError) {
                 ExceptionPipe.logError(e, storyId);
             } else {
-                if (!e.networkError.config) {
+                if (e.networkError.hasOwnProperty('config')) {
+                    ExceptionPipe.logError(e, storyId);
+                } else if (e.lazy) {
+                    ExceptionPipe.logError(e, storyId);
+                } else {
                     const u = new UncaughtError('generic', e.networkError);
                     ExceptionPipe.logError(u, storyId);
-                } else {
-                    ExceptionPipe.logError(e, storyId);
                 }
             }
         } else {
@@ -53,7 +55,8 @@ export default class ExceptionPipe {
         }
 
         if (e.networkError) {
-            eventAction += `Url: ${e.networkError.config.url}*Stack: ${e.networkError}`;
+            const url: string = (e.networkError.config) ? e.networkError.config.url : 'stomp connection';
+            eventAction += `Url: ${url}*Stack: ${e.networkError}`;
         } else if (e.uncaughtError) {
             eventAction += `Stack: ${e.uncaughtError}`;
         } else {

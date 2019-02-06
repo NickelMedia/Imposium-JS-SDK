@@ -5,34 +5,31 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	    protected type: string;
 	    constructor(message: string, type: string);
 	}
-	export class EnvironmentError extends ImposiumError {
-	    constructor(messageKey: string, type?: string);
-	    log: () => void;
-	}
 	export class ModerationError extends ImposiumError {
 	    private experienceId;
-	    constructor(messageKey: string, experienceId: string, type?: string);
+	    constructor(messageKey: string, experienceId: string);
 	    log: () => void;
 	}
 	export class ClientConfigurationError extends ImposiumError {
 	    private eventName;
-	    constructor(messageKey: string, eventName: string, type?: string);
+	    constructor(messageKey: string, eventName: string);
 	    log: () => void;
 	}
 	export class PlayerConfigurationError extends ImposiumError {
 	    private eventName;
-	    constructor(messageKey: string, eventName: string, type?: string);
+	    constructor(messageKey: string, eventName: string);
 	    log: () => void;
 	}
 	export class NetworkError extends ImposiumError {
 	    private experienceId;
 	    private networkError;
-	    constructor(messageKey: string, experienceId: string, e: Error, type?: string);
+	    private lazy;
+	    constructor(messageKey: string, experienceId: string, e: Error, lazy?: boolean);
 	    log: () => void;
 	}
 	export class UncaughtError extends ImposiumError {
 	    private uncaughtError;
-	    constructor(messageKey: string, e: Error, type?: string);
+	    constructor(messageKey: string, e: Error);
 	    log: () => void;
 	}
 
@@ -70,7 +67,6 @@ declare module 'Imposium-JS-SDK/analytics/Analytics' {
 
 }
 declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
-	export const isNode: () => boolean;
 	export const prepConfig: (config: any, defaults: any) => void;
 	export const inRangeNumeric: (n: number, min: number, max: number) => boolean;
 	export const isFunc: (f: any) => boolean;
@@ -78,8 +74,8 @@ declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
 	export const cloneWithKeys: (o: any) => {};
 	export const calculateMbps: (startTime: number, filesize: number) => number;
 	export const calculateAverageMbps: (speeds: number[]) => number;
-	export const inventoryToFormData: (s: string, i: any) => any;
 	export const generateUUID: () => string;
+	export const inventoryToFormData: (storyId: string, inventory: any) => any;
 
 }
 declare module 'Imposium-JS-SDK/client/http/API' {
@@ -200,7 +196,6 @@ declare module 'Imposium-JS-SDK/video/FallbackPlayer' {
 
 }
 declare module 'Imposium-JS-SDK/client/Client' {
-	import 'babel-polyfill';
 	import VideoPlayer from 'Imposium-JS-SDK/video/VideoPlayer';
 	export interface IClientConfig {
 	    accessToken: string;
@@ -208,6 +203,7 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    actId: string;
 	    sceneId: string;
 	    environment: string;
+	    pollLifetime: number;
 	}
 	export default class Client {
 	    static events: {
@@ -307,6 +303,9 @@ declare module 'Imposium-JS-SDK/video/Player' {
 
 }
 declare module 'Imposium-JS-SDK/entry' {
+	import 'core-js/es6/promise';
+	import 'core-js/es6/symbol';
+	import 'core-js/es6/object';
 	import Client from 'Imposium-JS-SDK/client/Client';
 	import Player from 'Imposium-JS-SDK/video/Player';
 	export { Client, Player, clientEvents as Events, playerEvents as PlayerEvents };

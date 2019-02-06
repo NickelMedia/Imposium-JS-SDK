@@ -4,7 +4,6 @@ import VideoPlayer from '../../video/VideoPlayer';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
 
 import {
-    EnvironmentError,
     ModerationError,
     NetworkError
 } from '../../scaffolding/Exceptions';
@@ -16,9 +15,9 @@ export default class MessageConsumer {
     private static readonly MAX_RETRIES: number = settings.maxReconnects;
 
     private static readonly EVENT_NAMES: any = {
-        scene    : 'gotScene',
-        message  : 'gotMessage',
-        complete : 'actComplete'
+        scene: 'gotScene',
+        message: 'gotMessage',
+        complete: 'actComplete'
     };
 
     private stompDelegates: any = {
@@ -61,6 +60,9 @@ export default class MessageConsumer {
         });
     }
 
+    /*
+        Kill stomp connection
+     */
     public kill = (): Promise<undefined> => {
         const {stomp} = this;
 
@@ -93,7 +95,8 @@ export default class MessageConsumer {
                 case scene:
                     this.emitSceneData(payload);
                     break;
-                default: break;
+                default:
+                    break;
             }
         } catch (e) {
             const wrappedError = new NetworkError('messageParseFailed', experienceId, e);

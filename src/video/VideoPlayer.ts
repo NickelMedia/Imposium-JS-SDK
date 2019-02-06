@@ -2,8 +2,7 @@ import Queue from '../scaffolding/Queue';
 import Analytics from '../analytics/Analytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
-import {isNode} from '../scaffolding/Helpers';
-import {EnvironmentError, PlayerConfigurationError} from '../scaffolding/Exceptions';
+import {PlayerConfigurationError} from '../scaffolding/Exceptions';
 
 export interface IVideo {
     id: string;
