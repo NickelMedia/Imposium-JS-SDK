@@ -1,6 +1,6 @@
 #### constructor
 
-`Imposium.Player(videoElement: HTMLVideoElement, client: Imposium.Client, config: Object [optional])`
+`new Imposium.Player(videoElement: HTMLVideoElement, client: Imposium.Client, config: Object [optional])`
 
 The Imposium player is used alongside [`Imposium.client`](/client) to handle things like streaming, consuming data returned by our API, emitting custom / HTML5 media events and recording performance metrics. It requires a JavaScript reference to an HTML5 video element, a reference an Imposium client and configuration can be be passed in optionally (see below).
 
@@ -49,7 +49,7 @@ var player = new Imposium.Player(videoElement, client, customConfig);
 
 #### on
 
-` Imposium.Player.on(eventName: String, callback: Function)`
+` Imposium.Player.on(eventName: String, callback: Function): void`
 
 Binds a callback function to an player event. Depending on your use case, you may need to set callbacks for one or more of these events. Event names are referenced by constants held in `Imposium.PlayerEvents`. See below for specific event examples.
 
@@ -199,7 +199,7 @@ player.on(Imposium.PlayerEvents.ERROR, onError);
 
 #### play
 
-`Imposium.Player.play()`
+`Imposium.Player.play(): void`
 
 Starts or resumes media playback. 
 
@@ -213,7 +213,7 @@ player.play();
 
 #### pause
 
-`Imposium.Player.pause()`
+`Imposium.Player.pause(): void`
 
 Pauses media playback. 
 
@@ -227,7 +227,7 @@ player.pause();
 
 #### getPlaybackState
 
-`Imposium.Player.getPlaybackState() => String`
+`Imposium.Player.getPlaybackState(): String`
 
 Returns a string indicating the playback status of the media element. Returns `'paused'` or `'playing'`.
 
@@ -241,7 +241,7 @@ var currentState = player.getPlaybackState();
 
 #### getPosition
 
-` Imposium.Player.getPosition() => Number`
+` Imposium.Player.getPosition(): Number`
 
 Returns a number representing the current playback time in seconds.
 
@@ -255,7 +255,7 @@ var cursor = player.getPosition();
 
 #### getDuration
 
-`Imposium.Player.getDuration() => Number`
+`Imposium.Player.getDuration(): Number`
 
 Returns a number representing the length of the video in seconds.
 
@@ -269,7 +269,7 @@ var videoDuration = player.getDuration();
 
 #### seek
 
-`Imposium.Player.seek(seekTo: number)`
+`Imposium.Player.seek(seekTo: number): void`
 
 Sets the current time of the video to a number in seconds if within the range of 0 - length of video in seconds.
 
@@ -286,7 +286,7 @@ player.seek(duration / 2);
 
 #### getMute
 
-`Imposium.Player.getMute() => Boolean`
+`Imposium.Player.getMute(): Boolean`
 
 Returns a boolean value `true` if media is muted and `false` if volume is active.
 
@@ -300,7 +300,7 @@ var mutedState = player.getMuted();
 
 #### setMute
 
-` Imposium.Player.setMute(mute: Boolean)`
+` Imposium.Player.setMute(mute: Boolean): void`
 
 Sets the mute property for the html video element.
 
@@ -314,7 +314,7 @@ var mutedState = player.getMuted();
 
 #### getVolume
 
-` Imposium.Player.getVolume() => Number`
+` Imposium.Player.getVolume(): Number`
 
 Returns the current volume setting for the html video element.
 
@@ -328,7 +328,7 @@ var currentVolume = player.getVolume();
 
 #### setVolume
 
-`Imposium.Player.setVolume(volume: Number)`
+`Imposium.Player.setVolume(volume: Number): void`
 
 Sets the volume for the html video element if value is between 0.0 - 1.0.
 
@@ -342,7 +342,7 @@ player.setVolume(0.5);
 
 #### getControls
 
-`Imposium.Player.getControls()`
+`Imposium.Player.getControls(): void`
 
 Returns the controls setting for the html video element.
 
@@ -356,7 +356,7 @@ var controlsState = player.getControls();
 
 #### setControls
 
-`Imposium.Player.setControls()`
+`Imposium.Player.setControls(toggle: Boolean): void`
 
 Sets the controls setting for the html video element. 
 
@@ -371,7 +371,7 @@ player.setControls(false)
 
 #### replay
 
-`Imposium.Player.replay()`
+`Imposium.Player.replay(): void`
 
 Replays the media.
 
@@ -385,7 +385,7 @@ player.replay();
 
 #### remove
 
-`Imposium.Player.remove()`
+`Imposium.Player.remove(): void`
 
 Cleans up player context and prepares it for garbage collection. 
 
