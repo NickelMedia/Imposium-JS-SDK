@@ -203,7 +203,6 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    actId: string;
 	    sceneId: string;
 	    environment: string;
-	    pollLifetime: number;
 	}
 	export default class Client {
 	    static events: {
