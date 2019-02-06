@@ -2,7 +2,9 @@
 /src
 /tests
 Dockerfile
+Dockerfile.old
 Jenkinsfile
+Jenkinsfile.old
 tsconfig.json
 tslint.json
 webpack.config.js
@@ -10,3 +12,4 @@ generate-types.sh
 .babelrc
 index.d.ts
 publish.sh
+
