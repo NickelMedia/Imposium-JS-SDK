@@ -28,7 +28,6 @@ export interface IClientConfig {
     actId: string;
     sceneId: string;
     environment: string;
-    pollLifetime: number;
 }
 
 const settings = require('../conf/settings.json').client;
