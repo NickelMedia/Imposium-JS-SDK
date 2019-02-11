@@ -1,3 +1,6 @@
+// import ShakaPlayer from 'shaka-player';
+// console.log(ShakaPlayer)
+
 import API from '../client/http/API';
 import VideoPlayer, {IVideo} from './VideoPlayer';
 import Client from '../client/Client';
