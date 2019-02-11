@@ -1,19 +1,9 @@
 import Queue from '../scaffolding/Queue';
 import Analytics from '../analytics/Analytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
+import {IExperience} from '../client/Client';
 
 import {PlayerConfigurationError} from '../scaffolding/Exceptions';
-
-export interface IVideo {
-    id: string;
-    url: string;
-    format: string;
-    width: number;
-    height: number;
-    filesize: number;
-    duration: number;
-    rate: number;
-}
 
 const settings = require('../conf/settings.json').videoPlayer;
 
@@ -21,7 +11,7 @@ export default abstract class VideoPlayer {
 
     private static readonly intervalRate: number = settings.checkPlaybackRateMs;
     private static readonly playbackEvents: number[] = settings.playbackEvents;
-    public experienceGenerated: (exp: IVideo) => void;
+    public experienceGenerated: (exp: IExperience) => void;
     protected node: HTMLVideoElement = null;
     protected storyId: string = '';
     private readonly mediaEvents: any = {

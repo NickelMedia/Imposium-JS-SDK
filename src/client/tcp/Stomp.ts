@@ -2,15 +2,29 @@ import * as WebStomp from 'webstomp-client';
 
 const settings = require('../../conf/settings.json').stomp;
 
+export interface IStompConfig {
+    experienceId: string;
+    environment: string;
+    delegates: IConsumerDelegates;
+}
+
+export interface IConsumerDelegates {
+    route: (f: WebStomp.Frame) => void;
+    error: (e: CloseEvent) => void;
+}
+
 export default class Stomp {
     // Static RabbitMQ creds
-    private static readonly exchange: string = settings.exchange;
-    private static readonly username: string = settings.username;
-    private static readonly password: string = settings.password;
+    private static readonly EXCHANGE: string = settings.exchange;
+    private static readonly USERNAME: string = settings.username;
+    private static readonly PASSWORD: string = settings.password;
+
+    // Ws open state
+    private static readonly OPEN_STATE: number = 1;
 
     // Experience id & delegate consumption handlers
     private experienceId: string;
-    private delegates: any;
+    private delegates: IConsumerDelegates;
 
     // WS / Stomp client refs
     private endpoint: string = '';
@@ -18,10 +32,10 @@ export default class Stomp {
     private client: WebStomp.Client = null;
     private subscription: WebStomp.Subscription = null;
 
-    constructor(experienceId: string, delegates: any, env: string) {
-        this.experienceId = experienceId;
-        this.delegates = delegates;
-        this.endpoint = settings[env];
+    constructor(c: IStompConfig) {
+        this.experienceId = c.experienceId;
+        this.endpoint = settings[c.environment];
+        this.delegates = c.delegates;
     }
 
     /*
@@ -31,7 +45,7 @@ export default class Stomp {
         this WebStomp library.
      */
     public init = (): Promise<undefined> => {
-        const {username, password} = Stomp;
+        const {USERNAME, PASSWORD} = Stomp;
         const {endpoint, delegates: {error}} = this;
 
         this.socket = new WebSocket(endpoint);
@@ -46,8 +60,8 @@ export default class Stomp {
 
             this.client.connect
             (
-                username,
-                password,
+                USERNAME,
+                PASSWORD,
                 onConnect,
                 error
             );
@@ -55,13 +69,30 @@ export default class Stomp {
     }
 
     /*
+        Triggers socketIO to emit & sets up a listener for messages
+     */
+    private establishSubscription = (): void => {
+        const {EXCHANGE} = Stomp;
+        const {experienceId, client, delegates: {route}} = this;
+
+        this.subscription = client.subscribe
+        (
+            `${EXCHANGE}${experienceId}`,
+            route
+        );
+    }
+
+    /*
         Ends the current connection gracefully
      */
-    public disconnectAsync = (): any => {
+    public disconnectAsync = (): Promise<undefined> => {
+        const {OPEN_STATE} = Stomp;
         const {client, client: {connected}, subscription} = this;
 
         return new Promise((resolve) => {
-            if (client.ws.readyState == 1) {
+            const {ws: {readyState}} = client;
+
+            if (readyState == OPEN_STATE) {
                 if (subscription) {
                     subscription.unsubscribe();
                 }
@@ -73,19 +104,5 @@ export default class Stomp {
                 resolve();
             }
         });
-    }
-
-    /*
-        Triggers socketIO to emit & sets up a listener for messages
-     */
-    private establishSubscription = (): void => {
-        const {exchange} = Stomp;
-        const {experienceId, client, delegates: {start, route}} = this;
-
-        this.subscription = client.subscribe
-        (
-            `${exchange}${experienceId}`,
-            route
-        );
     }
 }

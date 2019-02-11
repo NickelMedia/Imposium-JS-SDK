@@ -1,5 +1,5 @@
 import API from './http/API';
-import MessageConsumer from './tcp/MessageConsumer';
+import MessageConsumer, {IConsumerConfig, IClientDelegates} from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
 import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
@@ -30,6 +30,64 @@ export interface IClientConfig {
     environment: string;
 }
 
+export interface IRenderHistory {
+    prevExperienceId: string;
+    prevMessage: string;
+}
+
+export interface IClientEmits {
+    adding: string;
+    added: string;
+}
+
+export interface IClientEvents {
+    EXPERIENCE_CREATED?: (e: IExperience) => any | string;
+    UPLOAD_PROGRESS?: (n: number) => any | string;
+    GOT_EXPERIENCE?: (e: IExperience) => any | string;
+    STATUS_UPDATE?: (m: any) => any | string;
+    ERROR?: (e: Error) => any | string;
+}
+
+export interface IExperience {
+    id: string;
+    rendering: boolean;
+    date_created: number;
+    moderation_status: string;
+    output: IExperienceOutput;
+}
+
+export interface IExperienceOutput {
+    videos: IOutputVideos;
+    images?: IOutputImages;
+}
+
+export interface IOutputImages {
+    poster: string;
+}
+
+export interface IOutputVideos {
+    m3u8?: IPlaylistOutput;
+    mp4_480?: IVideoOutput;
+    mp4_720?: IVideoOutput;
+    mp4_1090?: IVideoOutput;
+}
+
+export interface IPlaylistOutput {
+    format: string;
+    duration: number;
+    rate: number;
+    url: string;
+}
+
+export interface IVideoOutput {
+    url: string;
+    format: string;
+    rate: number;
+    width: number;
+    height: number;
+    duration: number;
+}
+
 const settings = require('../conf/settings.json').client;
 
 export default class Client {
@@ -42,22 +100,30 @@ export default class Client {
         ERROR: 'ERROR'
     };
     public clientConfig: IClientConfig = null;
-    private maxCreateRetries: number = settings.maxCreateRetries;
-    private eventDelegateRefs: any = cloneWithKeys(Client.events);
+    private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
     private consumer: MessageConsumer = null;
     private gaProperty: string = '';
     private playerIsFallback: boolean = false;
+    private maxCreateRetries: number = settings.maxCreateRetries;
+    private renderHistory: IRenderHistory = {
+        prevExperienceId: '',
+        prevMessage: ''
+    };
+    private emits: IClientEmits = {
+        adding: 'Adding job to queue...',
+        added: 'Added job to queue...'
+    };
 
     /*
         Initialize Imposium client
      */
-    constructor(config: any) {
+    constructor(config: IClientConfig) {
         printVersion();
 
         if (config.storyId && config.accessToken) {
-            this.assignConfigOpts(config);
+            this.mergeConfig(config);
         } else {
             if (!config.storyId) {
                 throw new ClientConfigurationError('storyId', null);
@@ -72,14 +138,14 @@ export default class Client {
     /*
         Exposed for users who may want to re-use a client for n stories
      */
-    public setup = (config: any) => {
-        this.assignConfigOpts(config);
+    public setup = (config: IClientConfig): void => {
+        this.mergeConfig(config);
     }
 
     /*
         Set current video player ref
      */
-    public setPlayer = (player: VideoPlayer, isFallback: boolean = false) => {
+    public setPlayer = (player: VideoPlayer, isFallback: boolean = false): void => {
         const {clientConfig: {storyId}} = this;
 
         this.playerIsFallback = isFallback;
@@ -141,8 +207,10 @@ export default class Client {
         try {
             if (GOT_EXPERIENCE || player) {
                 api.getExperience(experienceId)
-                .then((experience: any) => {
+                .then((experience: IExperience) => {
                     const {id, output, rendering, moderation_status} = experience;
+
+                    this.updateHistory('prevExperienceId', id);
 
                     if (Object.keys(output).length > 0) {
                         if (player) {
@@ -218,7 +286,7 @@ export default class Client {
     /*
         Copies supplied config object to settings for sharing with sub components
      */
-    private assignConfigOpts = (config: any) => {
+    private mergeConfig = (config: IClientConfig): void => {
         const {defaultConfig} = settings;
         const prevConfig = this.clientConfig || defaultConfig;
 
@@ -287,6 +355,10 @@ export default class Client {
             clientConfig: {
                 storyId
             },
+            emits: {
+                adding,
+                added
+            },
             eventDelegateRefs: {
                 GOT_EXPERIENCE,
                 EXPERIENCE_CREATED,
@@ -304,17 +376,23 @@ export default class Client {
                 const {api} = this;
 
                 if (STATUS_UPDATE && render) {
-                    STATUS_UPDATE({status: 'Adding job to queue...'});
+                    STATUS_UPDATE({id: undefined, status: adding});
+                    this.updateHistory('prevMessage', adding);
                 }
 
                 api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
-                .then((experience: any) => {
+                .then((experience: IExperience) => {
+                    const {id} = experience;
+
+                    this.updateHistory('prevExperienceId', id);
+
                     if (EXPERIENCE_CREATED) {
                         EXPERIENCE_CREATED(experience);
                     }
 
-                    if (render && STATUS_UPDATE) {
-                        STATUS_UPDATE({id: experience.id, status: 'Added job to queue...'});
+                    if (render && this.renderHistory.prevMessage === adding && STATUS_UPDATE) {
+                        STATUS_UPDATE({id, status: added});
+                        this.updateHistory('prevMessage', added);
                     }
                 })
                 .catch((e) => {
@@ -356,13 +434,20 @@ export default class Client {
         return new Promise((resolve) => {
             this.killConsumer()
             .then(() => {
-                this.consumer = new MessageConsumer(
-                    environment,
+                const delegates: IClientDelegates = {
+                    updateHistory: (k, v) => this.updateHistory(k, v),
+                    ...eventDelegateRefs
+                };
+
+                const consumerConfig: IConsumerConfig = {
                     storyId,
                     experienceId,
-                    eventDelegateRefs,
+                    environment,
+                    delegates,
                     player
-                );
+                };
+
+                this.consumer = new MessageConsumer(consumerConfig);
 
                 this.consumer.connect()
                 .then(() => {
@@ -387,5 +472,14 @@ export default class Client {
                 });
             }
         });
+    }
+
+    /*
+        Update render history state
+     */
+    private updateHistory = (key: string, value: string): void => {
+        if (this.renderHistory[key] !== value) {
+            this.renderHistory[key] = value;
+        }
     }
 }

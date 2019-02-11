@@ -2,8 +2,8 @@
 // console.log(ShakaPlayer)
 
 import API from '../client/http/API';
-import VideoPlayer, {IVideo} from './VideoPlayer';
-import Client from '../client/Client';
+import VideoPlayer from './VideoPlayer';
+import Client, {IExperience} from '../client/Client';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {PlayerConfigurationError} from '../scaffolding/Exceptions';
@@ -123,7 +123,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Set a live stream or fallback to bandwidth checking / auto assigning a file
      */
-    public experienceGenerated = (experience: any): void => {
+    public experienceGenerated = (experience: IExperience): void => {
         const {experienceCache} = this;
         const {qualityOverride} = this.imposiumPlayerConfig;
 

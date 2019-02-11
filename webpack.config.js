@@ -75,7 +75,7 @@ config = {
 };
 
 module.exports = (env, argv) => {
-    const {mode, viz} = argv;
+    const {mode} = argv;
     const bundleExt = (mode === 'production') ? '.min.js' : '.js';
 
     config.output.filename = `${LIB_NAME.toLowerCase()}${bundleExt}`;
