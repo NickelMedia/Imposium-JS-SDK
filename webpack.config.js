@@ -8,7 +8,7 @@ const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 
 const LIB_NAME = 'Imposium';
 const BUNDLE_LOC = `${__dirname}/lib`;
-const ENTRY = `${__dirname}/src/entry.ts`;
+const ENTRY = `${__dirname}/src/Entry.ts`;
 
 const VERSIONING_CONF = {
     SHORT: 'IMPOSIUM-JS-SDK',

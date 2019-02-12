@@ -21,65 +21,49 @@ export default class Stomp {
 
     // Ws open state
     private static readonly OPEN_STATE: number = 1;
+    private static readonly DEBUG_OFF: () => void = () => { return; };
 
     // Experience id & delegate consumption handlers
     private experienceId: string;
     private delegates: IConsumerDelegates;
 
     // WS / Stomp client refs
-    private endpoint: string = '';
     private socket: WebSocket = null;
     private client: WebStomp.Client = null;
     private subscription: WebStomp.Subscription = null;
 
     constructor(c: IStompConfig) {
+        this.socket = new WebSocket(settings[c.environment]);
         this.experienceId = c.experienceId;
-        this.endpoint = settings[c.environment];
         this.delegates = c.delegates;
     }
 
     /*
-        Initializes the WebStomp client w/ handlers.
-
-        The debug method needs to be overridden as a rule of
-        this WebStomp library.
+        Initializes STOMP connection & tooling
      */
     public init = (): Promise<undefined> => {
-        const {USERNAME, PASSWORD} = Stomp;
-        const {endpoint, delegates: {error}} = this;
+        const {USERNAME: u, PASSWORD: p, DEBUG_OFF} = Stomp;
+        const {socket, delegates: {error}} = this;
 
-        this.socket = new WebSocket(endpoint);
-        this.client = WebStomp.over(this.socket);
-        this.client.debug = () => { return; };
+        this.client = WebStomp.over(socket);
+        this.client.debug = DEBUG_OFF;
 
         return new Promise((resolve) => {
-            const onConnect = () => {
-                this.establishSubscription();
-                resolve();
-            };
-
-            this.client.connect
-            (
-                USERNAME,
-                PASSWORD,
-                onConnect,
-                error
-            );
+            const subscribed = () => this.doSubscribe(resolve);
+            this.client.connect(u, p, subscribed, error);
         });
     }
 
     /*
         Triggers socketIO to emit & sets up a listener for messages
      */
-    private establishSubscription = (): void => {
-        const {EXCHANGE} = Stomp;
+    private doSubscribe = (resolve: () => void): void => {
+        const {EXCHANGE: e} = Stomp;
         const {experienceId, client, delegates: {route}} = this;
+        const queueLoc: string = `${e}${experienceId}`;
 
-        this.subscription = client.subscribe
-        (
-            `${EXCHANGE}${experienceId}`,
-            route
-        );
+        this.subscription = client.subscribe(queueLoc, route);
+        resolve();
     }
 
     /*

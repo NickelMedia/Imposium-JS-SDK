@@ -1,7 +1,7 @@
 import API from '../http/API';
-import Stomp, {IStompConfig, IConsumerDelegates} from './Stomp';
 import VideoPlayer from '../../video/VideoPlayer';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
+import Stomp, {IStompConfig, IConsumerDelegates} from './Stomp';
 import {IExperience, IExperienceOutput, IClientEvents} from '../Client';
 import {Frame} from 'webstomp-client';
 
@@ -13,8 +13,8 @@ import {
 const settings = require('../../conf/settings.json').messageConsumer;
 
 export interface IConsumerConfig {
-    environment: string;
     storyId: string;
+    environment: string;
     experienceId: string;
     delegates: IClientDelegates;
     player?: VideoPlayer;
@@ -43,29 +43,24 @@ export interface IEmitData {
 // Wraps around the Stomp client, providing the message handling
 export default class MessageConsumer {
     private static readonly MAX_RETRIES: number = settings.maxReconnects;
-
-    private static readonly EVENT_NAMES: IEmitTypes = {
-        scene: 'gotScene',
-        message: 'gotMessage',
-        complete: 'actComplete'
-    };
+    private static readonly EMITS: IEmitTypes = settings.emitTypes;
 
     private stompDelegates: IConsumerDelegates = {
         route: (f: Frame) => this.routeMessageData(f),
         error: (e: CloseEvent) => this.stompError(e)
     };
 
-    private environment: string = '';
     private storyId: string = '';
+    private environment: string = '';
     private experienceId: string = null;
-    private retried: number = settings.minReconnects;
-    private stomp: Stomp = null;
-    private player: VideoPlayer;
     private clientDelegates: IClientDelegates = null;
+    private player: VideoPlayer;
+    private stomp: Stomp = null;
+    private retried: number = settings.minReconnects;
 
     constructor(c: IConsumerConfig) {
-        this.environment = c.environment;
         this.storyId = c.storyId;
+        this.environment = c.environment;
         this.experienceId = c.experienceId;
         this.clientDelegates = c.delegates;
 
@@ -111,11 +106,10 @@ export default class MessageConsumer {
     }
 
     /*
-        Manage incoming messages. Depending on their state the websocket
-        may be terminated.
+        Manage incoming messages. Terminates stomp on actComplete.
      */
     private routeMessageData = (frame: Frame): void => {
-        const {EVENT_NAMES: {scene, message, complete}} = MessageConsumer;
+        const {EMITS: {scene, message, complete}} = MessageConsumer;
         const {stomp, storyId, experienceId, clientDelegates: {ERROR}} = this;
         const {body} = frame;
 
@@ -124,7 +118,7 @@ export default class MessageConsumer {
 
             switch (emitData.event) {
                 case complete:
-                    stomp.disconnectAsync().then(() => { return; });
+                    stomp.disconnectAsync();
                     break;
                 case message:
                     this.emitMessageData(emitData);
@@ -188,13 +182,13 @@ export default class MessageConsumer {
         Called on Stomp errors
      */
     private stompError = (e: CloseEvent): void => {
+        const {MAX_RETRIES} = MessageConsumer;
         const {retried, storyId, experienceId, stomp, clientDelegates: {ERROR}} = this;
-        const {wasClean} = e;
 
         if (!e.wasClean) {
             ++this.retried;
 
-            if (retried < MessageConsumer.MAX_RETRIES) {
+            if (retried < MAX_RETRIES) {
                 ExceptionPipe.logWarning('network', 'tcpFailure');
 
                 this.kill()
