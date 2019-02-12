@@ -41,7 +41,7 @@ export default class Stomp {
     /*
         Initializes STOMP connection & tooling
      */
-    public init = (): Promise<undefined> => {
+    public init = (): Promise<void> => {
         const {USERNAME: u, PASSWORD: p, DEBUG_OFF} = Stomp;
         const {socket, delegates: {error}} = this;
 
@@ -69,7 +69,7 @@ export default class Stomp {
     /*
         Ends the current connection gracefully
      */
-    public disconnectAsync = (): Promise<undefined> => {
+    public disconnectAsync = (): Promise<void> => {
         const {OPEN_STATE} = Stomp;
         const {client, client: {connected}, subscription} = this;
 

@@ -72,7 +72,7 @@ export default class MessageConsumer {
     /*
         Initializes a stomp connection object
      */
-    public connect = (): Promise<undefined> => {
+    public connect = (): Promise<void> => {
         const {experienceId, environment, stompDelegates} = this;
 
         const stompConfig: IStompConfig = {
@@ -94,7 +94,7 @@ export default class MessageConsumer {
     /*
         Kill stomp connection
      */
-    public kill = (): Promise<undefined> => {
+    public kill = (): Promise<void> => {
         const {stomp} = this;
 
         return new Promise((resolve) => {

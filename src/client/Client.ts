@@ -308,7 +308,7 @@ export default class Client {
     private getAnalyticsProperty = (): void => {
         const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
-        api.getStory(storyId)
+        api.getTrackingId(storyId)
         .then((story: any) => {
             const {gaTrackingId} = story;
 
@@ -428,7 +428,7 @@ export default class Client {
     /*
         Open stomp conn held by message consumer
      */
-    private warmConsumer = (experienceId: string): Promise<undefined> => {
+    private warmConsumer = (experienceId: string): Promise<void> => {
         const {player, eventDelegateRefs, clientConfig: {storyId, environment}} = this;
 
         return new Promise((resolve) => {
@@ -460,7 +460,7 @@ export default class Client {
     /*
         Kill stomp conn held by message consumer
      */
-    private killConsumer = (): Promise<undefined> => {
+    private killConsumer = (): Promise<void> => {
         return new Promise((resolve) => {
             if (!this.consumer) {
                 resolve();
