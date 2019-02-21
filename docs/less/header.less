@@ -1,0 +1,63 @@
+
+@linkPadding:175px;
+@headerHeight:60px;
+
+#doc-header{
+
+    position: fixed;
+    top:0px;
+    left:0px;
+    width:100%;
+    height:@headerHeight;
+    background:@bgVeryDark;
+    border-bottom:4px solid @bgLight;
+    z-index:10000;
+
+    .logo{
+        width:150px;
+        height:40px;
+        position:absolute;
+        top:8px;
+        left:10px;
+    }
+
+    .links {
+        padding-left: @linkPadding;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: @docWidth + (@linkPadding * 2);
+        margin: 0 auto;
+        
+        @media only screen and (min-width: 1600px) {
+            padding-right: @linkPadding;
+        }
+
+        .header-link{
+            .oswaldReg;
+            opacity: 0.6;
+            color:white;
+            text-decoration:none;
+            display: inline-block;
+            height:60px;
+            vertical-align: top;
+            line-height:60px;
+            padding:0px 20px 0px 20px;
+            box-sizing:border-box;
+            cursor:pointer;
+    
+            &.active{
+                opacity: 1;
+                border-bottom: 4px solid rgb(137, 191, 4);
+
+                &:hover{
+                    background:none;    
+                }
+            }
+
+            &:hover{
+                opacity: 1;
+                background:rgba(255,255,255,0.05);
+            }
+        }
+    }
+}

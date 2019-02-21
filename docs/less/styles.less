@@ -1,7 +1,9 @@
 // @import "reset.less";
 @import "colors.less";
-// @import "mixins.less";
+@import "mixins.less";
+@import "header.less";
 
+@docWidth:1280px;
 
 body {
     margin: 0;
@@ -11,10 +13,7 @@ body {
 }
 
 .github-corner {
-    svg {
-        color: @codeGreen;
-        fill: @bgVeryDark;
-    }
+    display: none;
 }
 
 main {
@@ -31,7 +30,7 @@ main {
     .sidebar {
         box-shadow: 1px 0px 10px 1px rgba(0,0,0,0.3);
         border-right: 1px solid @bgLight;
-        padding: 0;
+        padding-top: 80px;
 
         .app-name {
             display: none;
@@ -47,6 +46,12 @@ main {
                     a {
                         color: @textGrey;
                     }
+
+                    &.active {
+                        > a {
+                            border-right: 2px solid rgb(137, 191, 4);
+                        }
+                    }
                 }
             }
         }
@@ -58,6 +63,7 @@ main {
         .markdown-section {
             .anchor {
                 span {
+                    .oswaldBold;
                     color: @textGrey;
 
                     &:hover {

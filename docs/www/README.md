@@ -6,9 +6,9 @@ Imposium JS SDK is a client side library available through npm that provides too
 
 The library consists of two main features:
 
-[`Imposium.client`](/client) is an event based toolkit for generating and fetching Imposium generated experiences. The client offers a range of configurable events to help you set up control flows that best suit your use case. 
+[`Imposium.Client`](/client) is an event based toolkit for generating and fetching Imposium generated experiences. The client offers a range of configurable events to help you set up control flows that best suit your use case. 
 
-[`Imposium.player`](/player) is a wrapper for HTML5 Video elements designed to take care of consuming Imposium experience data and to help serve video content from our API.
+[`Imposium.Player`](/player) is a wrapper for HTML5 Video elements designed to take care of consuming Imposium experience data and to help serve video content from our API.
 
 #### Install
 
