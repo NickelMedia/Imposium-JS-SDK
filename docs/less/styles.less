@@ -1,0 +1,118 @@
+// @import "reset.less";
+@import "colors.less";
+// @import "mixins.less";
+
+
+body {
+    margin: 0;
+    padding-top:60px;
+    background-color: @bgMedium;
+    color: @textGrey;
+}
+
+.github-corner {
+    svg {
+        color: @codeGreen;
+        fill: @bgVeryDark;
+    }
+}
+
+main {
+    .sidebar, .sidebar-toggle {
+        background-color: @bgMedium;
+    }
+
+    .sidebar-toggle {
+        span {
+            background-color: @textGrey;
+        }
+    }
+
+    .sidebar {
+        box-shadow: 1px 0px 10px 1px rgba(0,0,0,0.3);
+        border-right: 1px solid @bgLight;
+        padding: 0;
+
+        .app-name {
+            display: none;
+        }
+
+        .sidebar-nav {
+            img {
+                transform: scale(0.7);
+            }
+
+            ul {
+                li {
+                    a {
+                        color: @textGrey;
+                    }
+                }
+            }
+        }
+    }
+
+    .content {
+        padding-top: 0;
+
+        .markdown-section {
+            .anchor {
+                span {
+                    color: @textGrey;
+
+                    &:hover {
+                        text-decoration: underline;
+                    }
+                }
+            }
+
+            p {
+                strong {
+                    color: @textGrey;
+                }
+            }
+
+            a {
+                color: @linkBlue;
+                text-decoration: none;
+
+                &:visited {
+                    color: @linkBlue;
+                }
+            }
+
+            pre {
+                background-color: @bgVeryDark;
+                border-radius: 3px;
+            }
+
+            code {
+                background-color: @bgVeryDark;
+                color: @codeGreen;
+                font-weight: 400;
+                text-decoration: none;
+            }
+
+            table {
+                border-radius: 3px;
+
+                thead, tbody {
+                    tr {
+                        background-color: @bgMedium;
+
+                        th, td {
+                            border: 2px solid @bgVeryDark;
+                        }
+
+                        th {
+                            background-color: @bgVeryDark;
+                            text-align: left;
+                            font-weight: 800;
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+}

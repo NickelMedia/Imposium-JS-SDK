@@ -1,4 +1,4 @@
-![logo](imposium_logo@2x.png)
+![logo](logo.png)
 
 * [Get Started](/)
 * [Client](client.md)
