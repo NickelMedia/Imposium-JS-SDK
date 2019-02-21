@@ -99,7 +99,7 @@ export default class Client {
         STATUS_UPDATE: 'STATUS_UPDATE',
         ERROR: 'ERROR'
     };
-    public clientConfig: IClientConfig = null;
+    public clientConfig: IClientConfig = undefined;
     private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.events);
     private api: API = null;
     private player: VideoPlayer = null;
@@ -122,16 +122,23 @@ export default class Client {
     constructor(config: IClientConfig) {
         printVersion();
 
-        if (config.storyId && config.accessToken) {
-            this.mergeConfig(config);
-        } else {
-            if (!config.storyId) {
+        try {
+            if (typeof config !== 'object') {
+                throw new ClientConfigurationError('badConfig', null);
+            }
+
+            if (!config.hasOwnProperty('storyId')) {
                 throw new ClientConfigurationError('storyId', null);
             }
 
-            if (!config.accessToken) {
+            if (!config.hasOwnProperty('accessToken')) {
                 throw new ClientConfigurationError('accessToken', null);
             }
+
+            this.mergeConfig(config);
+        } catch (e) {
+            const storyId: string = (config && config.storyId) ? config.storyId : ''; 
+            ExceptionPipe.trapError(e, storyId);
         }
     }
 
@@ -158,20 +165,23 @@ export default class Client {
         Sets a callback for an event
      */
     public on = (eventName: string, callback: any): void => {
-        const {clientConfig: {storyId}, eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
+        const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
-        try {
-            if (isFunc(callback)) {
-                if (keyExists(Client.events, eventName)) {
-                    eventDelegateRefs[eventName] = callback;
+        if (this.clientConfig) {
+            try {
+                if (isFunc(callback)) {
+                    if (keyExists(Client.events, eventName)) {
+                        eventDelegateRefs[eventName] = callback;
+                    } else {
+                        throw new ClientConfigurationError('invalidEventName', eventName);
+                    }
                 } else {
-                    throw new ClientConfigurationError('invalidEventName', eventName);
+                    throw new ClientConfigurationError('invalidCallbackType', eventName);
                 }
-            } else {
-                throw new ClientConfigurationError('invalidCallbackType', eventName);
+            } catch (e) {
+                const storyId: string = (this.hasOwnProperty('clientConfig')) ? this.clientConfig.storyId : '';
+                ExceptionPipe.trapError(e, storyId, ERROR);
             }
-        } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 

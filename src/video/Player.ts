@@ -79,28 +79,28 @@ export default class ImposiumPlayer extends VideoPlayer {
 
     private hlsSupport: string = '';
     private hlsPlayer: any = null;
-    private experienceCache: any[] = [];
+    private experienceCache: IExperience[] = [];
     private clientRef: Client = null;
     private imposiumPlayerConfig: IPlayerConfig = null;
 
     constructor(node: HTMLVideoElement, client: Client, config: IPlayerConfig = settings.defaultConfig) {
         super(node);
 
-        try {
-            if (node instanceof HTMLVideoElement) {
-                if (client) {
-                    client.setPlayer(this);
+        const validClient: boolean = !!(client && client.clientConfig);
 
-                    this.init(config);
-                    this.setupHls();
-                } else {
-                    throw new PlayerConfigurationError('noClient', null);
-                }
-            } else {
-                throw new PlayerConfigurationError('invalidPlayerRef', null);
+        try {
+            if (!validClient) {
+                throw new PlayerConfigurationError('badClient', null);
+            }
+
+            if (node instanceof HTMLVideoElement) {
+                client.setPlayer(this);
+                this.init(config);
+                this.setupHls();
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, client.clientConfig.storyId);
+            const storyId: string = (validClient) ? client.clientConfig.storyId : '';
+            ExceptionPipe.trapError(e, storyId);
         }
     }
 
