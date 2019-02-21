@@ -1,55 +1,63 @@
 import Queue from '../scaffolding/Queue';
 import Analytics from '../analytics/Analytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
+import {IExperience} from '../client/Client';
 
 import {PlayerConfigurationError} from '../scaffolding/Exceptions';
 
-export interface IVideo {
-    id: string;
-    url: string;
-    format: string;
-    width: number;
-    height: number;
-    filesize: number;
-    duration: number;
-    rate: number;
-}
-
 const settings = require('../conf/settings.json').videoPlayer;
+
+export interface IBaseMediaEvents {
+    play: () => void;
+    pause: () => void;
+    ended: () => void;
+    loadStart: () => void;
+}
 
 export default abstract class VideoPlayer {
 
+    // Playback event constants
     private static readonly intervalRate: number = settings.checkPlaybackRateMs;
     private static readonly playbackEvents: number[] = settings.playbackEvents;
-    public experienceGenerated: (exp: IVideo) => void;
+
+    // Delegate placeholder
+    public experienceGenerated: (exp: IExperience) => void;
+
+    // HTML Video element ref, active storyId on client
     protected node: HTMLVideoElement = null;
     protected storyId: string = '';
-    private readonly mediaEvents: any = {
-        loadstart : () => this.onLoad(),
-        play      : () => this.onPlay(),
-        pause     : () => this.onPause(),
-        ended     : () => this.onEnd()
+
+    private readonly baseMediaEvents: IBaseMediaEvents = {
+        play: () => this.onPlay(),
+        pause: () => this.onPause(),
+        ended: () => this.onEnd(),
+        loadStart: () => this.onLoad()
     };
-    private experienceId: string = '';
+    
     private gaProperty: string = '';
+    private experienceId: string = '';
     private prevPlaybackEvent: number = 0;
-    private playbackInterval: any;
+    private playbackInterval: number = -1;
     private deferredGaCalls: Queue = new Queue();
 
     /*
         Basis of Imposum/Fallback video player objects
      */
     constructor(node: HTMLVideoElement) {
-        const {mediaEvents, storyId} = this;
+        try {
+            if (node instanceof HTMLVideoElement) {
+                const {baseMediaEvents, storyId} = this;
 
-        this.node = node;
+                this.node = node;
 
-        for (const key of Object.keys(mediaEvents)) {
-            try {
-                this.node.addEventListener(key, this.mediaEvents[key]);
-            } catch (e) {
+                for (const key of Object.keys(baseMediaEvents)) {
+                    this.node.addEventListener(key, this.baseMediaEvents[key]);
+                }
+            } else {
                 throw new PlayerConfigurationError('invalidPlayerRef', null);
             }
+        } catch (e) {
+            ExceptionPipe.trapError(e, '');
         }
     }
 
@@ -57,10 +65,10 @@ export default abstract class VideoPlayer {
         Remove set events set on the supplied player reference
      */
     public remove = (): void => {
-        const {mediaEvents, node} = this;
+        const {baseMediaEvents, node} = this;
 
-        for (const key of Object.keys(mediaEvents)) {
-            node.removeEventListener(key, mediaEvents[key]);
+        for (const key of Object.keys(baseMediaEvents)) {
+            node.removeEventListener(key, baseMediaEvents[key]);
         }
     }
 
@@ -124,6 +132,7 @@ export default abstract class VideoPlayer {
      */
     private onPlay = (): void => {
         const {gaProperty, experienceId, deferredGaCalls} = this;
+        const {setInterval} = window;
 
         const call = {
             prp: gaProperty,
@@ -189,8 +198,8 @@ export default abstract class VideoPlayer {
 
         if (node) {
             const {currentTime, duration} = node;
-            const perc = currentTime / duration;
-            const next = VideoPlayer.playbackEvents[prevPlaybackEvent];
+            const perc: number = currentTime / duration;
+            const next: number = VideoPlayer.playbackEvents[prevPlaybackEvent];
 
             if (perc > next) {
                 const call = {

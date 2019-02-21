@@ -1,29 +1,34 @@
 'use strict';
 
-import axios from 'axios';
+import axios, {AxiosInstance, AxiosResponse, AxiosRequestConfig, AxiosError} from 'axios';
 import * as jwt_decode from 'jwt-decode';
 import axiosRetry = require('axios-retry');
 
 import Analytics from '../../analytics/Analytics';
+import {IExperience} from '../Client';
 
 import {inventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
 
 const settings = require('../../conf/settings.json').api;
+
+export interface ITrackingResponse {
+    gaTrackingId: string;
+}
 
 export default class API {
 
     /*
         Wait async for GET-ing GA tracking pixel, resolve on success
      */
-    public static getGATrackingPixel = (url: string): Promise<null> => {
+    public static getGATrackingPixel = (url: string): Promise<void> => {
         const {get} = axios;
 
         return new Promise((resolve, reject) => {
             get(url)
-            .then((res) => {
+            .then((res: AxiosResponse) => {
                 resolve();
             })
-            .catch((e) => {
+            .catch((e: AxiosError) => {
                 reject(e);
             });
         });
@@ -34,18 +39,18 @@ export default class API {
      */
     public static checkBandwidth = (): Promise<number> => {
         const {get} = axios;
-        const url = `${API.testImage}?bust=${Math.random()}`;
-        const config = {responseType: 'blob', timeout: 1500};
+        const url: string = `${API.testImage}?bust=${Math.random()}`;
+        const config: AxiosRequestConfig = {responseType: 'blob', timeout: 1500};
 
         return new Promise((resolve, reject) => {
-            const startTime = new Date().getTime();
+            const startTime: number = new Date().getTime();
 
             get(url, config)
-            .then((res) => {
+            .then((res: AxiosResponse) => {
                 const {data: {size}} = res;
                 resolve(calculateMbps(startTime, size));
             })
-            .catch((e) => {
+            .catch((e: AxiosError) => {
                 reject(e);
             });
         });
@@ -53,7 +58,8 @@ export default class API {
 
     private static readonly testImage = settings.img;
     private static readonly retry: any = (axiosRetry as any);
-    private http: any = null;
+
+    private http: AxiosInstance = null;
 
     constructor(accessToken: string, env: string) {
         this.configureClient(accessToken, env);
@@ -62,7 +68,7 @@ export default class API {
     /*
         Set a new axios client
      */
-    public configureClient = (accessToken: string, env: string) => {
+    public configureClient = (accessToken: string, env: string): void => {
         const {version, currentVersion} = settings;
 
         this.http = axios.create({
@@ -78,18 +84,18 @@ export default class API {
     }
 
     /*
-        Wait async for story meta data, GA tracking property in particular (PLACEHOLDER)
+        Wait async for story ga tracking id
      */
-    public getStory = (storyId: string): Promise<any> => {
+    public getTrackingId = (storyId: string): Promise<ITrackingResponse> => {
         const {http: {get}} = this;
 
         return new Promise((resolve, reject) => {
             get(`/story/${storyId}/ga`)
-            .then((res) => {
+            .then((res: AxiosResponse) => {
                 const {data} = res;
                 resolve(data);
             })
-            .catch((e) => {
+            .catch((e: AxiosError) => {
                 reject(e);
             });
         });
@@ -107,7 +113,7 @@ export default class API {
                 const {data} = res;
                 resolve(data);
             })
-            .catch((e) => {
+            .catch((e: AxiosError) => {
                 reject(e);
             });
         });
@@ -116,12 +122,10 @@ export default class API {
     /*
         Wait async for POST /experience, resolve response data
      */
-    public postExperience = (storyId: string, inventory: any, render: boolean, uuid: string, progress: (e) => any = null): Promise<any> => {
+    public postExperience = (storyId: string, inventory: any, render: boolean, uuid: string, progress: (p: number) => any = null): Promise<IExperience> => {
         const {doPostExperience, uploadProgress} = this;
         const formData = inventoryToFormData(storyId, inventory);
-
-        const config = {
-            headers: {},
+        const config: AxiosRequestConfig = {
             onUploadProgress: (e) => uploadProgress(e, progress)
         };
 
@@ -138,11 +142,11 @@ export default class API {
 
         return new Promise((resolve, reject) => {
             post(`/experience/${experienceId}/trigger-event`)
-            .then((res) => {
+            .then((res: AxiosResponse) => {
                 const {data: {job_id}} = res;
                 resolve(job_id);
             })
-            .catch((e) => {
+            .catch((e: AxiosError) => {
                 reject(e);
             });
         });
@@ -165,28 +169,28 @@ export default class API {
     /*
         Make create experience POST request and resolve
      */
-    private doPostExperience = (render: boolean, formData: any, config: any): Promise<any> => {
+    private doPostExperience = (render: boolean, formData: any, config: any): Promise<IExperience> => {
         const {http: {post}} = this;
         const route: string  = (render) ? '/experience/render' : '/experience';
         
         return new Promise((resolve, reject) => {
             post(route, formData, config)
-            .then((res) => {
+            .then((res: AxiosResponse) => {
                 const {data} = res;
                 resolve(data);
             })
-            .catch((e) => {
+            .catch((e: AxiosError) => {
                 reject(e);
             });
         });
     }
 
     /*
-        Emit a rounded upload progress metric
+        Emit a rounded upload progress metric, no support for progressEvent type in Axios
      */
-    private uploadProgress = (e: any, callback: any = null): void => {
+    private uploadProgress = (evt: any, callback: (p: number) => any = null): void => {
         if (callback) {
-            const {loaded, total} = e;
+            const {loaded, total} = evt;
             const perc = Math.round(loaded / total * 100);
 
             callback(perc);

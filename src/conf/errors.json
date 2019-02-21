@@ -3,6 +3,7 @@
         "rejection": "This experience was rejected."
     },
     "clientConfiguration": {
+        "badConfig": "Your Imposium configuration is an invalid type.",
         "storyId": "No storyId was set in your Imposium configuration.",
         "accessToken": "No accessToken was set in your Imposium configuration.",
         "invalidEventName": "Invalid client event name.",
@@ -10,7 +11,7 @@
         "eventNotConfigured": "You cannot invoke this client event without a callback set."
     },
     "playerConfiguration": {
-        "noClient": "You must provide an Imposium client reference to the player.",
+        "badClient": "You must provide a valid Imposium client reference to the player.",
         "invalidPlayerRef": "No reference to an HTML5 video element was detected.",
         "invalidEventName": "Invalid player event name.",
         "invalidCallbackType": "The callback reference set for this player event is not of type function.",

@@ -88,10 +88,10 @@ export class PlayerConfigurationError extends ImposiumError {
 
 export class NetworkError extends ImposiumError {
     private experienceId: string = null;
-    private networkError: Error = null;
+    private networkError: Error | CloseEvent = null;
     private lazy: boolean = false;
 
-    constructor(messageKey: string, experienceId: string, e: Error, lazy: boolean = false) {
+    constructor(messageKey: string, experienceId: string, e: Error | CloseEvent, lazy: boolean = false) {
         super(errors[types.NETWORK][messageKey], types.NETWORK);
 
         if (Error.captureStackTrace) {
