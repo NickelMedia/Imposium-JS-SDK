@@ -3,17 +3,26 @@
 @import "mixins.less";
 @import "header.less";
 
-@docWidth:1280px;
+@docWidth: 1280px;
 
 body {
     margin: 0;
     padding-top:60px;
     background-color: @bgMedium;
     color: @textGrey;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
 }
 
 .github-corner {
-    display: none;
+    z-index: 100001;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.6);
+
+    svg {
+        height: 100px;
+        width: 100px;
+        color: black;
+        fill: white;
+    }
 }
 
 main {
@@ -97,6 +106,16 @@ main {
                 color: @codeGreen;
                 font-weight: 400;
                 text-decoration: none;
+
+                &.lang-html {
+                    span {
+                        &.token {
+                            &.tag, &.attr-name {
+                                color: #e96900;
+                            }
+                        }
+                    }
+                }
             }
 
             table {
