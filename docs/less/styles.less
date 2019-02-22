@@ -1,0 +1,144 @@
+// @import "reset.less";
+@import "colors.less";
+@import "mixins.less";
+@import "header.less";
+
+@docWidth: 1280px;
+
+body {
+    margin: 0;
+    padding-top:60px;
+    background-color: @bgMedium;
+    color: @textGrey;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.2);
+}
+
+.github-corner {
+    z-index: 100001;
+    text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.6);
+
+    svg {
+        height: 100px;
+        width: 100px;
+        color: black;
+        fill: white;
+    }
+}
+
+main {
+    .sidebar {
+        background-color: @bgMedium;
+    }
+
+    .sidebar-toggle {
+        background-color: rgba(0, 0, 0, 0.0);
+
+        span {
+            background-color: @textGrey;
+        }
+    }
+
+    .sidebar {
+        box-shadow: 1px 0px 10px 1px rgba(0,0,0,0.3);
+        border-right: 1px solid @bgLight;
+        padding-top: 80px;
+
+        .app-name {
+            display: none;
+        }
+
+        .sidebar-nav {
+            img {
+                transform: scale(0.7);
+            }
+
+            ul {
+                li {
+                    a {
+                        color: @textGrey;
+                    }
+
+                    &.active {
+                        > a {
+                            border-right: 2px solid rgb(137, 191, 4);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .content {
+        padding-top: 0;
+
+        .markdown-section {
+            .anchor {
+                span {
+                    .oswaldReg;
+                    color: @textGrey;
+
+                    &:hover {
+                        text-decoration: underline;
+                    }
+                }
+            }
+
+            p {
+                strong {
+                    color: @textGrey;
+                }
+            }
+
+            a {
+                color: @linkBlue;
+                text-decoration: none;
+
+                &:visited {
+                    color: @linkBlue;
+                }
+            }
+
+            pre {
+                background-color: @bgVeryDark;
+                border-radius: 3px;
+            }
+
+            code {
+                background-color: @bgVeryDark;
+                color: @codeGreen;
+                font-weight: 400;
+                text-decoration: none;
+
+                &.lang-html {
+                    span {
+                        &.token {
+                            &.tag, &.attr-name {
+                                color: #e96900;
+                            }
+                        }
+                    }
+                }
+            }
+
+            table {
+                border-radius: 3px;
+
+                thead, tbody {
+                    tr {
+                        background-color: @bgMedium;
+
+                        th, td {
+                            border: 2px solid @bgVeryDark;
+                        }
+
+                        th {
+                            background-color: @bgVeryDark;
+                            text-align: left;
+                            font-weight: 800;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

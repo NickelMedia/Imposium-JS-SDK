@@ -1,4 +1,5 @@
-import VideoPlayer, {IVideo} from './VideoPlayer';
+import {IExperience} from '../client/Client';
+import VideoPlayer from './VideoPlayer';
 
 export default class FallbackPlayer extends VideoPlayer {
 
@@ -9,7 +10,7 @@ export default class FallbackPlayer extends VideoPlayer {
     /*
         Set the experience id for analytics purposes
      */
-    public experienceGenerated = (experience: any): void => {
+    public experienceGenerated = (experience: IExperience): void => {
         const {id} = experience;
         this.setExperienceId(id);
     }

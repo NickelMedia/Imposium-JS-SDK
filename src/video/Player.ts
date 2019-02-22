@@ -1,6 +1,9 @@
+// import ShakaPlayer from 'shaka-player';
+// console.log(ShakaPlayer)
+
 import API from '../client/http/API';
-import VideoPlayer, {IVideo} from './VideoPlayer';
-import Client from '../client/Client';
+import VideoPlayer from './VideoPlayer';
+import Client, {IExperience} from '../client/Client';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
 import {PlayerConfigurationError} from '../scaffolding/Exceptions';
@@ -76,28 +79,28 @@ export default class ImposiumPlayer extends VideoPlayer {
 
     private hlsSupport: string = '';
     private hlsPlayer: any = null;
-    private experienceCache: any[] = [];
+    private experienceCache: IExperience[] = [];
     private clientRef: Client = null;
     private imposiumPlayerConfig: IPlayerConfig = null;
 
     constructor(node: HTMLVideoElement, client: Client, config: IPlayerConfig = settings.defaultConfig) {
         super(node);
 
-        try {
-            if (node instanceof HTMLVideoElement) {
-                if (client) {
-                    client.setPlayer(this);
+        const validClient: boolean = !!(client && client.clientConfig);
 
-                    this.init(config);
-                    this.setupHls();
-                } else {
-                    throw new PlayerConfigurationError('noClient', null);
-                }
-            } else {
-                throw new PlayerConfigurationError('invalidPlayerRef', null);
+        try {
+            if (!validClient) {
+                throw new PlayerConfigurationError('badClient', null);
+            }
+
+            if (node instanceof HTMLVideoElement) {
+                client.setPlayer(this);
+                this.init(config);
+                this.setupHls();
             }
         } catch (e) {
-            ExceptionPipe.trapError(e, client.clientConfig.storyId);
+            const storyId: string = (validClient) ? client.clientConfig.storyId : '';
+            ExceptionPipe.trapError(e, storyId);
         }
     }
 
@@ -120,7 +123,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     /*
         Set a live stream or fallback to bandwidth checking / auto assigning a file
      */
-    public experienceGenerated = (experience: any): void => {
+    public experienceGenerated = (experience: IExperience): void => {
         const {experienceCache} = this;
         const {qualityOverride} = this.imposiumPlayerConfig;
 

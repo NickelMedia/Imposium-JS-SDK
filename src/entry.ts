@@ -23,13 +23,13 @@
  */
 
 import 'core-js/es6/promise';
-import 'core-js/es6/symbol';
-import 'core-js/es6/object';
+import 'core-js/fn/symbol/key-for';
+import 'core-js/fn/object/assign';
 
 import Client from './client/Client';
 import Player from './video/Player';
 
-const [clientEvents, playerEvents] = [Client.events, Player.events];
+const [clientEvents, playerEvents] = [{...Client.events}, {...Player.events}];
 
 export {
     Client,

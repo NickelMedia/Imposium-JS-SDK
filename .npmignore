@@ -1,6 +1,7 @@
 /node_modules
 /src
 /tests
+/docs
 Dockerfile
 Dockerfile.old
 Jenkinsfile
@@ -12,4 +13,5 @@ generate-types.sh
 .babelrc
 index.d.ts
 publish.sh
+gulpfile.babel.js
 
