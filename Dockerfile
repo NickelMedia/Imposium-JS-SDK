@@ -5,5 +5,5 @@ COPY . /sdk
 
 RUN npm i docsify-cli -g
 
-ENTRYPOINT ["docsify", "serve", "docs"]
+ENTRYPOINT ["docsify", "serve", "docs/www"]
 EXPOSE 3000
