@@ -2,7 +2,7 @@
 
 - Lightweight at 80kb
 - Easy to set up with a few lines of code
-- Integrates with a wide range of javascript build environments
+- Integrates with a wide range of javascript build environments and frameworks
 - Easily handles video playback for you as well as recording playback analytics
 - Designed for ease of use with both static websites and SPA applications in mind
 
@@ -40,6 +40,10 @@ var Imposium = require('imposium-js-sdk');
 
 #### Basic usage
 
+- index.html
+
+An index HTML file with a body containing a video element and script tags to load both the library and a sample script we'll call `my-app.js`.
+
 ```html
 <!doctype html>
 
@@ -57,6 +61,10 @@ var Imposium = require('imposium-js-sdk');
     </body>
 </html>
 ```
+
+- my-app.js
+
+This script demonstrates a very basic flow for creating an experience. The client consumes the dynamic data and makes a call to the Imposium API which begins a video rendering process. Once the processing is finished, the experience data will be consumed by the video player for playback.
 
 ```javascript
 // Reference to HTML5 video element
