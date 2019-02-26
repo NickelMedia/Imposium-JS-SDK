@@ -1,3 +1,8 @@
 * [Imposium JS SDK](/)
-* [Client](client.md)
-* [Player](player.md)
+
+* Tutorials
+    * [Generate dynamic video](basic_tutorial.md)
+
+* Reference
+    * [Client](client.md)
+    * [Player](player.md)

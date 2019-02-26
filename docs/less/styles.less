@@ -3,7 +3,7 @@
 @import "mixins.less";
 @import "header.less";
 
-@docWidth: 1280px;
+@docWidth: 800px;
 
 body {
     margin: 0;
@@ -54,7 +54,9 @@ main {
 
             ul {
                 li {
-                    a {
+                    color: @textGrey;
+                    
+                    a, p {
                         color: @textGrey;
                     }
 
@@ -70,6 +72,10 @@ main {
 
     .content {
         padding-top: 0;
+
+        h1 {
+            color: @textGrey;
+        }
 
         .markdown-section {
             .anchor {

@@ -24,12 +24,12 @@ runPipeline {
                             requests:
                             [
                                 cpu: "250m",
-                                memory: "2Gi"
+                                memory: "256Mi"
                             ],
                             limits:
                             [
                                 cpu: "500m",
-                                memory: "4Gi"
+                                memory: "512Mi"
                             ]
                         ]
                     ]
@@ -81,12 +81,12 @@ runPipeline {
                             requests:
                             [
                                 cpu: "250m",
-                                memory: "2Gi"
+                                memory: "256Mi"
                             ],
                             limits:
                             [
                                 cpu: "500m",
-                                memory: "4Gi"
+                                memory: "512Mi"
                             ]
                         ]
                     ]
