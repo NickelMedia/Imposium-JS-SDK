@@ -1,4 +1,7 @@
 {
+    "sentry": {
+        "dsn": "https://b810609c231d4fd38bb7a7827002b05a@sentry.io/1397652"
+    },
     "moderation": {
         "rejection": "This experience was rejected."
     },

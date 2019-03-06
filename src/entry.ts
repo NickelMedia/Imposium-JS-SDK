@@ -26,10 +26,13 @@ import 'core-js/es6/promise';
 import 'core-js/fn/symbol/key-for';
 import 'core-js/fn/object/assign';
 
+import ExceptionPipe from './scaffolding/ExceptionPipe';
 import Client from './client/Client';
 import Player from './video/Player';
 
 const [clientEvents, playerEvents] = [{...Client.events}, {...Player.events}];
+
+ExceptionPipe.init();
 
 export {
     Client,

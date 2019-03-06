@@ -1,75 +1,39 @@
-import Analytics from '../analytics/Analytics';
+import * as Sentry from '@sentry/browser';
 import {ImposiumError, UncaughtError} from './Exceptions';
-import {version} from './Version';
 
-const settings = require('../conf/settings.json').analytics;
 const warnings = require('../conf/warnings.json');
+const {sentry: {dsn}} = require('../conf/errors.json');
 
 export default class ExceptionPipe {
+    public static init = (): void => {
+        // Initialize the Sentry client for error tracing
+        Sentry.init({dsn});
+    }
+
     public static logWarning = (type: string, messageKey: string): void => {
         console.warn(`IMPOSIUM\n${warnings[type][messageKey]}`);
     }
 
-    public static trapError = (e: any, storyId: string, errorEvent: (e: any) => any = null): void => {
-        if (errorEvent) {
-            errorEvent(e);
+    // Process exceptions
+    public static trapError = (e: any, storyId: string, callback: (e: ImposiumError) => () => any = null): void => {
+        // If the error isn't a duck typed Imposium error, wrap with uncaught type to keep log formatting streamlined
+        e = (!e.log) ? new UncaughtError('generic', e) : e;
+
+        // Store storyId if available to assist in debugging network & uncaught exceptions
+        if (storyId) {
+            e.setStoryId(storyId);
         }
 
-        if (e.log) {
-            if (!e.networkError) {
-                ExceptionPipe.logError(e, storyId);
-            } else {
-                if (e.networkError.hasOwnProperty('config')) {
-                    ExceptionPipe.logError(e, storyId);
-                } else if (e.lazy) {
-                    ExceptionPipe.logError(e, storyId);
-                } else {
-                    const u = new UncaughtError('generic', e.networkError);
-                    ExceptionPipe.logError(u, storyId);
-                }
-            }
-        } else {
-            const u = new UncaughtError('generic', e);
-            ExceptionPipe.logError(u, storyId);
+        // If a client error event delegate is set, propagate it
+        if (callback) {
+            callback(e);
         }
-    }
 
-    private static readonly errorsProperty: string = settings.exceptionProp;
-
-    private static logError = (e: any, storyId: string): void => {
+        // Log to browser console
         e.log();
-        ExceptionPipe.traceError(e, storyId);
-    }
 
-    private static traceError = (e: any, storyId: string): void => {
-        const {errorsProperty} = ExceptionPipe;
-
-        let eventAction = `Version: ${version}*`;
-
-        if (e.eventName) {
-            eventAction += `Event name: ${e.eventName}*`;
-        }
-
-        if (e.experienceId) {
-            eventAction += `Experience ID: ${e.experienceId}*`;
-        }
-
-        if (e.networkError) {
-            const url: string = (e.networkError.config) ? e.networkError.config.url : 'stomp connection';
-            eventAction += `Url: ${url}*Stack: ${e.networkError}`;
-        } else if (e.uncaughtError) {
-            eventAction += `Stack: ${e.uncaughtError}`;
-        } else {
-            eventAction += `Stack: ${e.stack}`;
-        }
-
-        Analytics.send({
-            prp: errorsProperty,
-            t: 'event',
-            ec: e.type,
-            ea: eventAction,
-            el: storyId,
-            ev: 0
-        });
+        // Stringify internal errs and trace via Sentry
+        e.stringifyInternalError();
+        Sentry.captureException(e);
     }
 }

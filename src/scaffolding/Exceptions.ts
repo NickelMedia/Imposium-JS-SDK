@@ -1,3 +1,5 @@
+import {version} from './Version';
+
 const errors = require('../conf/errors.json');
 
 const types = {
@@ -11,8 +13,13 @@ const types = {
 
 export abstract class ImposiumError extends Error {
     public log: () => void;
+    public stringifyInternalError: () => void;
+    public setStoryId = (s: string): void => { this.storyId = s; };
     protected prefix: string = '[IMPOSIUM ERROR]';
     protected type: string = '';
+    protected storyId: string = '<not_set>';
+    protected version: string = version;
+    protected stringifedInternalError: string = '';
 
     constructor(message: string, type: string) {
         super(message);
@@ -23,6 +30,7 @@ export abstract class ImposiumError extends Error {
 
         this.type = type;
     }
+
 }
 
 export class ModerationError extends ImposiumError {
@@ -89,9 +97,8 @@ export class PlayerConfigurationError extends ImposiumError {
 export class NetworkError extends ImposiumError {
     private experienceId: string = null;
     private networkError: Error | CloseEvent = null;
-    private lazy: boolean = false;
 
-    constructor(messageKey: string, experienceId: string, e: Error | CloseEvent, lazy: boolean = false) {
+    constructor(messageKey: string, experienceId: string, e: Error | CloseEvent) {
         super(errors[types.NETWORK][messageKey], types.NETWORK);
 
         if (Error.captureStackTrace) {
@@ -100,7 +107,6 @@ export class NetworkError extends ImposiumError {
 
         this.experienceId = experienceId || '<not_set>';
         this.networkError = e;
-        this.lazy = lazy;
     }
 
     public log = (): void => {
@@ -110,10 +116,18 @@ export class NetworkError extends ImposiumError {
             \nExperience ID: ${this.experienceId}
             \nNetwork Error: `, this.networkError);
     }
+
+    public stringifyInternalError = (): void => {
+        try {
+            this.stringifedInternalError = JSON.stringify(this.networkError);
+        } catch (e) {
+            this.stringifedInternalError = '<not_available>';
+        }
+    }
 }
 
 export class UncaughtError extends ImposiumError {
-    private uncaughtError = null;
+    private uncaughtError: Error | string = null;
 
     constructor(messageKey: string, e: Error) {
         super(errors[types.UNCAUGHT][messageKey], types.UNCAUGHT);
@@ -130,5 +144,13 @@ export class UncaughtError extends ImposiumError {
             \nReason: Unknown
             \nMessage: ${this.message}
             \nError: `, this.uncaughtError);
+    }
+
+    public stringifyInternalError = (): void => {
+        try {
+            this.stringifedInternalError = JSON.stringify(this.uncaughtError);
+        } catch (e) {
+            this.stringifedInternalError = '<not_available>';
+        }
     }
 }
