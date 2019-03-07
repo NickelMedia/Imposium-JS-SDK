@@ -2,7 +2,7 @@ import * as Sentry from '@sentry/browser';
 import {ImposiumError, UncaughtError} from './Exceptions';
 
 const warnings = require('../conf/warnings.json');
-const {sentry: {dsn}} = require('../conf/errors.json');
+const {sentry: {dsn}} = require('../conf/settings.json');
 
 export default class ExceptionPipe {
     public static init = (): void => {

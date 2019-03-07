@@ -98,10 +98,14 @@ export default class MessageConsumer {
         const {stomp} = this;
 
         return new Promise((resolve) => {
-            stomp.disconnectAsync()
-            .then(() => {
+            if (stomp) {
+                stomp.disconnectAsync()
+                .then(() => {
+                    resolve();
+                });
+            } else {
                 resolve();
-            });
+            }
         });
     }
 
