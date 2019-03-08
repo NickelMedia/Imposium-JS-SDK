@@ -20,7 +20,7 @@
 		"img":"https://cdn.imposium.com/SampleJPGImage_1mb.jpg"
 	},
     "stomp": {
-        "production": "wss://stomp.prod.k8s.nickel.media/ws",
+        "production": "wss://stomp.prod.k8s.nickel.media/wdawdds",
         "staging": "wss://stomp.staging.k8s.nickel.media/ws",
         "local": "ws://127.0.0.1:15674/ws",
         "exchange": "/exchange/imposium/",
@@ -28,7 +28,7 @@
         "password": "Teehe1ceeMe7Pe1d"
     },
     "sentry": {
-        "dsn": "https://b810609c231d4fd38bb7a7827002b05a@sentry.io/1397652"
+        "dsn": "https://17ffe982179e4d60a1df2062198d7ade@sentry.io/1411258"
     },
 	"messageConsumer": {
 		"maxReconnects": 5,
