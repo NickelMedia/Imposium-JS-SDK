@@ -133,11 +133,11 @@ export default class Client {
                 throw new ClientConfigurationError('badConfig', null);
             }
 
-            if (!config.hasOwnProperty('storyId')) {
+            if (!config.hasOwnProperty('storyId') || typeof config.storyId !== 'string') {
                 throw new ClientConfigurationError('storyId', null);
             }
 
-            if (!config.hasOwnProperty('accessToken')) {
+            if (!config.hasOwnProperty('accessToken') || typeof config.accessToken !== 'string') {
                 throw new ClientConfigurationError('accessToken', null);
             }
 
@@ -192,6 +192,8 @@ export default class Client {
         const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
         if (this.clientConfig) {
+            const {clientConfig: {storyId}} = this;
+
             try {
                 const {clientConfig: {storyId}} = this;
 
@@ -216,17 +218,21 @@ export default class Client {
         Sets up analytics using fallback video player wrapper class
      */
     public captureAnalytics = (playerRef: HTMLVideoElement = null): void => {
-        const {clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
+        const {eventDelegateRefs: {ERROR}} = this;
 
-        try {
-            if (playerRef instanceof HTMLVideoElement) {
-                this.setPlayer(new FallbackPlayer(playerRef), true);
-            } else {
-                // Prop passed wasn't of type HTMLVideoElement
-                throw new PlayerConfigurationError('invalidPlayerRef', null);
+        if (this.clientConfig) {
+            const {clientConfig: {storyId}} = this;
+
+            try {
+                if (playerRef instanceof HTMLVideoElement) {
+                    this.setPlayer(new FallbackPlayer(playerRef), true);
+                } else {
+                    // Prop passed wasn't of type HTMLVideoElement
+                    throw new PlayerConfigurationError('invalidPlayerRef', null);
+                }
+            } catch (e) {
+                ExceptionPipe.trapError(e, storyId, ERROR);
             }
-        } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 

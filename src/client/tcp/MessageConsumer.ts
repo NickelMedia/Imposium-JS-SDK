@@ -10,7 +10,7 @@ import {
     SocketError
 } from '../../scaffolding/Exceptions';
 
-const settings = require('../../conf/settings.json').messageConsumer;
+const {...settings} = require('../../conf/settings.json').messageConsumer;
 
 export interface IConsumerConfig {
     storyId: string;
