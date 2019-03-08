@@ -14,7 +14,6 @@ const types = {
 
 export abstract class ImposiumError extends Error {
     public log: () => void;
-    public setStoryId = (s: string): void => { this.storyId = s; };
 
     protected type: string = '';
     protected version: string = version;
@@ -30,6 +29,8 @@ export abstract class ImposiumError extends Error {
 
         this.type = type;
     }
+
+    public setStoryId = (s: string): void => { this.storyId = s; };
 }
 
 export class ModerationError extends ImposiumError {

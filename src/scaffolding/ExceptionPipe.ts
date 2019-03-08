@@ -1,5 +1,5 @@
 import {AxiosError} from 'axios';
-import {init, BrowserOptions, captureException, configureScope, Scope, SentryEvent}  from '@sentry/browser';
+import {init, BrowserOptions, captureException, configureScope, Scope, SentryEvent} from '@sentry/browser';
 import {ImposiumError, UncaughtError} from './Exceptions';
 
 const {...warnings} = require('../conf/warnings.json');

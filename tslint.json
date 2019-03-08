@@ -10,6 +10,7 @@
         "no-console": false,
         "no-var-requires": false,
         "no-bitwise": false,
+        "no-string-literal": false,
         "max-classes-per-file": false,
         "variable-name": [
             true,

@@ -143,7 +143,7 @@ export default class Client {
 
             this.mergeConfig(config);
         } catch (e) {
-            const storyId: string = (config && config.storyId) ? config.storyId : ''; 
+            const storyId: string = (config && config.storyId) ? config.storyId : '';
             ExceptionPipe.trapError(e, storyId);
         }
     }
@@ -195,8 +195,6 @@ export default class Client {
             const {clientConfig: {storyId}} = this;
 
             try {
-                const {clientConfig: {storyId}} = this;
-
                 if (eventName) {
                     if (keyExists(Client.events, eventName)) {
                         eventDelegateRefs[eventName] = null;
