@@ -139,7 +139,7 @@ export class SocketError extends ImposiumError {
 
     public log = (): void => {
         console.error(`${this.logHeader}
-            \nReason: Websocket error
+            \nReason: WebSocket error
             \nMessage: ${this.message}
             \nExperience ID: ${this.experienceId}
             \nClose event: `,
@@ -162,7 +162,7 @@ export class UncaughtError extends ImposiumError {
     }
 
     public log = (): void => {
-        console.error(`${this.prefix}
+        console.error(`${this.logHeader}
             \nReason: Unknown
             \nMessage: ${this.message}
             \nError: `,

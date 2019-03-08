@@ -10,7 +10,7 @@
         "maxCreateRetries": 3
 	},
 	"api": {
-		"production": "https://api.imposium.commmm",
+		"production": "https://api.imposium.com",
 		"staging": "https://api.staging.imposium.com",
 		"local": "https://api",
 		"currentVersion": "2.0.0",
@@ -20,7 +20,7 @@
 		"img":"https://cdn.imposium.com/SampleJPGImage_1mb.jpg"
 	},
     "stomp": {
-        "production": "wss://stomp.prod.k8s.nickel.media/ws/213453245",
+        "production": "wss://stomp.prod.k8s.nickel.media/ws",
         "staging": "wss://stomp.staging.k8s.nickel.media/ws",
         "local": "ws://127.0.0.1:15674/ws",
         "exchange": "/exchange/imposium/",
