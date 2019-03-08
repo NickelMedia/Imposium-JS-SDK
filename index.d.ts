@@ -400,7 +400,7 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	}
 
 }
-declare module 'Imposium-JS-SDK/Entry' {
+declare module 'Imposium-JS-SDK/entry' {
 	import 'core-js/es6/promise';
 	import 'core-js/fn/symbol/key-for';
 	import 'core-js/fn/object/assign';

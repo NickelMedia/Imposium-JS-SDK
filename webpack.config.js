@@ -24,20 +24,6 @@ const COMPRESSION_OPTS = {
         ie8: false,
         output: {
             comments: false
-        },
-        compress: {
-            unsafe: true,
-            unused: true,
-            evaluate: true,
-            if_return: true,
-            join_vars: true,
-            sequences: true,
-            dead_code: true,
-            warnings: false,
-            comparisons: true,
-            pure_getters: true,
-            unsafe_comps: true,
-            conditionals: true
         }
     }
 };
