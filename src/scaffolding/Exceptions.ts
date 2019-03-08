@@ -1,4 +1,7 @@
-const errors = require('../conf/errors.json');
+import {AxiosError} from 'axios';
+import {version} from './Version';
+
+const {...errors} = require('../conf/errors.json');
 
 const types = {
     ENV: 'environment',
@@ -11,8 +14,11 @@ const types = {
 
 export abstract class ImposiumError extends Error {
     public log: () => void;
-    protected prefix: string = '[IMPOSIUM ERROR]';
+
     protected type: string = '';
+    protected version: string = version;
+    protected storyId: string = '<not_set>';
+    protected logHeader: string = '[IMPOSIUM ERROR]';
 
     constructor(message: string, type: string) {
         super(message);
@@ -23,6 +29,8 @@ export abstract class ImposiumError extends Error {
 
         this.type = type;
     }
+
+    public setStoryId = (s: string): void => { this.storyId = s; };
 }
 
 export class ModerationError extends ImposiumError {
@@ -37,10 +45,11 @@ export class ModerationError extends ImposiumError {
     }
 
     public log = (): void => {
-        console.error(`${this.prefix}
+        console.error(`${this.logHeader}
             \nReason: Moderation Issue
             \nExperience ID: ${this.experienceId}
-            \nMessage: ${this.message}`);
+            \nMessage: ${this.message}`
+        );
     }
 }
 
@@ -58,10 +67,11 @@ export class ClientConfigurationError extends ImposiumError {
     }
 
     public log = (): void => {
-        console.error(`${this.prefix}
+        console.error(`${this.logHeader}
             \nReason: Invalid client configuration
             \nMessage: ${this.message}
-            \nEvent name: ${this.eventName}`);
+            \nEvent name: ${this.eventName}`
+        );
     }
 }
 
@@ -79,56 +89,85 @@ export class PlayerConfigurationError extends ImposiumError {
     }
 
     public log = (): void => {
-        console.error(`${this.prefix}
+        console.error(`${this.logHeader}
             \nReason: Invalid player configuration
             \nMessage: ${this.message}
-            \nEvent name: ${this.eventName}`);
+            \nEvent name: ${this.eventName}`
+        );
     }
 }
 
-export class NetworkError extends ImposiumError {
+export class HTTPError extends ImposiumError {
     private experienceId: string = null;
-    private networkError: Error | CloseEvent = null;
-    private lazy: boolean = false;
+    private axiosError: AxiosError = null;
 
-    constructor(messageKey: string, experienceId: string, e: Error | CloseEvent, lazy: boolean = false) {
+    constructor(messageKey: string, experienceId: string, e: AxiosError) {
         super(errors[types.NETWORK][messageKey], types.NETWORK);
 
         if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, NetworkError);
+            Error.captureStackTrace(this, HTTPError);
         }
 
         this.experienceId = experienceId || '<not_set>';
-        this.networkError = e;
-        this.lazy = lazy;
+        this.axiosError = e;
     }
 
     public log = (): void => {
-        console.error(`${this.prefix}
-            \nReason: Network related error
+        console.error(`${this.logHeader}
+            \nReason: HTTP error
             \nMessage: ${this.message}
             \nExperience ID: ${this.experienceId}
-            \nNetwork Error: `, this.networkError);
+            \nNetwork Error: `,
+            this.axiosError
+        );
+    }
+}
+
+export class SocketError extends ImposiumError {
+    private experienceId: string = null;
+    private closeEvent: CloseEvent = null;
+
+    constructor(messageKey: string, experienceId: string, evt: CloseEvent) {
+        super(errors[types.NETWORK][messageKey], types.NETWORK);
+
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, SocketError);
+        }
+
+        this.experienceId = experienceId || '<not_set>';
+        this.closeEvent = evt;
+    }
+
+    public log = (): void => {
+        console.error(`${this.logHeader}
+            \nReason: WebSocket error
+            \nMessage: ${this.message}
+            \nExperience ID: ${this.experienceId}
+            \nClose event: `,
+            this.closeEvent
+        );
     }
 }
 
 export class UncaughtError extends ImposiumError {
-    private uncaughtError = null;
+    private uncaughtError: Error | string = null;
 
     constructor(messageKey: string, e: Error) {
         super(errors[types.UNCAUGHT][messageKey], types.UNCAUGHT);
 
         if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, NetworkError);
+            Error.captureStackTrace(this, UncaughtError);
         }
 
         this.uncaughtError = e;
     }
 
     public log = (): void => {
-        console.error(`${this.prefix}
+        console.error(`${this.logHeader}
             \nReason: Unknown
             \nMessage: ${this.message}
-            \nError: `, this.uncaughtError);
+            \nError: `,
+            this.uncaughtError
+        );
     }
 }

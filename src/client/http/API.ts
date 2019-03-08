@@ -9,7 +9,7 @@ import {IExperience} from '../Client';
 
 import {inventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
 
-const settings = require('../../conf/settings.json').api;
+const {...settings} = require('../../conf/settings.json').api;
 
 export interface ITrackingResponse {
     gaTrackingId: string;

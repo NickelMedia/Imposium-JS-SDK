@@ -1,7 +1,7 @@
 import API from '../client/http/API';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
-const settings = require('../conf/settings.json').analytics;
+const {...settings} = require('../conf/settings.json').analytics;
 
 /*
     Manually handles calls to GA, Analytics was developed to avoid having to ask

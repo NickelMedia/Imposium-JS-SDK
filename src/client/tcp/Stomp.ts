@@ -1,6 +1,6 @@
 import * as WebStomp from 'webstomp-client';
 
-const settings = require('../../conf/settings.json').stomp;
+const {...settings} = require('../../conf/settings.json').stomp;
 
 export interface IStompConfig {
     experienceId: string;

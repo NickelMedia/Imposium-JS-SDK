@@ -33,7 +33,7 @@ export default abstract class VideoPlayer {
         ended: () => this.onEnd(),
         loadStart: () => this.onLoad()
     };
-    
+
     private gaProperty: string = '';
     private experienceId: string = '';
     private prevPlaybackEvent: number = 0;

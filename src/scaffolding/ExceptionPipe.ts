@@ -1,75 +1,103 @@
-import Analytics from '../analytics/Analytics';
+import {AxiosError} from 'axios';
+import {init, BrowserOptions, captureException, configureScope, Scope, SentryEvent} from '@sentry/browser';
 import {ImposiumError, UncaughtError} from './Exceptions';
-import {version} from './Version';
 
-const settings = require('../conf/settings.json').analytics;
-const warnings = require('../conf/warnings.json');
+const {...warnings} = require('../conf/warnings.json');
+const {sentry: {dsn}} = require('../conf/settings.json');
 
 export default class ExceptionPipe {
+    /*
+        Init Sentry.io SDK
+     */
+    public static startTracing = (): void => {
+        init({
+            dsn,
+            beforeSend: (e: SentryEvent) => ExceptionPipe.beforeSend(e)
+        });
+    }
+
+    /*
+        Log out warnings
+     */
     public static logWarning = (type: string, messageKey: string): void => {
         console.warn(`IMPOSIUM\n${warnings[type][messageKey]}`);
     }
 
-    public static trapError = (e: any, storyId: string, errorEvent: (e: any) => any = null): void => {
-        if (errorEvent) {
-            errorEvent(e);
+    /*
+        Process the exception and trace
+     */
+    public static trapError = (e: any, storyId: string, callback: (e: ImposiumError) => () => any = null): void => {
+        // If the error isn't a duck typed Imposium error, wrap with uncaught type to keep log formatting streamlined
+        e = (!e.log) ? new UncaughtError('generic', e) : e;
+
+        // Store storyId if available to assist in debugging network & uncaught exceptions
+        if (storyId) {
+            e.setStoryId(storyId);
         }
 
-        if (e.log) {
-            if (!e.networkError) {
-                ExceptionPipe.logError(e, storyId);
-            } else {
-                if (e.networkError.hasOwnProperty('config')) {
-                    ExceptionPipe.logError(e, storyId);
-                } else if (e.lazy) {
-                    ExceptionPipe.logError(e, storyId);
+        // If a client error event delegate is set, propagate it
+        if (callback) {
+            callback(e);
+        }
+
+        // Log to browser console
+        e.log();
+
+        // Trace err with Sentry.io
+        configureScope((scope: Scope) => {
+            scope.setTag('type', e.type);
+            scope.setTag('version', e.version);
+            scope.setTag('storyId', (storyId) ? storyId : '<not_set>');
+
+            if (e.experienceId) {
+                scope.setTag('experienceId', e.experienceId);
+            }
+
+            // Grab available axios error details
+            if (e.axiosError) {
+                if (typeof e.axiosError.response === 'object') {
+                    scope.setExtra('response', e.axiosError.response);
+                } else if (typeof e.axiosError.request === 'object') {
+                    scope.setExtra('request', e.axiosError.request);
+                    scope.setExtra('reuqestConfig', e.axiosError.config);
                 } else {
-                    const u = new UncaughtError('generic', e.networkError);
-                    ExceptionPipe.logError(u, storyId);
+                    scope.setExtra('axiosErrorMessage', e.axiosError.message);
+                    scope.setExtra('reuqestConfig', e.axiosError.config);
                 }
             }
-        } else {
-            const u = new UncaughtError('generic', e);
-            ExceptionPipe.logError(u, storyId);
-        }
-    }
 
-    private static readonly errorsProperty: string = settings.exceptionProp;
+            // Grab anything that can be helpful from the socket CloseEvent
+            if (e.closeEvent) {
+                scope.setExtra('socketCloseEvent', {
+                    code: e.closeEvent.code,
+                    type: e.closeEvent.type,
+                    timestamp: e.closeEvent.timeStamp,
+                    wsUrl: e.closeEvent.target.url,
+                    wsBufferedAmount: e.closeEvent.target.bufferedAmount
+                });
+            }
 
-    private static logError = (e: any, storyId: string): void => {
-        e.log();
-        ExceptionPipe.traceError(e, storyId);
-    }
-
-    private static traceError = (e: any, storyId: string): void => {
-        const {errorsProperty} = ExceptionPipe;
-
-        let eventAction = `Version: ${version}*`;
-
-        if (e.eventName) {
-            eventAction += `Event name: ${e.eventName}*`;
-        }
-
-        if (e.experienceId) {
-            eventAction += `Experience ID: ${e.experienceId}*`;
-        }
-
-        if (e.networkError) {
-            const url: string = (e.networkError.config) ? e.networkError.config.url : 'stomp connection';
-            eventAction += `Url: ${url}*Stack: ${e.networkError}`;
-        } else if (e.uncaughtError) {
-            eventAction += `Stack: ${e.uncaughtError}`;
-        } else {
-            eventAction += `Stack: ${e.stack}`;
-        }
-
-        Analytics.send({
-            prp: errorsProperty,
-            t: 'event',
-            ec: e.type,
-            ea: eventAction,
-            el: storyId,
-            ev: 0
+            captureException(e);
         });
+    }
+
+    /*
+        Clean up sentry payloads before capturing exceptions
+     */
+    private static beforeSend = (evt: SentryEvent): SentryEvent | Promise<SentryEvent> => {
+        // Delete irrelevant default values from duck-typed errs to cut down on clutter in reports
+        delete evt.extra['Error']['log'];
+        delete evt.extra['Error']['logHeader'];
+        delete evt.extra['Error']['setStoryId'];
+
+        if (evt.extra['Error']['axiosError']) {
+            delete evt.extra['Error']['axiosError'];
+        }
+
+        if (evt.extra['Error']['closeEvent']) {
+            delete evt.extra['Error']['closeEvent'];
+        }
+
+        return evt;
     }
 }
