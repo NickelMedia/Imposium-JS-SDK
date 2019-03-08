@@ -45,11 +45,11 @@
     "webpack-cli": "^3.1.0"
   },
   "dependencies": {
+    "@sentry/browser": "^4.6.4",
     "axios": "^0.18.0",
     "axios-retry": "^3.1.1",
     "core-js": "^2.6.4",
     "jwt-decode": "^2.2.0",
-    "shaka-player": "^2.4.6",
     "webstomp-client": "^1.2.6",
     "ws": "^3.2.0"
   },

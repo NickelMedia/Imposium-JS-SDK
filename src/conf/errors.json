@@ -4,11 +4,13 @@
     },
     "clientConfiguration": {
         "badConfig": "Your Imposium configuration is an invalid type.",
-        "storyId": "No storyId was set in your Imposium configuration.",
-        "accessToken": "No accessToken was set in your Imposium configuration.",
+        "storyId": "An undefined or invalid storyId was set in your Imposium configuration.",
+        "accessToken": "An undefined or invalid accessToken was set in your Imposium configuration.",
         "invalidEventName": "Invalid client event name.",
         "invalidCallbackType": "The callback reference set for this client event is not of type function.",
-        "eventNotConfigured": "You cannot invoke this client event without a callback set."
+        "badConfigOnGet": "You cannot call client.getExperience(...) without using the Imposium player or setting the GOT_EXPERIENCE event.",
+        "bagConfigOnPostRender": "You cannot call client.createExperience({...}) without using the Imposium player or setting the GOT_EXPERIENCE event.",
+        "badConfigOnPostNoRender": "You cannot call client.createExperience({...}, false) without setting the EXPERIENCE_CREATED event."
     },
     "playerConfiguration": {
         "badClient": "You must provide a valid Imposium client reference to the player.",
@@ -20,8 +22,8 @@
     },
     "network": {
         "httpFailure": "Unable to process request to the Imposium API.",
-        "tcpFailure": "Unable to reach Imposium while processing this experience.",
-        "errorOverTcp": "Something went wrong while processing this experience.",
+        "tcpFailure": "Socket connection failed while processing the experience.",
+        "errorOverTcp": "An error occured on the Imposium web servers while processing the experience.",
         "messageParseFailure": "Message data from Imposium was malformed."
     },
     "uncaught": {

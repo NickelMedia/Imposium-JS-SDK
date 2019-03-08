@@ -11,7 +11,7 @@ import {
     ClientConfigurationError,
     PlayerConfigurationError,
     ModerationError,
-    NetworkError
+    HTTPError
 } from '../scaffolding/Exceptions';
 
 import {
@@ -88,7 +88,7 @@ export interface IVideoOutput {
     duration: number;
 }
 
-const settings = require('../conf/settings.json').client;
+const {...settings} = require('../conf/settings.json').client;
 
 export default class Client {
 
@@ -121,32 +121,31 @@ export default class Client {
      */
     constructor(config: IClientConfig) {
         printVersion();
-
-        try {
-            if (typeof config !== 'object') {
-                throw new ClientConfigurationError('badConfig', null);
-            }
-
-            if (!config.hasOwnProperty('storyId')) {
-                throw new ClientConfigurationError('storyId', null);
-            }
-
-            if (!config.hasOwnProperty('accessToken')) {
-                throw new ClientConfigurationError('accessToken', null);
-            }
-
-            this.mergeConfig(config);
-        } catch (e) {
-            const storyId: string = (config && config.storyId) ? config.storyId : ''; 
-            ExceptionPipe.trapError(e, storyId);
-        }
+        this.setup(config);
     }
 
     /*
         Exposed for users who may want to re-use a client for n stories
      */
     public setup = (config: IClientConfig): void => {
-        this.mergeConfig(config);
+        try {
+            if (typeof config !== 'object') {
+                throw new ClientConfigurationError('badConfig', null);
+            }
+
+            if (!config.hasOwnProperty('storyId') || typeof config.storyId !== 'string') {
+                throw new ClientConfigurationError('storyId', null);
+            }
+
+            if (!config.hasOwnProperty('accessToken') || typeof config.accessToken !== 'string') {
+                throw new ClientConfigurationError('accessToken', null);
+            }
+
+            this.mergeConfig(config);
+        } catch (e) {
+            const storyId: string = (config && config.storyId) ? config.storyId : '';
+            ExceptionPipe.trapError(e, storyId);
+        }
     }
 
     /*
@@ -168,6 +167,8 @@ export default class Client {
         const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
         if (this.clientConfig) {
+            const {clientConfig: {storyId}} = this;
+
             try {
                 if (isFunc(callback)) {
                     if (keyExists(Client.events, eventName)) {
@@ -179,7 +180,6 @@ export default class Client {
                     throw new ClientConfigurationError('invalidCallbackType', eventName);
                 }
             } catch (e) {
-                const storyId: string = (this.hasOwnProperty('clientConfig')) ? this.clientConfig.storyId : '';
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
         }
@@ -189,22 +189,48 @@ export default class Client {
         Turns off a specific event or all events
      */
     public off = (eventName: string = ''): void => {
-        const {clientConfig: {storyId}, eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
+        const {eventDelegateRefs, eventDelegateRefs: {ERROR}} = this;
 
-        try {
-            if (eventName) {
-                if (keyExists(Client.events, eventName)) {
-                    eventDelegateRefs[eventName] = null;
+        if (this.clientConfig) {
+            const {clientConfig: {storyId}} = this;
+
+            try {
+                if (eventName) {
+                    if (keyExists(Client.events, eventName)) {
+                        eventDelegateRefs[eventName] = null;
+                    } else {
+                        throw new ClientConfigurationError('invalidEventName', eventName);
+                    }
                 } else {
-                    throw new ClientConfigurationError('invalidEventName', eventName);
+                    Object.keys(Client.events).forEach((event) => {
+                        eventDelegateRefs[event] = null;
+                    });
                 }
-            } else {
-                Object.keys(Client.events).forEach((event) => {
-                    eventDelegateRefs[event] = null;
-                });
+            } catch (e) {
+                ExceptionPipe.trapError(e, storyId, ERROR);
             }
-        } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
+        }
+    }
+
+    /*
+        Sets up analytics using fallback video player wrapper class
+     */
+    public captureAnalytics = (playerRef: HTMLVideoElement = null): void => {
+        const {eventDelegateRefs: {ERROR}} = this;
+
+        if (this.clientConfig) {
+            const {clientConfig: {storyId}} = this;
+
+            try {
+                if (playerRef instanceof HTMLVideoElement) {
+                    this.setPlayer(new FallbackPlayer(playerRef), true);
+                } else {
+                    // Prop passed wasn't of type HTMLVideoElement
+                    throw new PlayerConfigurationError('invalidPlayerRef', null);
+                }
+            } catch (e) {
+                ExceptionPipe.trapError(e, storyId, ERROR);
+            }
         }
     }
 
@@ -212,10 +238,14 @@ export default class Client {
         Get experience data
      */
     public getExperience = (experienceId: string): void => {
-        const {api, player, gaProperty, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
+        if (this.clientConfig) {
+            const {api, player, gaProperty, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
 
-        try {
-            if (GOT_EXPERIENCE || player) {
+            try {
+                if (player === null && !isFunc(GOT_EXPERIENCE)) {
+                    throw new ClientConfigurationError('badConfigOnGet', Client.events.GOT_EXPERIENCE);
+                }
+
                 api.getExperience(experienceId)
                 .then((experience: IExperience) => {
                     const {id, output, rendering, moderation_status} = experience;
@@ -240,7 +270,7 @@ export default class Client {
                                 if (!rendering) {
                                     api.invokeStream(experienceId)
                                     .catch((e) => {
-                                        throw new NetworkError('httpFailure', experienceId, e);
+                                        throw new HTTPError('httpFailure', experienceId, e);
                                     });
                                 }
                             });
@@ -248,14 +278,12 @@ export default class Client {
                     }
                 })
                 .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', experienceId, e);
+                    const wrappedError = new HTTPError('httpFailure', experienceId, e);
                     ExceptionPipe.trapError(wrappedError, storyId, ERROR);
                 });
-            } else {
-                throw new ClientConfigurationError('eventNotConfigured', Client.events.GOT_EXPERIENCE);
+            } catch (e) {
+                ExceptionPipe.trapError(e, storyId, ERROR);
             }
-        } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
         }
     }
 
@@ -265,93 +293,16 @@ export default class Client {
     public createExperience = (inventory: any, render: boolean = true, retry: number = 0): void => {
         const uuid: string = generateUUID();
 
-        if (render) {
-            this.warmConsumer(uuid)
-            .then(() => {
-                this.doCreateExperience(inventory, uuid, render, retry);
-            });
-        } else {
-            this.doCreateExperience(inventory, uuid, render, retry);
-        }
-    }
-
-    /*
-        Sets up analytics using fallback video player wrapper class
-     */
-    public captureAnalytics = (playerRef: HTMLVideoElement = null): void => {
-        const {clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
-
-        try {
-            if (playerRef instanceof HTMLVideoElement) {
-                this.setPlayer(new FallbackPlayer(playerRef), true);
+        if (this.clientConfig) {
+            if (render) {
+                this.warmConsumer(uuid)
+                .then(() => {
+                    this.doCreateExperience(inventory, uuid, render, retry);
+                });
             } else {
-                // Prop passed wasn't of type HTMLVideoElement
-                throw new PlayerConfigurationError('invalidPlayerRef', null);
+                this.doCreateExperience(inventory, uuid, render, retry);
             }
-        } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
         }
-    }
-
-    /*
-        Copies supplied config object to settings for sharing with sub components
-     */
-    private mergeConfig = (config: IClientConfig): void => {
-        const {defaultConfig} = settings;
-        const prevConfig = this.clientConfig || defaultConfig;
-
-        prepConfig(config, defaultConfig);
-        this.clientConfig = {...prevConfig, ...config};
-
-        if (!this.api) {
-            this.api = new API(this.clientConfig.accessToken, this.clientConfig.environment);
-        } else {
-            this.api.configureClient(this.clientConfig.accessToken, this.clientConfig.environment);
-        }
-
-        this.getAnalyticsProperty();
-    }
-
-    /*
-        Get the GA property per storyId passed in
-     */
-    private getAnalyticsProperty = (): void => {
-        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
-
-        api.getTrackingId(storyId)
-        .then((story: any) => {
-            const {gaTrackingId} = story;
-
-            if (gaTrackingId) {
-                this.gaProperty = gaTrackingId;
-
-                if (this.player) {
-                    this.player.setGaProperty(gaTrackingId);
-                }
-
-                Analytics.setup();
-
-                this.doPageView();
-                window.addEventListener('popstate', () => this.doPageView());
-            }
-        })
-        .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', null, e);
-            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
-        });
-    }
-
-    /*
-        Emit a GA page view event each time popstate occurs or the ga prop gets set
-     */
-    private doPageView = (): void => {
-        const {gaProperty} = this;
-
-        Analytics.send({
-            prp: gaProperty,
-            t: 'pageview',
-            dp: window.location.pathname
-        });
     }
 
     /*
@@ -359,6 +310,7 @@ export default class Client {
      */
     private doCreateExperience = (inventory: any, uuid: string, render: boolean, retry: number): void => {
         const {
+            api,
             player,
             playerIsFallback,
             maxCreateRetries,
@@ -378,58 +330,51 @@ export default class Client {
             }
         } = this;
 
-        const permitRender: boolean = ((render && player !== null && !playerIsFallback) || isFunc(GOT_EXPERIENCE));
-        const permitCreate: boolean = isFunc(EXPERIENCE_CREATED);
-
         try {
-            if (permitRender || permitCreate) {
-                const {api} = this;
-
-                if (STATUS_UPDATE && render) {
-                    STATUS_UPDATE({id: undefined, status: adding});
-                    this.updateHistory('prevMessage', adding);
-                }
-
-                api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
-                .then((experience: IExperience) => {
-                    const {id} = experience;
-
-                    this.updateHistory('prevExperienceId', id);
-
-                    if (EXPERIENCE_CREATED) {
-                        EXPERIENCE_CREATED(experience);
-                    }
-
-                    if (render && this.renderHistory.prevMessage === adding && STATUS_UPDATE) {
-                        STATUS_UPDATE({id, status: added});
-                        this.updateHistory('prevMessage', added);
-                    }
-                })
-                .catch((e) => {
-                    this.killConsumer()
-                    .then(() => {
-                        if (~e.message.indexOf('400') && retry < maxCreateRetries) {
-                            retry = retry + 1;
-                            this.createExperience(inventory, render, retry);
-                        } else {
-                            const wrappedError = new NetworkError('httpFailure', null, e);
-                            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
-                        }
-                    });
-                });
-            } else {
-                let eventType = null;
-
-                if (!EXPERIENCE_CREATED) {
-                    eventType = Client.events.EXPERIENCE_CREATED;
-                }
-
-                if (render && !GOT_EXPERIENCE) {
-                    eventType = Client.events.GOT_EXPERIENCE;
-                }
-
-                throw new ClientConfigurationError('eventNotConfigured', eventType);
+            // Ensures at least experience created is set if doing two stage render
+            if (!render && !isFunc(EXPERIENCE_CREATED)) {
+                throw new ClientConfigurationError('badConfigOnPostNoRender', Client.events.EXPERIENCE_CREATED);
             }
+
+            // Ensures config error throws if not using our player / GOT experience isn't set
+            if (render && ((player === null || playerIsFallback) && !isFunc(GOT_EXPERIENCE))) {
+                throw new ClientConfigurationError('bagConfigOnPostRender', Client.events.GOT_EXPERIENCE);
+            }
+
+            // If the user has set up an event to consume messages, emit
+            if (STATUS_UPDATE && render) {
+                STATUS_UPDATE({id: undefined, status: adding});
+                this.updateHistory('prevMessage', adding);
+            }
+
+            api.postExperience(storyId, inventory, render, uuid, UPLOAD_PROGRESS)
+            .then((experience: IExperience) => {
+                const {id} = experience;
+
+                this.updateHistory('prevExperienceId', id);
+
+                if (EXPERIENCE_CREATED) {
+                    EXPERIENCE_CREATED(experience);
+                }
+
+                if (render && this.renderHistory.prevMessage === adding && STATUS_UPDATE) {
+                    STATUS_UPDATE({id, status: added});
+                    this.updateHistory('prevMessage', added);
+                }
+            })
+            .catch((e) => {
+                this.killConsumer()
+                .then(() => {
+                    // Retry if uuid collision
+                    if (~e.message.indexOf('400') && retry < maxCreateRetries) {
+                        retry = retry + 1;
+                        this.createExperience(inventory, render, retry);
+                    } else {
+                        const wrappedError = new HTTPError('httpFailure', null, e);
+                        ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+                    }
+                });
+            });
         } catch (e) {
             ExceptionPipe.trapError(e, storyId, ERROR);
         }
@@ -481,6 +426,67 @@ export default class Client {
                     resolve();
                 });
             }
+        });
+    }
+
+    /*
+        Copies supplied config object to settings for sharing with sub components
+     */
+    private mergeConfig = (config: IClientConfig): void => {
+        const {defaultConfig} = settings;
+        const prevConfig = this.clientConfig || defaultConfig;
+
+        prepConfig(config, defaultConfig);
+        this.clientConfig = {...prevConfig, ...config};
+
+        if (!this.api) {
+            this.api = new API(this.clientConfig.accessToken, this.clientConfig.environment);
+        } else {
+            this.api.configureClient(this.clientConfig.accessToken, this.clientConfig.environment);
+        }
+
+        this.getAnalyticsProperty();
+    }
+
+    /*
+        Get the GA property per storyId passed in
+     */
+    private getAnalyticsProperty = (): void => {
+        const {api, clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
+
+        api.getTrackingId(storyId)
+        .then((story: any) => {
+            const {gaTrackingId} = story;
+
+            if (gaTrackingId) {
+                this.gaProperty = gaTrackingId;
+
+                if (this.player) {
+                    this.player.setGaProperty(gaTrackingId);
+                }
+
+                Analytics.setup();
+
+                this.doPageView();
+                window.addEventListener('popstate', () => this.doPageView());
+            }
+        })
+        .catch((e) => {
+            const wrappedError = new HTTPError('httpFailure', null, e);
+            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+        });
+    }
+
+    /*
+        Emit a GA page view event each time popstate occurs or the ga prop gets set
+     */
+    private doPageView = (): void => {
+        const {gaProperty} = this;
+
+        Analytics.send({
+            prp: gaProperty,
+            t: 'pageview',
+            dp: window.location.pathname
         });
     }
 

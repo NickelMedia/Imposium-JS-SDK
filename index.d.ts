@@ -1,9 +1,18 @@
+declare module 'Imposium-JS-SDK/scaffolding/Version' {
+	export const version = "[AIV]{version}[/AIV]";
+	export const printVersion: () => void;
+
+}
 declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
+	import { AxiosError } from 'axios';
 	export abstract class ImposiumError extends Error {
 	    log: () => void;
-	    protected prefix: string;
 	    protected type: string;
+	    protected version: string;
+	    protected storyId: string;
+	    protected logHeader: string;
 	    constructor(message: string, type: string);
+	    setStoryId: (s: string) => void;
 	}
 	export class ModerationError extends ImposiumError {
 	    private experienceId;
@@ -20,11 +29,16 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	    constructor(messageKey: string, eventName: string);
 	    log: () => void;
 	}
-	export class NetworkError extends ImposiumError {
+	export class HTTPError extends ImposiumError {
 	    private experienceId;
-	    private networkError;
-	    private lazy;
-	    constructor(messageKey: string, experienceId: string, e: Error | CloseEvent, lazy?: boolean);
+	    private axiosError;
+	    constructor(messageKey: string, experienceId: string, e: AxiosError);
+	    log: () => void;
+	}
+	export class SocketError extends ImposiumError {
+	    private experienceId;
+	    private closeEvent;
+	    constructor(messageKey: string, experienceId: string, evt: CloseEvent);
 	    log: () => void;
 	}
 	export class UncaughtError extends ImposiumError {
@@ -34,18 +48,13 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	}
 
 }
-declare module 'Imposium-JS-SDK/scaffolding/Version' {
-	export const version = "[AIV]{version}[/AIV]";
-	export const printVersion: () => void;
-
-}
 declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
+	import { ImposiumError } from 'Imposium-JS-SDK/scaffolding/Exceptions';
 	export default class ExceptionPipe {
+	    static startTracing: () => void;
 	    static logWarning: (type: string, messageKey: string) => void;
-	    static trapError: (e: any, storyId: string, errorEvent?: (e: any) => any) => void;
-	    private static readonly errorsProperty;
-	    private static logError;
-	    private static traceError;
+	    static trapError: (e: any, storyId: string, callback?: (e: ImposiumError) => () => any) => void;
+	    private static beforeSend;
 	}
 
 }
@@ -314,15 +323,15 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    setPlayer: (player: VideoPlayer, isFallback?: boolean) => void;
 	    on: (eventName: string, callback: any) => void;
 	    off: (eventName?: string) => void;
+	    captureAnalytics: (playerRef?: HTMLVideoElement) => void;
 	    getExperience: (experienceId: string) => void;
 	    createExperience: (inventory: any, render?: boolean, retry?: number) => void;
-	    captureAnalytics: (playerRef?: HTMLVideoElement) => void;
-	    private mergeConfig;
-	    private getAnalyticsProperty;
-	    private doPageView;
 	    private doCreateExperience;
 	    private warmConsumer;
 	    private killConsumer;
+	    private mergeConfig;
+	    private getAnalyticsProperty;
+	    private doPageView;
 	    private updateHistory;
 	}
 
