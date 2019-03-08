@@ -339,7 +339,7 @@ export default class Client {
             }
 
             // Ensures config error throws if not using our player / GOT experience isn't set
-            if (render && ((player === null || playerIsFallback) || !isFunc(GOT_EXPERIENCE))) {
+            if (render && ((player === null || playerIsFallback) && !isFunc(GOT_EXPERIENCE))) {
                 throw new ClientConfigurationError('bagConfigOnPostRender', Client.events.GOT_EXPERIENCE);
             }
 
