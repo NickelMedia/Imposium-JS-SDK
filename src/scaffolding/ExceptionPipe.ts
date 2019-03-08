@@ -86,16 +86,22 @@ export default class ExceptionPipe {
      */
     private static beforeSend = (evt: SentryEvent): SentryEvent | Promise<SentryEvent> => {
         // Delete irrelevant default values from duck-typed errs to cut down on clutter in reports
-        delete evt.extra['Error']['log'];
-        delete evt.extra['Error']['logHeader'];
-        delete evt.extra['Error']['setStoryId'];
-
-        if (evt.extra['Error']['axiosError']) {
-            delete evt.extra['Error']['axiosError'];
+        if (typeof evt.extra === 'undefined') {
+            return evt;
         }
 
-        if (evt.extra['Error']['closeEvent']) {
-            delete evt.extra['Error']['closeEvent'];
+        if (evt.extra['Error']) {
+            delete evt.extra['Error']['log'];
+            delete evt.extra['Error']['logHeader'];
+            delete evt.extra['Error']['setStoryId'];
+
+            if (evt.extra['Error']['axiosError']) {
+                delete evt.extra['Error']['axiosError'];
+            }
+
+            if (evt.extra['Error']['closeEvent']) {
+                delete evt.extra['Error']['closeEvent'];
+            }
         }
 
         return evt;
