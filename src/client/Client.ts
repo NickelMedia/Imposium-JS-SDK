@@ -11,7 +11,7 @@ import {
     ClientConfigurationError,
     PlayerConfigurationError,
     ModerationError,
-    NetworkError
+    HTTPError
 } from '../scaffolding/Exceptions';
 
 import {
@@ -240,7 +240,7 @@ export default class Client {
                                 if (!rendering) {
                                     api.invokeStream(experienceId)
                                     .catch((e) => {
-                                        throw new NetworkError('httpFailure', experienceId, e);
+                                        throw new HTTPError('httpFailure', experienceId, e);
                                     });
                                 }
                             });
@@ -248,7 +248,7 @@ export default class Client {
                     }
                 })
                 .catch((e) => {
-                    const wrappedError = new NetworkError('httpFailure', experienceId, e);
+                    const wrappedError = new HTTPError('httpFailure', experienceId, e);
                     ExceptionPipe.trapError(wrappedError, storyId, ERROR);
                 });
             } else {
@@ -336,7 +336,7 @@ export default class Client {
             }
         })
         .catch((e) => {
-            const wrappedError = new NetworkError('httpFailure', null, e);
+            const wrappedError = new HTTPError('httpFailure', null, e);
             ExceptionPipe.trapError(wrappedError, storyId, ERROR);
         });
     }
@@ -412,7 +412,7 @@ export default class Client {
                             retry = retry + 1;
                             this.createExperience(inventory, render, retry);
                         } else {
-                            const wrappedError = new NetworkError('httpFailure', null, e);
+                            const wrappedError = new HTTPError('httpFailure', null, e);
                             ExceptionPipe.trapError(wrappedError, storyId, ERROR);
                         }
                     });

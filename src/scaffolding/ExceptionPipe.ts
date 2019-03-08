@@ -1,13 +1,17 @@
-import * as Sentry from '@sentry/browser';
+import {AxiosError} from 'axios';
+import {init, BrowserOptions, captureException, configureScope, Scope, SentryEvent}  from '@sentry/browser';
 import {ImposiumError, UncaughtError} from './Exceptions';
 
-const warnings = require('../conf/warnings.json');
+const {...warnings} = require('../conf/warnings.json');
 const {sentry: {dsn}} = require('../conf/settings.json');
 
 export default class ExceptionPipe {
-    public static init = (): void => {
+    public static startTracing = (): void => {
         // Initialize the Sentry client for error tracing
-        Sentry.init({dsn});
+        init({
+            dsn,
+            beforeSend: (e: SentryEvent) => ExceptionPipe.beforeSend(e)
+        });
     }
 
     public static logWarning = (type: string, messageKey: string): void => {
@@ -29,11 +33,35 @@ export default class ExceptionPipe {
             callback(e);
         }
 
+        // Trace err with Sentry.io
+        if (e.axiosError) {
+            configureScope((scope: Scope) => {
+                if (typeof e.axiosError.response === 'object') {
+                    scope.setExtra('response', e.axiosError.response);
+                } else if (typeof e.axiosError.request === 'object') {
+                    scope.setExtra('request', e.axiosError.request);
+                    scope.setExtra('request_config', e.axiosError.config);
+                } else {
+                    scope.setExtra('axios_error_message', e.axiosError.message);
+                    scope.setExtra('request_config', e.axiosError.config);
+                }
+
+                captureException(e);
+            });
+        } else {
+            captureException(e);
+        }
+
         // Log to browser console
         e.log();
+    }
 
-        // Stringify internal errs and trace via Sentry
-        e.stringifyInternalError();
-        Sentry.captureException(e);
+    private static beforeSend = (evt: SentryEvent): SentryEvent | Promise<SentryEvent> => {
+        // Delete irrelevant default values from duck-typed errs to reduce payload / cleanse report
+        delete evt.extra['Error']['prefix'];
+        delete evt.extra['Error']['log'];
+        delete evt.extra['Error']['setStoryId'];
+
+        return evt;
     }
 }

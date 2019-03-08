@@ -7,7 +7,7 @@ import {Frame} from 'webstomp-client';
 
 import {
     ModerationError,
-    NetworkError
+    SocketError
 } from '../../scaffolding/Exceptions';
 
 const settings = require('../../conf/settings.json').messageConsumer;
@@ -73,12 +73,12 @@ export default class MessageConsumer {
         Initializes a stomp connection object
      */
     public connect = (): Promise<void> => {
-        const {experienceId, environment, stompDelegates} = this;
+        const {experienceId, environment, stompDelegates: delegates} = this;
 
         const stompConfig: IStompConfig = {
             experienceId,
             environment,
-            delegates: stompDelegates
+            delegates
         };
 
         this.stomp = new Stomp(stompConfig);
@@ -135,7 +135,7 @@ export default class MessageConsumer {
                     break;
             }
         } catch (e) {
-            const wrappedError = new NetworkError('messageParseFailed', experienceId, e);
+            const wrappedError = new SocketError('messageParseFailed', experienceId, e);
             ExceptionPipe.trapError(wrappedError, storyId, ERROR);
         }
     }
@@ -149,7 +149,7 @@ export default class MessageConsumer {
 
         try {
             if (status === settings.errorOverTcp) {
-                throw new NetworkError('errorOverTcp', id, null);
+                throw new SocketError('errorOverTcp', id, null);
             }
 
             if (STATUS_UPDATE) {
@@ -200,7 +200,7 @@ export default class MessageConsumer {
                     this.connect();
                 });
             } else {
-                const wrappedError = new NetworkError('tcpFailure', experienceId, e);
+                const wrappedError = new SocketError('tcpFailure', experienceId, e);
                 
                 this.stomp = null;
                 ExceptionPipe.trapError(wrappedError, storyId, ERROR);

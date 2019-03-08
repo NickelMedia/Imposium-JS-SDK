@@ -32,7 +32,7 @@ import Player from './video/Player';
 
 const [clientEvents, playerEvents] = [{...Client.events}, {...Player.events}];
 
-ExceptionPipe.init();
+ExceptionPipe.startTracing();
 
 export {
     Client,

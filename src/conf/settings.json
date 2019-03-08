@@ -10,7 +10,7 @@
         "maxCreateRetries": 3
 	},
 	"api": {
-		"production": "https://api.imposium.com",
+		"production": "https://api.imposium.commmm",
 		"staging": "https://api.staging.imposium.com",
 		"local": "https://api",
 		"currentVersion": "2.0.0",
