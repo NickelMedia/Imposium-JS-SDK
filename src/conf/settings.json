@@ -20,7 +20,7 @@
 		"img":"https://cdn.imposium.com/SampleJPGImage_1mb.jpg"
 	},
     "stomp": {
-        "production": "wss://stomp.prod.k8s.nickel.media/wdawdds",
+        "production": "wss://stomp.prod.k8s.nickel.media/ws",
         "staging": "wss://stomp.staging.k8s.nickel.media/ws",
         "local": "ws://127.0.0.1:15674/ws",
         "exchange": "/exchange/imposium/",
