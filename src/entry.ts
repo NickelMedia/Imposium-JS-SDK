@@ -32,9 +32,6 @@ import Player from './video/Player';
 
 const [clientEvents, playerEvents] = [{...Client.events}, {...Player.events}];
 
-// ExceptionPipe.startTracing();
-throw new Error('test sentry')
-
 export {
     Client,
     Player,
