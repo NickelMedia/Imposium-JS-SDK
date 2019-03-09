@@ -1,21 +1,12 @@
 import {AxiosError} from 'axios';
-import {init, BrowserOptions, captureException, configureScope, Scope, SentryEvent} from '@sentry/browser';
+import {BrowserClient, BrowserOptions, Hub, Scope, SentryEvent} from '@sentry/browser';
 import {ImposiumError, UncaughtError} from './Exceptions';
+import {version} from './Version';
 
 const {...warnings} = require('../conf/warnings.json');
 const {sentry: {dsn}} = require('../conf/settings.json');
 
 export default class ExceptionPipe {
-    /*
-        Init Sentry.io SDK
-     */
-    public static startTracing = (): void => {
-        init({
-            dsn,
-            beforeSend: (e: SentryEvent) => ExceptionPipe.beforeSend(e)
-        });
-    }
-
     /*
         Log out warnings
      */
@@ -44,7 +35,7 @@ export default class ExceptionPipe {
         e.log();
 
         // Trace err with Sentry.io
-        configureScope((scope: Scope) => {
+        ExceptionPipe.hub.configureScope((scope: Scope) => {
             scope.setTag('type', e.type);
             scope.setTag('version', e.version);
             scope.setTag('storyId', (storyId) ? storyId : '<not_set>');
@@ -77,25 +68,39 @@ export default class ExceptionPipe {
                 });
             }
 
-            captureException(e);
+            ExceptionPipe.hub.captureException(e);
         });
     }
+
+    private static sentryClient: BrowserClient = new BrowserClient({
+        dsn,
+        beforeSend: (e: SentryEvent) => ExceptionPipe.beforeSend(e),
+        release: `imposium--js-sdk@${version}`
+    });
+
+    private static hub: Hub = new Hub(ExceptionPipe.sentryClient);
 
     /*
         Clean up sentry payloads before capturing exceptions
      */
     private static beforeSend = (evt: SentryEvent): SentryEvent | Promise<SentryEvent> => {
         // Delete irrelevant default values from duck-typed errs to cut down on clutter in reports
-        delete evt.extra['Error']['log'];
-        delete evt.extra['Error']['logHeader'];
-        delete evt.extra['Error']['setStoryId'];
-
-        if (evt.extra['Error']['axiosError']) {
-            delete evt.extra['Error']['axiosError'];
+        if (typeof evt.extra === 'undefined') {
+            return evt;
         }
 
-        if (evt.extra['Error']['closeEvent']) {
-            delete evt.extra['Error']['closeEvent'];
+        if (evt.extra['Error']) {
+            delete evt.extra['Error']['log'];
+            delete evt.extra['Error']['logHeader'];
+            delete evt.extra['Error']['setStoryId'];
+
+            if (evt.extra['Error']['axiosError']) {
+                delete evt.extra['Error']['axiosError'];
+            }
+
+            if (evt.extra['Error']['closeEvent']) {
+                delete evt.extra['Error']['closeEvent'];
+            }
         }
 
         return evt;
