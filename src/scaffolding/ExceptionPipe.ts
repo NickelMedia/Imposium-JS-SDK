@@ -4,7 +4,7 @@ import {ImposiumError, UncaughtError} from './Exceptions';
 import {version} from './Version';
 
 const {...warnings} = require('../conf/warnings.json');
-const {sentry: {dsn}} = require('../conf/settings.json');
+const {sentry} = require('../conf/settings.json');
 
 export default class ExceptionPipe {
     /*
@@ -73,12 +73,13 @@ export default class ExceptionPipe {
     }
 
     private static sentryClient: BrowserClient = new BrowserClient({
-        dsn,
+        dsn: sentry.dsn,
         beforeSend: (e: SentryEvent) => ExceptionPipe.beforeSend(e),
-        release: `imposium--js-sdk@${version}`
+        release: `${ExceptionPipe.projectName}@${version}`
     });
 
     private static hub: Hub = new Hub(ExceptionPipe.sentryClient);
+    private static projectName: string = sentry.projectName;
 
     /*
         Clean up sentry payloads before capturing exceptions
