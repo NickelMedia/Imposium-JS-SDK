@@ -5,8 +5,6 @@ import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 
-import {printVersion} from '../scaffolding/Version';
-
 import {
     ClientConfigurationError,
     PlayerConfigurationError,
@@ -21,6 +19,20 @@ import {
     cloneWithKeys,
     isFunc
 } from '../scaffolding/Helpers';
+
+type ExperienceCreated = ((e: IExperience) => any);
+type GotExperience = ((e: IExperience) => any);
+type UploadProgress = ((n: number) => any);
+type StatusUpdate = ((m: any) => any);
+type onError = ((e: Error) => any);
+
+export interface IClientEvents {
+    EXPERIENCE_CREATED?: ExperienceCreated & string;
+    GOT_EXPERIENCE?: GotExperience & string;
+    STATUS_UPDATE?: StatusUpdate & string;
+    UPLOAD_PROGRESS?: UploadProgress & string;
+    ERROR?: onError & string;
+}
 
 export interface IClientConfig {
     accessToken: string;
@@ -38,14 +50,6 @@ export interface IRenderHistory {
 export interface IClientEmits {
     adding: string;
     added: string;
-}
-
-export interface IClientEvents {
-    EXPERIENCE_CREATED?: (e: IExperience) => any | string;
-    UPLOAD_PROGRESS?: (n: number) => any | string;
-    GOT_EXPERIENCE?: (e: IExperience) => any | string;
-    STATUS_UPDATE?: (m: any) => any | string;
-    ERROR?: (e: Error) => any | string;
 }
 
 export interface IExperience {
@@ -92,35 +96,22 @@ const {...settings} = require('../conf/settings.json').client;
 
 export default class Client {
 
-    public static events = {
-        EXPERIENCE_CREATED: 'EXPERIENCE_CREATED',
-        UPLOAD_PROGRESS: 'UPLOAD_PROGRESS',
-        GOT_EXPERIENCE: 'GOT_EXPERIENCE',
-        STATUS_UPDATE: 'STATUS_UPDATE',
-        ERROR: 'ERROR'
-    };
+    public static eventNames: IClientEvents = settings.eventNames;
     public clientConfig: IClientConfig = undefined;
-    private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.events);
+    private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.eventNames);
     private api: API = null;
     private player: VideoPlayer = null;
     private consumer: MessageConsumer = null;
+    private maxCreateRetries: number = settings.maxCreateRetries;
+    private renderHistory: IRenderHistory = settings.emptyHistory;
+    private emits: IClientEmits = settings.clientEmits;
     private gaProperty: string = '';
     private playerIsFallback: boolean = false;
-    private maxCreateRetries: number = settings.maxCreateRetries;
-    private renderHistory: IRenderHistory = {
-        prevExperienceId: '',
-        prevMessage: ''
-    };
-    private emits: IClientEmits = {
-        adding: 'Adding job to queue...',
-        added: 'Added job to queue...'
-    };
 
     /*
         Initialize Imposium client
      */
     constructor(config: IClientConfig) {
-        printVersion();
         this.setup(config);
     }
 
@@ -152,12 +143,14 @@ export default class Client {
         Set current video player ref
      */
     public setPlayer = (player: VideoPlayer, isFallback: boolean = false): void => {
-        const {clientConfig: {storyId}} = this;
+        if (this.clientConfig) {
+            const {clientConfig: {storyId}} = this;
 
-        this.playerIsFallback = isFallback;
-        this.player = player;
+            this.playerIsFallback = isFallback;
+            this.player = player;
 
-        player.setStoryId(storyId);
+            player.setStoryId(storyId);
+        }
     }
 
     /*
@@ -171,7 +164,7 @@ export default class Client {
 
             try {
                 if (isFunc(callback)) {
-                    if (keyExists(Client.events, eventName)) {
+                    if (keyExists(Client.eventNames, eventName)) {
                         eventDelegateRefs[eventName] = callback;
                     } else {
                         throw new ClientConfigurationError('invalidEventName', eventName);
@@ -196,13 +189,13 @@ export default class Client {
 
             try {
                 if (eventName) {
-                    if (keyExists(Client.events, eventName)) {
+                    if (keyExists(Client.eventNames, eventName)) {
                         eventDelegateRefs[eventName] = null;
                     } else {
                         throw new ClientConfigurationError('invalidEventName', eventName);
                     }
                 } else {
-                    Object.keys(Client.events).forEach((event) => {
+                    Object.keys(Client.eventNames).forEach((event) => {
                         eventDelegateRefs[event] = null;
                     });
                 }
@@ -239,11 +232,17 @@ export default class Client {
      */
     public getExperience = (experienceId: string): void => {
         if (this.clientConfig) {
-            const {api, player, gaProperty, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
+            const {
+                api,
+                player,
+                gaProperty,
+                clientConfig: {storyId},
+                eventDelegateRefs: {GOT_EXPERIENCE, ERROR}
+            } = this;
 
             try {
                 if (player === null && !isFunc(GOT_EXPERIENCE)) {
-                    throw new ClientConfigurationError('badConfigOnGet', Client.events.GOT_EXPERIENCE);
+                    throw new ClientConfigurationError('badConfigOnGet', Client.eventNames.GOT_EXPERIENCE);
                 }
 
                 api.getExperience(experienceId)
@@ -333,16 +332,16 @@ export default class Client {
         try {
             // Ensures at least experience created is set if doing two stage render
             if (!render && !isFunc(EXPERIENCE_CREATED)) {
-                throw new ClientConfigurationError('badConfigOnPostNoRender', Client.events.EXPERIENCE_CREATED);
+                throw new ClientConfigurationError('badConfigOnPostNoRender', Client.eventNames.EXPERIENCE_CREATED);
             }
 
             // Ensures config error throws if not using our player / GOT experience isn't set
             if (render && ((player === null || playerIsFallback) && !isFunc(GOT_EXPERIENCE))) {
-                throw new ClientConfigurationError('bagConfigOnPostRender', Client.events.GOT_EXPERIENCE);
+                throw new ClientConfigurationError('bagConfigOnPostRender', Client.eventNames.GOT_EXPERIENCE);
             }
 
             // If the user has set up an event to consume messages, emit
-            if (STATUS_UPDATE && render) {
+            if (STATUS_UPDATE && render) {    
                 STATUS_UPDATE({id: undefined, status: adding});
                 this.updateHistory('prevMessage', adding);
             }

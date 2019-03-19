@@ -29,6 +29,7 @@
     "gulp-plumber": "^1.2.0",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-util": "^3.0.8",
+    "http-server": "^0.11.1",
     "less": "^3.8.1",
     "less-plugin-autoprefix": "^2.0.0",
     "less-plugin-glob": "^2.0.2",

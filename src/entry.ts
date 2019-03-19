@@ -1,7 +1,7 @@
 /*
     MIT License
 
-    Copyright (c) 2018 Imposium
+    Copyright (c) 2019 Imposium
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,11 @@ import 'core-js/fn/object/assign';
 import ExceptionPipe from './scaffolding/ExceptionPipe';
 import Client from './client/Client';
 import Player from './video/Player';
+import {printVersion} from './scaffolding/Version';
 
-const [clientEvents, playerEvents] = [{...Client.events}, {...Player.events}];
+printVersion();
+
+const [clientEvents, playerEvents] = [{...Client.eventNames}, {...Player.events}];
 
 export {
     Client,

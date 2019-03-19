@@ -7,7 +7,21 @@
 			"sceneId": "",
 			"environment": "production"
 		},
-        "maxCreateRetries": 3
+        "emptyHistory": {
+            "prevExperienceId": "",
+            "prevMessage": ""
+        },
+        "clientEmits": {
+            "adding": "Adding job to queue...",
+            "added": "Added job to queue..."
+        },
+        "eventNames": {
+            "EXPERIENCE_CREATED": "EXPERIENCE_CREATED",
+            "UPLOAD_PROGRESS": "UPLOAD_PROGRESS",
+            "GOT_EXPERIENCE": "GOT_EXPERIENCE",
+            "STATUS_UPDATE": "STATUS_UPDATE",
+            "ERROR": "ERROR"
+        }
 	},
 	"api": {
 		"production": "https://api.imposium.com",
@@ -28,7 +42,8 @@
         "password": "Teehe1ceeMe7Pe1d"
     },
     "sentry": {
-        "dsn": "https://17ffe982179e4d60a1df2062198d7ade@sentry.io/1411258"
+        "dsn": "https://17ffe982179e4d60a1df2062198d7ade@sentry.io/1411258",
+        "projectName": "imposium-js-sdk"
     },
 	"messageConsumer": {
 		"maxReconnects": 5,
