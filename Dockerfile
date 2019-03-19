@@ -3,7 +3,7 @@ FROM node:10-alpine
 WORKDIR /sdk
 COPY . /sdk
 
-RUN npm i docsify-cli -g
+RUN npm i http-server -g
 
-ENTRYPOINT ["docsify", "serve", "docs/www"]
+ENTRYPOINT ["http-server", "docs/www", "-p", "3000"]
 EXPOSE 3000

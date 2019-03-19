@@ -13,8 +13,6 @@ Imposium JS SDK is dedicated to providing tooling around the [Imposium API](http
 - [`Imposium.Client`](/client) handles consuming dynamic data and API access.
 - [`Imposium.Player`](/player) provides video player functionality and handles processing experience data for playback.
 
-
-
 #### Issues and Support
 
 For more information about the Imposium product please email [info@imposium.com](mailto:info@imposium.com).
@@ -36,54 +34,4 @@ var Imposium = require('imposium-js-sdk');
 
 // Include
 <script type="text/javascript" src="../lib/imposium.min.js"></script>
-```
-
-#### Basic usage
-
-- index.html
-
-An index HTML file with a body containing a video element and script tags to load both the library and a sample script we'll call `my-app.js`.
-
-```html
-<!doctype html>
-
-<html>
-    <head>
-        <meta charset="utf-8">
-        <title>My Imposium App</title>
-    </head>
-
-    <body>
-        <video id="my-video-element"></video>
-
-        <script type="text/javascript" src="imposium.min.js"></script>
-        <script type="text/javascript" src="my-app.js"></script>
-    </body>
-</html>
-```
-
-- my-app.js
-
-This script demonstrates a very basic flow for creating an experience. The client consumes the dynamic data and makes a call to the Imposium API which begins a video rendering process. Once the processing is finished, the experience data will be consumed by the video player for playback.
-
-```javascript
-// Reference to HTML5 video element
-var htmlVideoElement = document.getElementById('my-video-element');
-
-// Pass in access credential and story identifier to Imposium.client
-var client = new Imposium.Client({
-    accessToken: 'ieThohr0Jahyui9pohKookahkueZeizu',
-    storyId: '2f34153d-4b54-4d14-9c08-37a94205bc3f'
-});
-
-// Bind video element and client to video player
-var player = new Imposium.Player(htmlVideoElement, client);
-
-// Dynamic data for an experience
-var dynamicData = {
-    randomNumber: Math.random()
-};
-
-// Create new experience
-client.createExperience(dynamicData);
 ```
