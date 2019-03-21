@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const WebpackAutoInject = require('webpack-auto-inject-version');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const SentryCliPlugin = require('@sentry/webpack-plugin');
 
 const LIB_NAME = 'Imposium';
 const BUNDLE_LOC = `${__dirname}/lib`;
@@ -19,6 +20,7 @@ const VERSIONING_CONF = {
 };
 
 const COMPRESSION_OPTS = {
+    sourceMap: true,
     uglifyOptions: {
         ie8: false,
         output: {
@@ -67,6 +69,14 @@ module.exports = (env, argv) => {
 
     if (env === 'viz') {
         config.plugins.push(new BundleAnalyzerPlugin());
+    }
+
+    if (env === 'sentry') {
+        config.plugins.push(
+            new SentryCliPlugin({
+                include: './lib'
+            })
+        );
     }
 
     return config;
