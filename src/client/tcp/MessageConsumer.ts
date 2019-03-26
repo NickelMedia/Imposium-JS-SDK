@@ -32,7 +32,7 @@ export interface IEmitTypes {
 
 export interface IEmitData {
     id: string;
-    event: string;
+    event?: string;
     status?: string;
     rendering?: boolean;
     date_created?: number;
@@ -46,7 +46,7 @@ export default class MessageConsumer {
     private static readonly EMITS: IEmitTypes = settings.emitTypes;
 
     private stompDelegates: IConsumerDelegates = {
-        route: (f: Frame) => this.routeMessageData(f),
+        route: (f: Frame) => this.validateFrame(f),
         error: (e: CloseEvent) => this.stompError(e)
     };
 
@@ -92,7 +92,7 @@ export default class MessageConsumer {
     }
 
     /*
-        Kill stomp connection
+        Kill stomp / underlying socket connection
      */
     public kill = (): Promise<void> => {
         const {stomp} = this;
@@ -110,9 +110,9 @@ export default class MessageConsumer {
     }
 
     /*
-        Manage incoming messages. Terminates stomp on actComplete.
+        Parse / defer incoming frames. Disconnect ws on actComplete.
      */
-    private routeMessageData = (frame: Frame): void => {
+    private validateFrame = (frame: Frame): void => {
         const {EMITS: {scene, message, complete}} = MessageConsumer;
         const {stomp, storyId, experienceId, clientDelegates: {ERROR}} = this;
         const {body} = frame;
@@ -141,7 +141,7 @@ export default class MessageConsumer {
     }
 
     /*
-        Fire the gotMessage callback if the user is listening for this event
+        Handle message data contained by frames other than gotScene
      */
     private emitMessageData = (emitData: IEmitData): void => {
         const {storyId, clientDelegates: {updateHistory, STATUS_UPDATE, ERROR}} = this;
@@ -162,7 +162,7 @@ export default class MessageConsumer {
     }
 
     /*
-        Parses the experience data into a prop delivered via gotScene
+        Validate experience data contained by frame
      */
     private emitSceneData = (experience: IExperience): void => {
         const {player, storyId, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
@@ -183,7 +183,8 @@ export default class MessageConsumer {
     }
 
     /*
-        Called on Stomp errors
+        Called on ws[Close] events, retry
+        TO DO: Exponential back-off
      */
     private stompError = (e: CloseEvent): void => {
         const {MAX_RETRIES} = MessageConsumer;
@@ -194,11 +195,7 @@ export default class MessageConsumer {
 
             if (retried < MAX_RETRIES) {
                 ExceptionPipe.logWarning('network', 'tcpFailure');
-
-                this.kill()
-                .then(() => {
-                    this.connect();
-                });
+                this.kill().then(() => { this.connect(); });
             } else {
                 const wrappedError = new SocketError('tcpFailure', experienceId, e);
                 

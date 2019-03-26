@@ -1,5 +1,5 @@
 import API from './http/API';
-import MessageConsumer, {IConsumerConfig, IClientDelegates} from './tcp/MessageConsumer';
+import MessageConsumer, {IConsumerConfig, IClientDelegates, IEmitData} from './tcp/MessageConsumer';
 import Analytics from '../analytics/Analytics';
 import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
@@ -20,18 +20,18 @@ import {
     isFunc
 } from '../scaffolding/Helpers';
 
-type ExperienceCreated = ((e: IExperience) => any);
-type GotExperience = ((e: IExperience) => any);
-type UploadProgress = ((n: number) => any);
-type StatusUpdate = ((m: any) => any);
-type onError = ((e: Error) => any);
+export type ExperienceCreated = ((e: IExperience) => any);
+export type GotExperience = ((e: IExperience) => any);
+export type StatusUpdate = ((m: IEmitData) => any);
+export type onError = ((e: Error) => any);
+export type UploadProgress = ((n: number) => any);
 
 export interface IClientEvents {
     EXPERIENCE_CREATED?: ExperienceCreated & string;
     GOT_EXPERIENCE?: GotExperience & string;
     STATUS_UPDATE?: StatusUpdate & string;
-    UPLOAD_PROGRESS?: UploadProgress & string;
     ERROR?: onError & string;
+    UPLOAD_PROGRESS?: UploadProgress & string;
 }
 
 export interface IClientConfig {
@@ -402,11 +402,7 @@ export default class Client {
                 };
 
                 this.consumer = new MessageConsumer(consumerConfig);
-
-                this.consumer.connect()
-                .then(() => {
-                    resolve();
-                });
+                this.consumer.connect().then(() => { resolve(); });
             });
         });
     }
@@ -438,11 +434,10 @@ export default class Client {
         prepConfig(config, defaultConfig);
         this.clientConfig = {...prevConfig, ...config};
 
-        if (!this.api) {
-            this.api = new API(this.clientConfig.accessToken, this.clientConfig.environment);
-        } else {
-            this.api.configureClient(this.clientConfig.accessToken, this.clientConfig.environment);
-        }
+        this.api = new API(
+            this.clientConfig.accessToken,
+            this.clientConfig.environment
+        );
 
         this.getAnalyticsProperty();
     }
@@ -465,9 +460,6 @@ export default class Client {
                 }
 
                 Analytics.setup();
-
-                this.doPageView();
-                window.addEventListener('popstate', () => this.doPageView());
             }
         })
         .catch((e) => {
@@ -477,20 +469,84 @@ export default class Client {
     }
 
     /*
-        Emit a GA page view event each time popstate occurs or the ga prop gets set
+        Handler for emitting expereince data on first creation
      */
-    private doPageView = (): void => {
-        const {gaProperty} = this;
+    private createdExperience = (experience: IExperience, invokedRender: boolean): void => {
+        const {
+            emits: {adding, added}, renderHistory: {prevMessage},
+            eventDelegateRefs: {EXPERIENCE_CREATED, STATUS_UPDATE}
+        } = this;
 
-        Analytics.send({
-            prp: gaProperty,
-            t: 'pageview',
-            dp: window.location.pathname
-        });
+        const {id} = experience;
+
+        if (isFunc(EXPERIENCE_CREATED)) {
+            EXPERIENCE_CREATED(experience);
+        }
+
+        if (invokedRender && prevMessage === adding && isFunc(STATUS_UPDATE)) {
+            STATUS_UPDATE({id, status: added});
+            this.updateHistory('prevMessage', added);
+        }
+
+        this.updateHistory('prevExperienceId', id);
     }
 
     /*
-        Update render history state
+        Handler for validating and deferring / emitting experience data after rendering is complete
+     */
+    private gotExperience = (experience: IExperience): void => {
+        const {player, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
+        const {id, output, rendering, moderation_status} = experience;
+
+        try {
+            const hasOutput: boolean = (Object.keys(output).length > 0);
+
+            if (moderation_status === 'rejected') {
+                throw new ModerationError('rejection', id);
+            }
+
+            if (!hasOutput && !rendering) {
+                // this.deliveryPipe.startDeferredRender(id);
+            }
+
+            if (hasOutput && isFunc(GOT_EXPERIENCE)) {
+                GOT_EXPERIENCE(experience);
+            }
+
+            if (hasOutput && typeof player !== 'undefined') {
+                player.experienceGenerated(experience);
+            }
+
+            this.updateHistory('prevExperienceId', id);
+        } catch (e) {
+            ExceptionPipe.trapError(e, storyId, ERROR);
+        }
+    }
+
+    /*
+        Handler for emitting message data
+     */
+    private gotMessage = (message: IEmitData): void => {
+        const {eventDelegateRefs: {STATUS_UPDATE}} = this;
+
+        if (isFunc(STATUS_UPDATE)) {
+            STATUS_UPDATE(message);
+        }
+
+        this.updateHistory('prevMessage', message.status);
+    }
+
+    /*
+        Handler for handling async internal errors 
+     */
+    private asyncError = (e: any): void => {
+        const {clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
+
+        ExceptionPipe.trapError(e, storyId, ERROR);
+    }
+
+    /*
+        Update render history state, prevents storing duplicates
      */
     private updateHistory = (key: string, value: string): void => {
         if (this.renderHistory[key] !== value) {

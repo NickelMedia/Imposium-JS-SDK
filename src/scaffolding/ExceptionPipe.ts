@@ -74,7 +74,7 @@ export default class ExceptionPipe {
 
     private static sentryClient: BrowserClient = new BrowserClient({
         dsn: sentry.dsn,
-        beforeSend: (e: SentryEvent) => ExceptionPipe.beforeSend(e),
+        beforeSend: (e: SentryEvent) => ExceptionPipe.cleanDucktype(e),
         release: `${ExceptionPipe.projectName}@${version}`
     });
 
@@ -84,7 +84,7 @@ export default class ExceptionPipe {
     /*
         Clean up sentry payloads before capturing exceptions
      */
-    private static beforeSend = (evt: SentryEvent): SentryEvent | Promise<SentryEvent> => {
+    private static cleanDucktype = (evt: SentryEvent): SentryEvent | Promise<SentryEvent> => {
         // Delete irrelevant default values from duck-typed errs to cut down on clutter in reports
         if (typeof evt.extra === 'undefined') {
             return evt;

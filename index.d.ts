@@ -55,7 +55,8 @@ declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
 	    static trapError: (e: any, storyId: string, callback?: (e: ImposiumError) => () => any) => void;
 	    private static sentryClient;
 	    private static hub;
-	    private static beforeSend;
+	    private static projectName;
+	    private static cleanDucktype;
 	}
 
 }
@@ -206,7 +207,7 @@ declare module 'Imposium-JS-SDK/client/tcp/MessageConsumer' {
 	}
 	export interface IEmitData {
 	    id: string;
-	    event: string;
+	    event?: string;
 	    status?: string;
 	    rendering?: boolean;
 	    date_created?: number;
@@ -227,7 +228,7 @@ declare module 'Imposium-JS-SDK/client/tcp/MessageConsumer' {
 	    constructor(c: IConsumerConfig);
 	    connect: () => Promise<void>;
 	    kill: () => Promise<void>;
-	    private routeMessageData;
+	    private validateFrame;
 	    private emitMessageData;
 	    private emitSceneData;
 	    private stompError;
@@ -244,7 +245,20 @@ declare module 'Imposium-JS-SDK/video/FallbackPlayer' {
 
 }
 declare module 'Imposium-JS-SDK/client/Client' {
+	import { IEmitData } from 'Imposium-JS-SDK/client/tcp/MessageConsumer';
 	import VideoPlayer from 'Imposium-JS-SDK/video/VideoPlayer';
+	export type ExperienceCreated = ((e: IExperience) => any);
+	export type GotExperience = ((e: IExperience) => any);
+	export type StatusUpdate = ((m: IEmitData) => any);
+	export type onError = ((e: Error) => any);
+	export type UploadProgress = ((n: number) => any);
+	export interface IClientEvents {
+	    EXPERIENCE_CREATED?: ExperienceCreated & string;
+	    GOT_EXPERIENCE?: GotExperience & string;
+	    STATUS_UPDATE?: StatusUpdate & string;
+	    ERROR?: onError & string;
+	    UPLOAD_PROGRESS?: UploadProgress & string;
+	}
 	export interface IClientConfig {
 	    accessToken: string;
 	    storyId: string;
@@ -259,13 +273,6 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	export interface IClientEmits {
 	    adding: string;
 	    added: string;
-	}
-	export interface IClientEvents {
-	    EXPERIENCE_CREATED?: (e: IExperience) => any | string;
-	    UPLOAD_PROGRESS?: (n: number) => any | string;
-	    GOT_EXPERIENCE?: (e: IExperience) => any | string;
-	    STATUS_UPDATE?: (m: any) => any | string;
-	    ERROR?: (e: Error) => any | string;
 	}
 	export interface IExperience {
 	    id: string;
@@ -302,23 +309,17 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    duration: number;
 	}
 	export default class Client {
-	    static events: {
-	        EXPERIENCE_CREATED: string;
-	        UPLOAD_PROGRESS: string;
-	        GOT_EXPERIENCE: string;
-	        STATUS_UPDATE: string;
-	        ERROR: string;
-	    };
+	    static eventNames: IClientEvents;
 	    clientConfig: IClientConfig;
 	    private eventDelegateRefs;
 	    private api;
 	    private player;
 	    private consumer;
-	    private gaProperty;
-	    private playerIsFallback;
 	    private maxCreateRetries;
 	    private renderHistory;
 	    private emits;
+	    private gaProperty;
+	    private playerIsFallback;
 	    constructor(config: IClientConfig);
 	    setup: (config: IClientConfig) => void;
 	    setPlayer: (player: VideoPlayer, isFallback?: boolean) => void;
