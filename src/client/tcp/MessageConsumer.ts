@@ -1,8 +1,8 @@
 import API from '../http/API';
-import VideoPlayer from '../../video/VideoPlayer';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
 import Stomp, {IStompConfig, IConsumerDelegates} from './Stomp';
 import {IExperience, IExperienceOutput, IClientEvents} from '../Client';
+import {DelegateMap} from '../DeliveryPipe';
 import {Frame} from 'webstomp-client';
 
 import {
@@ -13,15 +13,9 @@ import {
 const {...settings} = require('../../conf/settings.json').messageConsumer;
 
 export interface IConsumerConfig {
-    storyId: string;
-    environment: string;
     experienceId: string;
-    delegates: IClientDelegates;
-    player?: VideoPlayer;
-}
-
-export interface IClientDelegates extends IClientEvents {
-    updateHistory: (k: string, v: string) => void;
+    environment: string;
+    deliveryDelegates: DelegateMap;
 }
 
 export interface IEmitTypes {
@@ -45,40 +39,32 @@ export default class MessageConsumer {
     private static readonly MAX_RETRIES: number = settings.maxReconnects;
     private static readonly EMITS: IEmitTypes = settings.emitTypes;
 
-    private stompDelegates: IConsumerDelegates = {
-        route: (f: Frame) => this.validateFrame(f),
-        error: (e: CloseEvent) => this.stompError(e)
-    };
-
-    private storyId: string = '';
+    private retried: number = settings.minReconnects;
     private environment: string = '';
     private experienceId: string = null;
-    private clientDelegates: IClientDelegates = null;
-    private player: VideoPlayer;
+    private deliveryDelegates: DelegateMap = null;
     private stomp: Stomp = null;
-    private retried: number = settings.minReconnects;
 
     constructor(c: IConsumerConfig) {
-        this.storyId = c.storyId;
-        this.environment = c.environment;
         this.experienceId = c.experienceId;
-        this.clientDelegates = c.delegates;
-
-        if (c.player) {
-            this.player = c.player;
-        }
+        this.environment = c.environment;
+        this.deliveryDelegates = c.deliveryDelegates;
     }
 
     /*
         Initializes a stomp connection object
      */
     public connect = (): Promise<void> => {
-        const {experienceId, environment, stompDelegates: delegates} = this;
+        const {experienceId, environment} = this;
+
+        const consumerDelegates: DelegateMap = new Map();
+        consumerDelegates.set('route', (f: Frame) => this.validateFrame(f));
+        consumerDelegates.set('error', (e: CloseEvent) => this.stompError(e));
 
         const stompConfig: IStompConfig = {
             experienceId,
             environment,
-            delegates
+            consumerDelegates
         };
 
         this.stomp = new Stomp(stompConfig);
@@ -114,7 +100,7 @@ export default class MessageConsumer {
      */
     private validateFrame = (frame: Frame): void => {
         const {EMITS: {scene, message, complete}} = MessageConsumer;
-        const {stomp, storyId, experienceId, clientDelegates: {ERROR}} = this;
+        const {stomp, experienceId, deliveryDelegates} = this;
         const {body} = frame;
 
         try {
@@ -135,8 +121,8 @@ export default class MessageConsumer {
                     break;
             }
         } catch (e) {
-            const wrappedError = new SocketError('messageParseFailed', experienceId, e);
-            ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+            const socketError = new SocketError('messageParseFailed', experienceId, e);
+            deliveryDelegates.get('internalError')(socketError);
         }
     }
 
@@ -144,7 +130,7 @@ export default class MessageConsumer {
         Handle message data contained by frames other than gotScene
      */
     private emitMessageData = (emitData: IEmitData): void => {
-        const {storyId, clientDelegates: {updateHistory, STATUS_UPDATE, ERROR}} = this;
+        const {deliveryDelegates} = this;
         const {status, id} = emitData;
 
         try {
@@ -152,12 +138,9 @@ export default class MessageConsumer {
                 throw new SocketError('errorOverTcp', id, null);
             }
 
-            if (STATUS_UPDATE) {
-                STATUS_UPDATE(emitData);
-                updateHistory('prevMessage', status);
-            }
+            deliveryDelegates.get('gotMessage')(emitData);
         } catch (e) {
-            ExceptionPipe.trapError(e, storyId, ERROR);
+            deliveryDelegates.get('internalError')(e);
         }
     }
 
@@ -165,20 +148,14 @@ export default class MessageConsumer {
         Validate experience data contained by frame
      */
     private emitSceneData = (experience: IExperience): void => {
-        const {player, storyId, clientDelegates: {GOT_EXPERIENCE, ERROR}} = this;
+        const {deliveryDelegates} = this;
         const {id, moderation_status} = experience;
 
         if (moderation_status === 'rejected') {
             const moderationError = new ModerationError('rejection', id);
-            ExceptionPipe.trapError(moderationError, storyId, ERROR);
+            deliveryDelegates.get('internalError')(moderationError);
         } else {
-            if (player) {
-                player.experienceGenerated(experience);
-            }
-
-            if (GOT_EXPERIENCE) {
-                GOT_EXPERIENCE(experience);
-            }
+            deliveryDelegates.get('gotExperience')(experience);
         }
     }
 
@@ -188,7 +165,7 @@ export default class MessageConsumer {
      */
     private stompError = (e: CloseEvent): void => {
         const {MAX_RETRIES} = MessageConsumer;
-        const {retried, storyId, experienceId, stomp, clientDelegates: {ERROR}} = this;
+        const {retried, experienceId, deliveryDelegates} = this;
 
         if (!e.wasClean) {
             ++this.retried;
@@ -197,10 +174,10 @@ export default class MessageConsumer {
                 ExceptionPipe.logWarning('network', 'tcpFailure');
                 this.kill().then(() => { this.connect(); });
             } else {
-                const wrappedError = new SocketError('tcpFailure', experienceId, e);
+                const socketError = new SocketError('tcpFailure', experienceId, e);
                 
                 this.stomp = null;
-                ExceptionPipe.trapError(wrappedError, storyId, ERROR);
+                deliveryDelegates.get('consumerFailure')(socketError);
             }
         }
     }
