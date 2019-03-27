@@ -1,6 +1,6 @@
 import API from '../http/API';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
-import Stomp, {IStompConfig, IConsumerDelegates} from './Stomp';
+import Stomp, {IStompConfig} from './Stomp';
 import {IExperience, IExperienceOutput, IClientEvents} from '../Client';
 import {DelegateMap} from '../DeliveryPipe';
 import {Frame} from 'webstomp-client';
@@ -52,7 +52,7 @@ export default class MessageConsumer {
     }
 
     /*
-        Initializes a stomp connection object
+        Initializes STOMP over WS so messaged pushed from rabbitMQ can be consumed
      */
     public connect = (): Promise<void> => {
         const {experienceId, environment} = this;
@@ -78,7 +78,7 @@ export default class MessageConsumer {
     }
 
     /*
-        Kill stomp / underlying socket connection
+        Force stop STOMP / ws connections
      */
     public kill = (): Promise<void> => {
         const {stomp} = this;
@@ -96,7 +96,7 @@ export default class MessageConsumer {
     }
 
     /*
-        Parse / defer incoming frames. Disconnect ws on actComplete.
+        Parse & defer incoming frames. Disconnect ws on actComplete.
      */
     private validateFrame = (frame: Frame): void => {
         const {EMITS: {scene, message, complete}} = MessageConsumer;
@@ -177,7 +177,7 @@ export default class MessageConsumer {
                 const socketError = new SocketError('tcpFailure', experienceId, e);
                 
                 this.stomp = null;
-                deliveryDelegates.get('consumerFailure')(socketError);
+                deliveryDelegates.get('consumerFailure')(experienceId, socketError);
             }
         }
     }

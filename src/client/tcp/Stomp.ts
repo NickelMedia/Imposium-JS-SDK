@@ -72,7 +72,7 @@ export default class Stomp {
         return new Promise((resolve) => {
             const {ws: {readyState}} = client;
 
-            if (readyState !== OPEN_STATE) {
+            if (readyState > OPEN_STATE) {
                 resolve();
             }
 

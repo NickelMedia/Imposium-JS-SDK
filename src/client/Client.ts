@@ -227,7 +227,7 @@ export default class Client {
     }
 
     /*
-        Get experience data
+        Call exposed to users that fetches experience data
      */
     public getExperience = (experienceId: string): void => {
         if (this.clientConfig) {
@@ -246,7 +246,7 @@ export default class Client {
     }
 
     /*
-        Creates a new experience, pre warms a socket if returning video on demand
+        Creates exposed to users that creates experiences and handles various render flows
      */
     public createExperience = (inventory: any, render: boolean = true): void => {
         if (this.clientConfig) {
@@ -280,7 +280,7 @@ export default class Client {
     }
 
     /*
-        Copies supplied config object to settings for sharing with sub components
+        Handles merging up user supplied config with base config then preps the client tooling
      */
     private prepClient = (config: IClientConfig): void => {
         const {eventDelegateRefs: {ERROR}} = this;

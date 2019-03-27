@@ -15,13 +15,27 @@ export interface IDeliveryPipeConfig {
     environment: string;
 }
 
+export interface ICreateConfig {
+    storyId: string;
+    inventory: any;
+    render: boolean;
+    uuid: string;
+    uploadProgress: (n: number) => any;
+}
+
 export default class DeliveryPipe {
+    private static readonly POLL_INTERVAL: number = 1000;
+    private static readonly WS_MODE: string = 'ws';
+    private static readonly POLL_MODE: string = 'poll';
+
     private mode: string = 'ws';
     private storyId: string = '';
     private environment: string = '';
+    private shortPollTimeout: number = -1;
     private api: API = null;
     private consumer: MessageConsumer = null;
     private clientDelegates: DelegateMap = null;
+    private configCache: Map<string, ICreateConfig> = new Map();
 
     constructor(c: IDeliveryPipeConfig) {
         this.api = c.api;
@@ -36,13 +50,22 @@ export default class DeliveryPipe {
     public setMode = (mode: string): void => { this.mode = mode; }
 
     /*
-        Fetch an Experience from the Imposium API, kill poll on success
+        Fetch an Experience from the Imposium API, kill poll on finished render if in poll mode
      */
-    public getExperience = (experienceId: string): void => {
+    public getExperience = (experienceId: string, doShortPoll: boolean = false): void => {
         this.api.getExperience(experienceId)
         .then((exp: IExperience) => {
-            // TO DO: Cancel poll timeout
-            this.clientDelegates.get('gotExperience')(exp);
+            const {output} = exp;
+
+            if (doShortPoll && Object.keys(output).length === 0) {
+                this.shortPollTimeout = <any>setTimeout(
+                    () => this.getExperience(experienceId, doShortPoll),
+                    DeliveryPipe.POLL_INTERVAL
+                );
+            } else {
+                clearTimeout(this.shortPollTimeout);
+                this.clientDelegates.get('gotExperience')(exp);
+            }
         })
         .catch((e: AxiosError) => {
             const httpError = new HTTPError('httpFailure', experienceId, e);
@@ -54,7 +77,7 @@ export default class DeliveryPipe {
         Render once a resource is explicitly requested
      */
     public startRender = (experienceId: string): void => {
-        if (this.mode === 'ws') {
+        if (this.mode === DeliveryPipe.WS_MODE) {
             this.startConsumer(experienceId)
             .then(() => {
                 this.api.invokeStream(experienceId)
@@ -64,7 +87,7 @@ export default class DeliveryPipe {
                 });
             });
         } else {
-            this.doShortPoll(experienceId);
+            this.getExperience(experienceId, true);
         }
     }
 
@@ -74,24 +97,20 @@ export default class DeliveryPipe {
     public createPrestep = (inventory: any, render: boolean, uploadProgress: (n: number) => any): void => {
         const {storyId} = this;
         const uuid: string = generateUUID();
-
-        const config: any = {
-            storyId,
-            inventory,
-            render,
-            uuid,
-            uploadProgress
-        };
+        const config: ICreateConfig = {storyId, inventory, render, uuid, uploadProgress};
 
         if (!render) {
             this.doCreate(config);
         }
 
-        if (render && this.mode === 'poll') {
+        if (render && this.mode === DeliveryPipe.POLL_MODE) {
             this.doCreate(config, true);
         }
 
-        if (render && this.mode === 'ws') {
+        if (render && this.mode === DeliveryPipe.WS_MODE) {
+            // Cache inventory temporarily incase socket connection fails
+            this.configCache.set(uuid, config);
+
             this.startConsumer(uuid)
             .then(() => { this.doCreate(config); });
         }
@@ -100,13 +119,13 @@ export default class DeliveryPipe {
     /*
         POST data to Imposium server, create experience record, defer and or poll on success
      */
-    private doCreate = (config: any, runPoll: boolean = false, retryOnCollision: number = 0): void => {
+    private doCreate = (config: ICreateConfig, startShortPoll: boolean = false, retryOnCollision: number = 0): void => {
         const {storyId, inventory, render, uuid, uploadProgress} = config;
 
         this.api.postExperience(storyId, inventory, render, uuid, uploadProgress)
         .then((e: IExperience) => {
-            if (runPoll) {
-                this.doShortPoll(e.id);
+            if (startShortPoll) {
+                this.getExperience(e.id, startShortPoll);
             }
 
             this.clientDelegates.get('experienceCreated')(e, render);
@@ -114,7 +133,7 @@ export default class DeliveryPipe {
         .catch((e: AxiosError) => {
             if (~e.message.indexOf('400') && retryOnCollision < 3) {
                 retryOnCollision = retryOnCollision + 1;
-                this.doCreate(config, runPoll, retryOnCollision);
+                this.doCreate(config, startShortPoll, retryOnCollision);
             } else {
                 const httpError = new HTTPError('httpFailure', uuid, e);
                 this.clientDelegates.get('internalError')(httpError);
@@ -134,7 +153,7 @@ export default class DeliveryPipe {
         deliveryDelegates.set('gotExperience', (e: IExperience) => cD.get('gotExperience')(e));
         deliveryDelegates.set('gotMessage', (m: IEmitData) => cD.get('gotMessage')(m));
         deliveryDelegates.set('internalError', (e: SocketError | ModerationError) => cD.get('internalError')(e));
-        deliveryDelegates.set('consumerFailure', (e: SocketError) => this.consumerFailure(e));
+        deliveryDelegates.set('consumerFailure', (expId: string, e: SocketError) => this.consumerFailure(expId, e));
 
         return new Promise((resolve) => {
             this.killConsumer()
@@ -165,12 +184,16 @@ export default class DeliveryPipe {
         });
     }
 
-    private consumerFailure = (e: SocketError): void => {
-        // TO DO: switch over to poll mode
-    }
+    /*
+        Special handler for total socket failures, falls back do doing a short poll.
+        This can happen with aggressive firewalls / proxy servers.
+     */
+    private consumerFailure = (experienceId: string, e: SocketError): void => {
+        const cachedConfig: ICreateConfig = this.configCache.get(experienceId);
 
-    private doShortPoll = (experienceId: string): Promise<void> => {
-        // TO DO: implementation
-        return Promise.resolve();
+        this.clientDelegates.get('internalError')(e);
+        this.configCache.delete(experienceId);
+        this.setMode(DeliveryPipe.POLL_MODE);
+        this.doCreate(cachedConfig, true);
     }
 }
