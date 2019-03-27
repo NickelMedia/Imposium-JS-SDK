@@ -58,15 +58,18 @@ export default class DeliveryPipe {
             const {output, rendering} = exp;
             const hasOutput = (Object.keys(output).length > 0);
 
+            // Rendered resource was requested
             if (hasOutput && !rendering) {
                 clearTimeout(this.shortPollTimeout);
                 this.clientDelegates.get('gotExperience')(exp);
             }
 
+            // Resource where rendering is deferred was first requested
             if (!hasOutput && !rendering) {
                 this.startRender(experienceId);
             }
 
+            // Resource was requested during render job
             if (!hasOutput && rendering) {
                 this.consumeOnRefresh(experienceId);
             }

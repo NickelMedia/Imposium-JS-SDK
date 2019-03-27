@@ -118,6 +118,11 @@ export default class Client {
         Exposed for users who may want to re-use a client for n stories
      */
     public setup = (config: IClientConfig): void => {
+        const {defaultConfig} = settings;
+        const prevConfig = this.clientConfig || settings.defaultConfig;
+        let clientDelegates: DelegateMap = new Map();
+        let api: API = null;
+
         try {
             if (typeof config !== 'object') {
                 throw new ClientConfigurationError('badConfig', null);
@@ -131,7 +136,45 @@ export default class Client {
                 throw new ClientConfigurationError('accessToken', null);
             }
 
-            this.prepClient(config);
+            prepConfig(config, defaultConfig);
+            this.clientConfig = {...prevConfig, ...config};
+
+            api = new API(
+                this.clientConfig.accessToken,
+                this.clientConfig.environment
+            );
+
+            clientDelegates.set('experienceCreated', (e: IExperience, r: boolean) => this.experienceCreated(e, r));
+            clientDelegates.set('gotExperience', (e: IExperience) => this.gotExperience(e));
+            clientDelegates.set('gotMessage', (m: IEmitData) => this.gotMessage(m));
+            clientDelegates.set('internalError', (e: any) => this.internalError(e));
+
+            this.deliveryPipe = new DeliveryPipe({
+                api,
+                clientDelegates,
+                storyId: this.clientConfig.storyId,
+                environment: this.clientConfig.environment,
+
+            });
+
+            api.getTrackingId(this.clientConfig.storyId)
+            .then((story: any) => {
+                const {gaTrackingId: property} = story;
+
+                if (typeof property === 'string' && property.length > 0) {
+                    this.gaProperty = property;
+
+                    if (this.player) {
+                        this.player.setGaProperty(property);
+                    }
+
+                    Analytics.setup();
+                }
+            })
+            .catch((e) => {
+                const wrappedError = new HTTPError('httpFailure', null, e);
+                ExceptionPipe.trapError(wrappedError, this.clientConfig.storyId, null);
+            });
         } catch (e) {
             const storyId: string = (config && config.storyId) ? config.storyId : '';
             ExceptionPipe.trapError(e, storyId);
@@ -141,7 +184,7 @@ export default class Client {
     /*
         Set current video player ref
      */
-    public setPlayer = (player: VideoPlayer, isFallback: boolean = false): void => {
+    public bindPlayer = (player: VideoPlayer, isFallback: boolean = false): void => {
         if (this.clientConfig) {
             const {clientConfig: {storyId}} = this;
 
@@ -215,7 +258,7 @@ export default class Client {
 
             try {
                 if (playerRef instanceof HTMLVideoElement) {
-                    this.setPlayer(new FallbackPlayer(playerRef), true);
+                    this.bindPlayer(new FallbackPlayer(playerRef), true);
                 } else {
                     // Prop passed wasn't of type HTMLVideoElement
                     throw new PlayerConfigurationError('invalidPlayerRef', null);
@@ -277,57 +320,6 @@ export default class Client {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
         }
-    }
-
-    /*
-        Handles merging up user supplied config with base config then preps the client tooling
-     */
-    private prepClient = (config: IClientConfig): void => {
-        const {eventDelegateRefs: {ERROR}} = this;
-        const {defaultConfig} = settings;
-        const prevConfig = this.clientConfig || defaultConfig;
-        let clientDelegates: DelegateMap = new Map();
-        let api: API = null;
-
-        prepConfig(config, defaultConfig);
-        this.clientConfig = {...prevConfig, ...config};
-
-        api = new API(
-            this.clientConfig.accessToken,
-            this.clientConfig.environment
-        );
-
-        clientDelegates.set('experienceCreated', (e: IExperience, r: boolean) => this.experienceCreated(e, r));
-        clientDelegates.set('gotExperience', (e: IExperience) => this.gotExperience(e));
-        clientDelegates.set('gotMessage', (m: IEmitData) => this.gotMessage(m));
-        clientDelegates.set('internalError', (e: any) => this.internalError(e));
-
-        this.deliveryPipe = new DeliveryPipe({
-            api,
-            clientDelegates,
-            storyId: this.clientConfig.storyId,
-            environment: this.clientConfig.environment,
-
-        });
-
-        api.getTrackingId(this.clientConfig.storyId)
-        .then((story: any) => {
-            const {gaTrackingId: property} = story;
-
-            if (typeof property === 'string' && property.length > 0) {
-                this.gaProperty = property;
-
-                if (this.player) {
-                    this.player.setGaProperty(property);
-                }
-
-                Analytics.setup();
-            }
-        })
-        .catch((e) => {
-            const wrappedError = new HTTPError('httpFailure', null, e);
-            ExceptionPipe.trapError(wrappedError, this.clientConfig.storyId, ERROR);
-        });
     }
 
 

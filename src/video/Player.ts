@@ -1,6 +1,3 @@
-// import ShakaPlayer from 'shaka-player';
-// console.log(ShakaPlayer)
-
 import API from '../client/http/API';
 import VideoPlayer from './VideoPlayer';
 import Client, {IExperience} from '../client/Client';
@@ -94,7 +91,7 @@ export default class ImposiumPlayer extends VideoPlayer {
             }
 
             if (node instanceof HTMLVideoElement) {
-                client.setPlayer(this);
+                client.bindPlayer(this);
                 this.init(config);
                 this.setupHls();
             }
