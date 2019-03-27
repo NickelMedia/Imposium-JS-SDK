@@ -1,7 +1,6 @@
-import GoogleAnalytics from '../scaffolding/GoogleAnalytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
+import GoogleAnalytics, {IGAProtocol} from '../scaffolding/GoogleAnalytics';
 import {IExperience} from '../client/Client';
-
 import {PlayerConfigurationError} from '../scaffolding/Exceptions';
 
 const settings = require('../conf/settings.json').videoPlayer;
@@ -39,7 +38,7 @@ export default abstract class VideoPlayer {
     private experienceId: string = '';
     private prevPlaybackEvent: number = 0;
     private playbackInterval: number = -1;
-    private queuedGACalls: any[] = [];
+    private queuedGACalls: IGAProtocol[] = [];
 
     /*
         Basis of Imposum/Fallback video player objects
@@ -107,7 +106,7 @@ export default abstract class VideoPlayer {
         Emit or queue a GA event call,
      */
     private emitGAEvent = (eventAction: string): void => {
-        const call: any = {
+        const call: IGAProtocol = {
             tid: this.gaProperty,
             t: VideoPlayer.GA_EMIT_TYPE,
             ec: VideoPlayer.GA_EMIT_CATEGORY,

@@ -1,5 +1,5 @@
-import axios, {AxiosError} from 'axios';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
+import axios, {AxiosError} from 'axios';
 import {generateUUID} from '../scaffolding/Helpers';
 
 const {...settings} = require('../conf/settings.json').analytics;
@@ -15,11 +15,21 @@ const {...settings} = require('../conf/settings.json').analytics;
     https: //developers.google.com/analytics/devguides/collection/protocol/v1/parameters
  */
 
-// Holds default request settings
-interface IRequest {
-    baseUrl: string;
-    cacheKey: string;
-    clientId: string;
+export interface IGAProtocol {
+    v?: string; // Protocol version
+    tid?: string; // Web property
+    z?: string; // cache buster
+    cid?: string; // client id
+    t: string; // emit type
+    ec: string; // event category
+    ea: string; // event action
+    el: string; // event label
+    ev?: string; // event value
+}
+
+export interface IGACache {
+    uuid: string;
+    expiry: number;
 }
 
 export default class GoogleAnalytics {
@@ -30,10 +40,10 @@ export default class GoogleAnalytics {
      */
     public static pullClientId = (now: Date = new Date()): void => {
         try {
-            const cache: any = JSON.parse(localStorage.getItem(GoogleAnalytics.CACHE_KEY)) || {};
+            const cache: IGACache = JSON.parse(localStorage.getItem(GoogleAnalytics.CACHE_KEY)) || {};
 
             // If cache isn't expired, use cached GUID to help provide more accurate metrics
-            if (cache.uuid && cache.expiry >= new Date()) {
+            if (cache.uuid && cache.expiry >= new Date().valueOf()) {
                 GoogleAnalytics.CLIENT_ID = cache.uuid;
                 return;
             }
@@ -58,13 +68,13 @@ export default class GoogleAnalytics {
         can be digested by the GA collect API. Any event provided params need to be
         url encoded to prevent errors.
      */
-    public static send = (event: any): void => {
+    public static send = (event: IGAProtocol): void => {
         let pixelUrl: string = GoogleAnalytics.BASE_URL;
 
         // merge event data with base GA params
         event = {
-            v: 1, // GA version
-            z: `${Math.round(new Date().getTime() / 1000)}`, // cache buster
+            v: '1', // GA version
+            z: `${Math.round(new Date().getTime() / 1000)}`, // unique prop for the emit
             cid: GoogleAnalytics.CLIENT_ID,
             ...event
         };
