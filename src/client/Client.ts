@@ -238,7 +238,7 @@ export default class Client {
                     throw new ClientConfigurationError('badConfigOnGet', Client.eventNames.GOT_EXPERIENCE);
                 }
 
-                this.deliveryPipe.getExperience(experienceId);
+                this.deliveryPipe.doGetExperience(experienceId);
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
@@ -330,6 +330,16 @@ export default class Client {
         });
     }
 
+
+    /*
+        Update render history state, prevents storing duplicates
+     */
+    private updateHistory = (key: string, value: string): void => {
+        if (this.renderHistory[key] !== value) {
+            this.renderHistory[key] = value;
+        }
+    }
+
     /*
         Handler for emitting expereince data on first creation
      */
@@ -366,15 +376,11 @@ export default class Client {
                 throw new ModerationError('rejection', id);
             }
 
-            if (!hasOutput && !rendering) {
-                this.deliveryPipe.startRender(id);
-            }
-
-            if (hasOutput && isFunc(GOT_EXPERIENCE)) {
+            if (isFunc(GOT_EXPERIENCE)) {
                 GOT_EXPERIENCE(experience);
             }
 
-            if (hasOutput && typeof player !== 'undefined') {
+            if (typeof player !== 'undefined') {
                 player.experienceGenerated(experience);
             }
 
@@ -403,14 +409,5 @@ export default class Client {
         const {clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;
 
         ExceptionPipe.trapError(e, storyId, ERROR);
-    }
-
-    /*
-        Update render history state, prevents storing duplicates
-     */
-    private updateHistory = (key: string, value: string): void => {
-        if (this.renderHistory[key] !== value) {
-            this.renderHistory[key] = value;
-        }
     }
 }

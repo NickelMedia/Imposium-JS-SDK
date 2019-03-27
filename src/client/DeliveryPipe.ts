@@ -28,7 +28,7 @@ export default class DeliveryPipe {
     private static readonly WS_MODE: string = 'ws';
     private static readonly POLL_MODE: string = 'poll';
 
-    private mode: string = 'ws';
+    private mode: string = DeliveryPipe.WS_MODE;
     private storyId: string = '';
     private environment: string = '';
     private shortPollTimeout: number = -1;
@@ -52,19 +52,23 @@ export default class DeliveryPipe {
     /*
         Fetch an Experience from the Imposium API, kill poll on finished render if in poll mode
      */
-    public getExperience = (experienceId: string, doShortPoll: boolean = false): void => {
+    public doGetExperience = (experienceId: string): void => {
         this.api.getExperience(experienceId)
         .then((exp: IExperience) => {
-            const {output} = exp;
+            const {output, rendering} = exp;
+            const hasOutput = (Object.keys(output).length > 0);
 
-            if (doShortPoll && Object.keys(output).length === 0) {
-                this.shortPollTimeout = <any>setTimeout(
-                    () => this.getExperience(experienceId, doShortPoll),
-                    DeliveryPipe.POLL_INTERVAL
-                );
-            } else {
+            if (hasOutput && !rendering) {
                 clearTimeout(this.shortPollTimeout);
                 this.clientDelegates.get('gotExperience')(exp);
+            }
+
+            if (!hasOutput && !rendering) {
+                this.startRender(experienceId);
+            }
+
+            if (!hasOutput && rendering) {
+                this.consumeOnRefresh(experienceId);
             }
         })
         .catch((e: AxiosError) => {
@@ -74,30 +78,14 @@ export default class DeliveryPipe {
     }
 
     /*
-        Render once a resource is explicitly requested
-     */
-    public startRender = (experienceId: string): void => {
-        if (this.mode === DeliveryPipe.WS_MODE) {
-            this.startConsumer(experienceId)
-            .then(() => {
-                this.api.invokeStream(experienceId)
-                .catch((e: AxiosError) => {
-                    const httpError = new HTTPError('httpFailure', experienceId, e);
-                    this.clientDelegates.get('internalError')(httpError);
-                });
-            });
-        } else {
-            this.getExperience(experienceId, true);
-        }
-    }
-
-    /*
         Run config for create call through delivery gateways
      */
     public createPrestep = (inventory: any, render: boolean, uploadProgress: (n: number) => any): void => {
         const {storyId} = this;
         const uuid: string = generateUUID();
         const config: ICreateConfig = {storyId, inventory, render, uuid, uploadProgress};
+
+        clearTimeout(this.shortPollTimeout);
 
         if (!render) {
             this.doCreate(config);
@@ -117,6 +105,47 @@ export default class DeliveryPipe {
     }
 
     /*
+        Render once a resource is explicitly requested
+     */
+    private startRender = (experienceId: string): void => {
+        if (this.mode === DeliveryPipe.WS_MODE) {
+            this.startConsumer(experienceId)
+            .then(() => {
+                this.api.invokeStream(experienceId)
+                .catch((e: AxiosError) => {
+                    const httpError = new HTTPError('httpFailure', experienceId, e);
+
+                    this.killConsumer();
+                    this.clientDelegates.get('internalError')(httpError);
+                });
+            });
+        } else {
+            this.api.invokeStream(experienceId)
+            .then(() => {
+                this.doGetExperience(experienceId);
+            })
+            .catch((e: AxiosError) => {
+                const httpError = new HTTPError('httpFailure', experienceId, e);
+                this.clientDelegates.get('internalError')(httpError);
+            });
+        }
+    }
+
+    /*
+        Start a consumer or short poll if an experience is requested mid-render
+     */
+    private consumeOnRefresh = (experienceId: string): void => {
+        if (this.mode === DeliveryPipe.WS_MODE) {
+            this.startConsumer(experienceId);
+        } else {
+            this.shortPollTimeout = <any>setTimeout(
+                () => this.doGetExperience(experienceId),
+                DeliveryPipe.POLL_INTERVAL
+            );
+        }
+    }
+
+    /*
         POST data to Imposium server, create experience record, defer and or poll on success
      */
     private doCreate = (config: ICreateConfig, startShortPoll: boolean = false, retryOnCollision: number = 0): void => {
@@ -125,7 +154,7 @@ export default class DeliveryPipe {
         this.api.postExperience(storyId, inventory, render, uuid, uploadProgress)
         .then((e: IExperience) => {
             if (startShortPoll) {
-                this.getExperience(e.id, startShortPoll);
+                this.doGetExperience(e.id);
             }
 
             this.clientDelegates.get('experienceCreated')(e, render);
@@ -191,9 +220,14 @@ export default class DeliveryPipe {
     private consumerFailure = (experienceId: string, e: SocketError): void => {
         const cachedConfig: ICreateConfig = this.configCache.get(experienceId);
 
-        this.clientDelegates.get('internalError')(e);
-        this.configCache.delete(experienceId);
         this.setMode(DeliveryPipe.POLL_MODE);
-        this.doCreate(cachedConfig, true);
+        this.clientDelegates.get('internalError')(e);
+
+        if (typeof cachedConfig !== 'undefined') {
+            this.configCache.delete(experienceId);
+            this.doCreate(cachedConfig, true);
+        } else {
+            this.doGetExperience(experienceId);
+        }
     }
 }
