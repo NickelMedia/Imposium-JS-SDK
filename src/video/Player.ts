@@ -1,4 +1,4 @@
-import API from '../client/http/API';
+import axios, {AxiosRequestConfig, AxiosResponse, AxiosError} from 'axios';
 import VideoPlayer from './VideoPlayer';
 import Client, {IExperience} from '../client/Client';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
@@ -6,6 +6,7 @@ import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import {PlayerConfigurationError} from '../scaffolding/Exceptions';
 
 import {
+    calculateMbps,
     calculateAverageMbps,
     inRangeNumeric,
     prepConfig,
@@ -44,6 +45,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
     private static readonly STREAM_TYPE = settings.streamType;
     private static readonly BANDWIDTH_SAMPLES: number = settings.bandwidthSamples;
+    private static readonly TEST_IMAGE: string = settings.testImage;
 
     private static readonly bandwidthRatings: any = {
         LOW: settings.bandwidth.low,
@@ -404,6 +406,27 @@ export default class ImposiumPlayer extends VideoPlayer {
     }
 
     /*
+        Take a sample in mbs of the users bandwidth
+     */
+    private sampleBandwidth = (): Promise<number> => {
+        const url: string = `${ImposiumPlayer.TEST_IMAGE}?bust=${Math.random()}`;
+        const config: AxiosRequestConfig = {responseType: 'blob', timeout: 1500};
+
+        return new Promise((resolve, reject) => {
+            const startTime: number = new Date().getTime();
+
+            axios.get(url, config)
+            .then((res: AxiosResponse) => {
+                const {data: {size}} = res;
+                resolve(calculateMbps(startTime, size));
+            })
+            .catch((e: AxiosError) => {
+                reject(e);
+            });
+        });
+    }
+
+    /*
         Adapt quality manually if HLS cannot be supported
      */
     private checkBandwidth = (videos: any): Promise<string> => {
@@ -412,7 +435,7 @@ export default class ImposiumPlayer extends VideoPlayer {
         const mp4FormatList: string[] = Object.keys(videos).filter((f) => f !== 'm3u8');
 
         for (let i = 0; i < BANDWIDTH_SAMPLES; i++) {
-            testPromises.push(API.checkBandwidth());
+            testPromises.push(this.sampleBandwidth());
         }
 
         return new Promise((resolve, reject) => {

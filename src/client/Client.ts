@@ -1,7 +1,7 @@
 import API from './http/API';
-import Analytics from '../analytics/Analytics';
 import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
+import GoogleAnalytics from '../scaffolding/GoogleAnalytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import DeliveryPipe, {DelegateMap, IDeliveryPipeConfig} from './DeliveryPipe';
 import {IEmitData} from './tcp/MessageConsumer';
@@ -106,7 +106,7 @@ export default class Client {
     private emits: IClientEmits = settings.clientEmits;
     private gaProperty: string = '';
     private playerIsFallback: boolean = false;
-    
+
     /*
         Initialize Imposium client
      */
@@ -120,7 +120,7 @@ export default class Client {
     public setup = (config: IClientConfig): void => {
         const {defaultConfig} = settings;
         const prevConfig = this.clientConfig || settings.defaultConfig;
-        let clientDelegates: DelegateMap = new Map();
+        const clientDelegates: DelegateMap = new Map();
         let api: API = null;
 
         try {
@@ -141,7 +141,8 @@ export default class Client {
 
             api = new API(
                 this.clientConfig.accessToken,
-                this.clientConfig.environment
+                this.clientConfig.environment,
+                this.clientConfig.storyId
             );
 
             clientDelegates.set('experienceCreated', (e: IExperience, r: boolean) => this.experienceCreated(e, r));
@@ -152,23 +153,19 @@ export default class Client {
             this.deliveryPipe = new DeliveryPipe({
                 api,
                 clientDelegates,
-                storyId: this.clientConfig.storyId,
                 environment: this.clientConfig.environment,
-
             });
 
-            api.getTrackingId(this.clientConfig.storyId)
+            api.getTrackingId()
             .then((story: any) => {
                 const {gaTrackingId: property} = story;
 
                 if (typeof property === 'string' && property.length > 0) {
-                    this.gaProperty = property;
+                    GoogleAnalytics.pullClientId();
 
-                    if (this.player) {
+                    if (typeof this.player !== 'undefined') {
                         this.player.setGaProperty(property);
                     }
-
-                    Analytics.setup();
                 }
             })
             .catch((e) => {
@@ -311,17 +308,16 @@ export default class Client {
                 }
 
                 // If rendering immediately, notify user the input was ingested
-                if (render) {    
+                if (render) {
                     this.gotMessage({id: undefined, status: adding});
                 }
 
-                this.deliveryPipe.createPrestep(inventory, render, UPLOAD_PROGRESS)
+                this.deliveryPipe.createPrestep(inventory, render, UPLOAD_PROGRESS);
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
         }
     }
-
 
     /*
         Update render history state, prevents storing duplicates
@@ -395,7 +391,7 @@ export default class Client {
     }
 
     /*
-        Handler for handling async internal errors 
+        Handler for handling async internal errors
      */
     private internalError = (e: any): void => {
         const {clientConfig: {storyId}, eventDelegateRefs: {ERROR}} = this;

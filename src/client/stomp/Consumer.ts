@@ -1,6 +1,6 @@
 import API from '../http/API';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
-import Stomp, {IStompConfig} from './Stomp';
+import Stomp, {IStompConfig} from './Client';
 import {IExperience, IExperienceOutput, IClientEvents} from '../Client';
 import {DelegateMap} from '../DeliveryPipe';
 import {Frame} from 'webstomp-client';

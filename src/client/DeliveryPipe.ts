@@ -1,5 +1,5 @@
 import API from './http/API';
-import MessageConsumer, {IEmitData} from './tcp/MessageConsumer';
+import MessageConsumer, {IEmitData} from './stomp/Consumer';
 import {IExperience} from './Client';
 import {generateUUID} from '../scaffolding/Helpers';
 import {SocketError, HTTPError, ModerationError} from '../scaffolding/Exceptions';
@@ -11,12 +11,10 @@ export type DelegateMap = Map<string, VoidDelegate>;
 export interface IDeliveryPipeConfig {
     api: API;
     clientDelegates: DelegateMap;
-    storyId: string;
     environment: string;
 }
 
 export interface ICreateConfig {
-    storyId: string;
     inventory: any;
     render: boolean;
     uuid: string;
@@ -29,7 +27,6 @@ export default class DeliveryPipe {
     private static readonly POLL_MODE: string = 'poll';
 
     private mode: string = DeliveryPipe.WS_MODE;
-    private storyId: string = '';
     private environment: string = '';
     private shortPollTimeout: number = -1;
     private api: API = null;
@@ -40,14 +37,15 @@ export default class DeliveryPipe {
     constructor(c: IDeliveryPipeConfig) {
         this.api = c.api;
         this.clientDelegates = c.clientDelegates;
-        this.storyId = c.storyId;
         this.environment = c.environment;
     }
 
     /*
         Used to override the default WS mode if required
      */
-    public setMode = (mode: string): void => { this.mode = mode; }
+    public setMode = (mode: string): void => {
+        this.mode = mode;
+    }
 
     /*
         Fetch an Experience from the Imposium API, kill poll on finished render if in poll mode
@@ -76,7 +74,7 @@ export default class DeliveryPipe {
         })
         .catch((e: AxiosError) => {
             const httpError = new HTTPError('httpFailure', experienceId, e);
-            this.clientDelegates.get('internalError')(httpError)
+            this.clientDelegates.get('internalError')(httpError);
         });
     }
 
@@ -84,9 +82,8 @@ export default class DeliveryPipe {
         Run config for create call through delivery gateways
      */
     public createPrestep = (inventory: any, render: boolean, uploadProgress: (n: number) => any): void => {
-        const {storyId} = this;
         const uuid: string = generateUUID();
-        const config: ICreateConfig = {storyId, inventory, render, uuid, uploadProgress};
+        const config: ICreateConfig = {inventory, render, uuid, uploadProgress};
 
         clearTimeout(this.shortPollTimeout);
 
@@ -114,7 +111,7 @@ export default class DeliveryPipe {
         if (this.mode === DeliveryPipe.WS_MODE) {
             this.startConsumer(experienceId)
             .then(() => {
-                this.api.invokeStream(experienceId)
+                this.api.triggerRender(experienceId)
                 .catch((e: AxiosError) => {
                     const httpError = new HTTPError('httpFailure', experienceId, e);
 
@@ -123,7 +120,7 @@ export default class DeliveryPipe {
                 });
             });
         } else {
-            this.api.invokeStream(experienceId)
+            this.api.triggerRender(experienceId)
             .then(() => {
                 this.doGetExperience(experienceId);
             })
@@ -141,7 +138,7 @@ export default class DeliveryPipe {
         if (this.mode === DeliveryPipe.WS_MODE) {
             this.startConsumer(experienceId);
         } else {
-            this.shortPollTimeout = <any>setTimeout(
+            this.shortPollTimeout = window.setTimeout(
                 () => this.doGetExperience(experienceId),
                 DeliveryPipe.POLL_INTERVAL
             );
@@ -152,9 +149,9 @@ export default class DeliveryPipe {
         POST data to Imposium server, create experience record, defer and or poll on success
      */
     private doCreate = (config: ICreateConfig, startShortPoll: boolean = false, retryOnCollision: number = 0): void => {
-        const {storyId, inventory, render, uuid, uploadProgress} = config;
+        const {inventory, render, uuid, uploadProgress} = config;
 
-        this.api.postExperience(storyId, inventory, render, uuid, uploadProgress)
+        this.api.postExperience(inventory, render, uuid, uploadProgress)
         .then((e: IExperience) => {
             if (startShortPoll) {
                 this.doGetExperience(e.id);
@@ -206,7 +203,9 @@ export default class DeliveryPipe {
      */
     private killConsumer = (): Promise<void> => {
         return new Promise((resolve) => {
-            if (!this.consumer) resolve();
+            if (!this.consumer) {
+                resolve();
+            }
 
             this.consumer.kill()
             .then(() => {

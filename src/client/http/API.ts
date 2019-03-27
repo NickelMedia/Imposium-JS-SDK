@@ -1,13 +1,10 @@
 'use strict';
 
-import axios, {AxiosInstance, AxiosResponse, AxiosRequestConfig, AxiosError} from 'axios';
 import * as jwt_decode from 'jwt-decode';
 import axiosRetry = require('axios-retry');
-
-import Analytics from '../../analytics/Analytics';
+import axios, {AxiosInstance, AxiosResponse, AxiosRequestConfig, AxiosError} from 'axios';
 import {IExperience} from '../Client';
-
-import {inventoryToFormData, calculateMbps} from '../../scaffolding/Helpers';
+import {inventoryToFormData} from '../../scaffolding/Helpers';
 
 const {...settings} = require('../../conf/settings.json').api;
 
@@ -16,81 +13,70 @@ export interface ITrackingResponse {
 }
 
 export default class API {
-
-    /*
-        Wait async for GET-ing GA tracking pixel, resolve on success
-     */
-    public static getGATrackingPixel = (url: string): Promise<void> => {
-        const {get} = axios;
-
-        return new Promise((resolve, reject) => {
-            get(url)
-            .then((res: AxiosResponse) => {
-                resolve();
-            })
-            .catch((e: AxiosError) => {
-                reject(e);
-            });
-        });
-    }
-
-    /*
-        Check users bandwidth
-     */
-    public static checkBandwidth = (): Promise<number> => {
-        const {get} = axios;
-        const url: string = `${API.testImage}?bust=${Math.random()}`;
-        const config: AxiosRequestConfig = {responseType: 'blob', timeout: 1500};
-
-        return new Promise((resolve, reject) => {
-            const startTime: number = new Date().getTime();
-
-            get(url, config)
-            .then((res: AxiosResponse) => {
-                const {data: {size}} = res;
-                resolve(calculateMbps(startTime, size));
-            })
-            .catch((e: AxiosError) => {
-                reject(e);
-            });
-        });
-    }
-
-    private static readonly testImage = settings.img;
     private static readonly retry: any = (axiosRetry as any);
 
     private http: AxiosInstance = null;
+    private storyId: string = '';
 
-    constructor(accessToken: string, env: string) {
-        this.configureClient(accessToken, env);
-    }
-
-    /*
-        Set a new axios client
-     */
-    public configureClient = (accessToken: string, env: string): void => {
+    constructor(accessToken: string, env: string, storyId: string) {
         const {version, currentVersion} = settings;
 
         this.http = axios.create({
-            baseURL : settings[env],
-            headers : {
+            baseURL: settings[env],
+            headers: {
                 ...this.getAuthHeader(accessToken),
                 [version]: currentVersion
             }
         });
 
-        // Adds exponential back off to requests...
+        this.storyId = storyId;
+
+        // Adds exponential back off to requests
         API.retry(this.http, {retryDelay: API.retry.exponentialDelay});
     }
 
     /*
         Wait async for story ga tracking id
      */
-    public getTrackingId = (storyId: string): Promise<ITrackingResponse> => {
-        const {http: {get}} = this;
+    public getTrackingId = (): Promise<ITrackingResponse> => {
+        return new Promise((resolve, reject) => {
+            this.http.get(`/story/${this.storyId}/ga`)
+            .then((res: AxiosResponse) => {
+                resolve(res.data);
+            })
+            .catch((e: AxiosError) => {
+                reject(e);
+            });
+        });
+    }
+
+    /*
+        GET - resolve experience data
+     */
+    public getExperience = (experienceId: string): Promise<any> => {
+        return new Promise((resolve, reject) => {
+            this.http.get(`/experience/${experienceId}`)
+            .then((res) => {
+                resolve(res.data);
+            })
+            .catch((e: AxiosError) => {
+                reject(e);
+            });
+        });
+    }
+
+    /*
+        POST - create a new experience record and resolve fresh experience data
+     */
+    public postExperience = (inventory: any, render: boolean, uuid: string, progress: (p: number) => any = null): Promise<IExperience> => {
+        const route: string  = (render) ? '/experience/render' : '/experience';
+        const formData: FormData = inventoryToFormData(this.storyId, inventory);
+        const config: AxiosRequestConfig = {onUploadProgress: (e) => this.uploadProgress(e, progress)};
+
+        formData.append('id', uuid);
 
         return new Promise((resolve, reject) => {
-            get(`/story/${storyId}/ga`)
+            this.http.post(route, formData, config)
             .then((res: AxiosResponse) => {
                 const {data} = res;
                 resolve(data);
@@ -102,42 +88,9 @@ export default class API {
     }
 
     /*
-        Wait async for GET /experience, resolve response data
+        POST - triggers a render job for an experience if deferred
      */
-    public getExperience = (experienceId: string): Promise<any> => {
-        const {http: {get}} = this;
-
-        return new Promise((resolve, reject) => {
-            get(`/experience/${experienceId}`)
-            .then((res) => {
-                const {data} = res;
-                resolve(data);
-            })
-            .catch((e: AxiosError) => {
-                reject(e);
-            });
-        });
-    }
-
-    /*
-        Wait async for POST /experience, resolve response data
-     */
-    public postExperience = (storyId: string, inventory: any, render: boolean, uuid: string, progress: (p: number) => any = null): Promise<IExperience> => {
-        const {doPostExperience, uploadProgress} = this;
-        const formData = inventoryToFormData(storyId, inventory);
-        const config: AxiosRequestConfig = {
-            onUploadProgress: (e) => uploadProgress(e, progress)
-        };
-
-        formData.append('id', uuid);
-
-        return doPostExperience(render, formData, config);
-    }
-
-    /*
-        Wait async for POST /experience/{expId}/trigger-event, resolve on success
-     */
-    public invokeStream = (experienceId: string): Promise<string> => {
+    public triggerRender = (experienceId: string): Promise<string> => {
         const {http: {post}} = this;
 
         return new Promise((resolve, reject) => {
@@ -164,25 +117,6 @@ export default class API {
         } catch (e) {
             return {[hmac] : accessToken};
         }
-    }
-
-    /*
-        Make create experience POST request and resolve
-     */
-    private doPostExperience = (render: boolean, formData: any, config: any): Promise<IExperience> => {
-        const {http: {post}} = this;
-        const route: string  = (render) ? '/experience/render' : '/experience';
-        
-        return new Promise((resolve, reject) => {
-            post(route, formData, config)
-            .then((res: AxiosResponse) => {
-                const {data} = res;
-                resolve(data);
-            })
-            .catch((e: AxiosError) => {
-                reject(e);
-            });
-        });
     }
 
     /*
