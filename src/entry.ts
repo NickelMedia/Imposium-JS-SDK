@@ -22,6 +22,8 @@
     SOFTWARE.
  */
 
+'use strict'
+
 import 'core-js/es6/promise';
 import 'core-js/fn/symbol/key-for';
 import 'core-js/fn/object/assign';

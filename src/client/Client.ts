@@ -4,7 +4,7 @@ import FallbackPlayer from '../video/FallbackPlayer';
 import GoogleAnalytics from '../scaffolding/GoogleAnalytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
 import DeliveryPipe, {DelegateMap, IDeliveryPipeConfig} from './DeliveryPipe';
-import {IEmitData} from './tcp/MessageConsumer';
+import {IEmitData} from './stomp/Consumer';
 
 import {
     ClientConfigurationError,

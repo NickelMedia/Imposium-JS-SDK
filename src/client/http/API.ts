@@ -1,5 +1,3 @@
-'use strict';
-
 import * as jwt_decode from 'jwt-decode';
 import axiosRetry = require('axios-retry');
 import axios, {AxiosInstance, AxiosResponse, AxiosRequestConfig, AxiosError} from 'axios';
