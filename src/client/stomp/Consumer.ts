@@ -1,14 +1,10 @@
 import API from '../http/API';
 import ExceptionPipe from '../../scaffolding/ExceptionPipe';
-import Stomp, {IStompConfig} from './Client';
+import StompWS, {IStompConfig} from './StompWS';
 import {IExperience, IExperienceOutput, IClientEvents} from '../Client';
 import {DelegateMap} from '../DeliveryPipe';
 import {Frame} from 'webstomp-client';
-
-import {
-    ModerationError,
-    SocketError
-} from '../../scaffolding/Exceptions';
+import {ModerationError, SocketError} from '../../scaffolding/Exceptions';
 
 const {...settings} = require('../../conf/settings.json').messageConsumer;
 
@@ -36,14 +32,14 @@ export interface IEmitData {
 
 // Wraps around the Stomp client, providing the message handling
 export default class MessageConsumer {
-    private static readonly MAX_RETRIES: number = settings.maxReconnects;
+    // Server side event names
     private static readonly EMITS: IEmitTypes = settings.emitTypes;
 
-    private retried: number = settings.minReconnects;
+    // Props
     private environment: string = '';
     private experienceId: string = null;
     private deliveryDelegates: DelegateMap = null;
-    private stomp: Stomp = null;
+    private stomp: StompWS = null;
 
     constructor(c: IConsumerConfig) {
         this.experienceId = c.experienceId;
@@ -56,18 +52,16 @@ export default class MessageConsumer {
      */
     public connect = (): Promise<void> => {
         const {experienceId, environment} = this;
-
         const consumerDelegates: DelegateMap = new Map();
-        consumerDelegates.set('route', (f: Frame) => this.validateFrame(f));
-        consumerDelegates.set('error', (e: CloseEvent) => this.stompError(e));
 
-        const stompConfig: IStompConfig = {
+        consumerDelegates.set('validateFrameData', (f: Frame) => this.validateFrameData(f));
+        consumerDelegates.set('socketFailure', (e: CloseEvent) => this.socketFailure(e));
+
+        this.stomp = new StompWS({
             experienceId,
             environment,
             consumerDelegates
-        };
-
-        this.stomp = new Stomp(stompConfig);
+        });
 
         return new Promise((resolve) => {
             this.stomp.init()
@@ -80,25 +74,23 @@ export default class MessageConsumer {
     /*
         Force stop STOMP / ws connections
      */
-    public kill = (): Promise<void> => {
-        const {stomp} = this;
-
+    public destroy = (): Promise<void> => {
         return new Promise((resolve) => {
-            if (stomp) {
-                stomp.disconnectAsync()
-                .then(() => {
-                    resolve();
-                });
-            } else {
-                resolve();
+            if (!this.stomp) {
+                return resolve();
             }
+
+            this.stomp.forceClose()
+            .then(() => {
+                resolve();
+            });
         });
     }
 
     /*
-        Parse & defer incoming frames. Disconnect ws on actComplete.
+        Parse & defer incoming frame data. Disconnect on (event==='actComplete').
      */
-    private validateFrame = (frame: Frame): void => {
+    private validateFrameData = (frame: Frame): void => {
         const {EMITS: {scene, message, complete}} = MessageConsumer;
         const {stomp, experienceId, deliveryDelegates} = this;
         const {body} = frame;
@@ -108,7 +100,7 @@ export default class MessageConsumer {
 
             switch (emitData.event) {
                 case complete:
-                    stomp.disconnectAsync();
+                    this.destroy();
                     break;
                 case message:
                     this.emitMessageData(emitData);
@@ -160,25 +152,13 @@ export default class MessageConsumer {
     }
 
     /*
-        Called on ws[Close] events, retry
-        TO DO: Exponential back-off
+        Called on total socket failures (i.e: max retries exceeded)
      */
-    private stompError = (e: CloseEvent): void => {
-        const {MAX_RETRIES} = MessageConsumer;
-        const {retried, experienceId, deliveryDelegates} = this;
-
-        if (!e.wasClean) {
-            ++this.retried;
-
-            if (retried < MAX_RETRIES) {
-                ExceptionPipe.logWarning('network', 'tcpFailure');
-                this.kill().then(() => { this.connect(); });
-            } else {
-                const socketError = new SocketError('tcpFailure', experienceId, e);
-                
-                this.stomp = null;
-                deliveryDelegates.get('consumerFailure')(experienceId, socketError);
-            }
-        }
+    private socketFailure = (e: CloseEvent): void => {
+        const {experienceId, deliveryDelegates} = this;
+        const socketError = new SocketError('tcpFailure', experienceId, e);
+        
+        this.stomp = null;
+        deliveryDelegates.get('consumerFailure')(experienceId, socketError);
     }
 }

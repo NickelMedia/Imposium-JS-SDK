@@ -207,7 +207,7 @@ export default class DeliveryPipe {
                 resolve();
             }
 
-            this.consumer.kill()
+            this.consumer.destroy()
             .then(() => {
                 this.consumer = null;
                 resolve();

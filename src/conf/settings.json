@@ -38,15 +38,14 @@
         "local": "ws://127.0.0.1:15674/ws",
         "exchange": "/exchange/imposium/",
         "username": "imposium_stomp",
-        "password": "Teehe1ceeMe7Pe1d"
+        "password": "Teehe1ceeMe7Pe1d",
+        "maxRetries": 5
     },
     "sentry": {
         "dsn": "https://17ffe982179e4d60a1df2062198d7ade@sentry.io/1411258",
         "projectName": "imposium-js-sdk"
     },
 	"messageConsumer": {
-		"maxReconnects": 5,
-		"minReconnects": 0,
 		"errorOverTcp": "Server failure.",
 		"videoSceneKey": "VideoScene01",
         "emitTypes": {

@@ -202,15 +202,15 @@ export default class Client {
             const {clientConfig: {storyId}} = this;
 
             try {
-                if (isFunc(callback)) {
-                    if (keyExists(Client.eventNames, eventName)) {
-                        eventDelegateRefs[eventName] = callback;
-                    } else {
-                        throw new ClientConfigurationError('invalidEventName', eventName);
-                    }
-                } else {
+                if (!isFunc(callback)) {
                     throw new ClientConfigurationError('invalidCallbackType', eventName);
                 }
+
+                if (!keyExists(Client.eventNames, eventName)) {
+                    throw new ClientConfigurationError('invalidEventName', eventName);
+                }
+
+                eventDelegateRefs[eventName] = callback;
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
