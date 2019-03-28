@@ -36,7 +36,7 @@ export default class API {
     /*
         Wait async for story ga tracking id
      */
-    public getTrackingId = (): Promise<ITrackingResponse> => {
+    public getGAProperty = (): Promise<ITrackingResponse> => {
         return new Promise((resolve, reject) => {
             this.http.get(`/story/${this.storyId}/ga`)
             .then((res: AxiosResponse) => {
@@ -49,9 +49,9 @@ export default class API {
     }
 
     /*
-        GET - resolve experience data
+        resolve experience data
      */
-    public getExperience = (experienceId: string): Promise<any> => {
+    public get = (experienceId: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             this.http.get(`/experience/${experienceId}`)
             .then((res) => {
@@ -64,9 +64,9 @@ export default class API {
     }
 
     /*
-        POST - create a new experience record and resolve fresh experience data
+        create a new experience record and resolve fresh experience data
      */
-    public postExperience = (inventory: any, render: boolean, uuid: string, progress: (p: number) => any = null): Promise<IExperience> => {
+    public create = (inventory: any, render: boolean, uuid: string, progress: (p: number) => any = null): Promise<IExperience> => {
         const route: string  = (render) ? '/experience/render' : '/experience';
         const formData: FormData = inventoryToFormData(this.storyId, inventory);
         const config: AxiosRequestConfig = {onUploadProgress: (e) => this.uploadProgress(e, progress)};
@@ -76,8 +76,7 @@ export default class API {
         return new Promise((resolve, reject) => {
             this.http.post(route, formData, config)
             .then((res: AxiosResponse) => {
-                const {data} = res;
-                resolve(data);
+                resolve(res.data);
             })
             .catch((e: AxiosError) => {
                 reject(e);
@@ -86,7 +85,7 @@ export default class API {
     }
 
     /*
-        POST - triggers a render job for an experience if deferred
+        triggers a render job for an experience if deferred
      */
     public triggerRender = (experienceId: string): Promise<string> => {
         const {http: {post}} = this;
@@ -111,9 +110,9 @@ export default class API {
 
         try {
             jwt_decode(accessToken);
-            return {[jwt] : accessToken};
+            return {[jwt]: accessToken};
         } catch (e) {
-            return {[hmac] : accessToken};
+            return {[hmac]: accessToken};
         }
     }
 

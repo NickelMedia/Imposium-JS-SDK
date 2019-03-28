@@ -73,7 +73,7 @@ export default class Stomp {
             const {ws: {readyState}} = client;
 
             if (readyState > OPEN_STATE) {
-                resolve();
+                return resolve();
             }
 
             if (subscription) {

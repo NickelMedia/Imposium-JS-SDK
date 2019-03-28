@@ -156,7 +156,7 @@ export default class Client {
                 environment: this.clientConfig.environment,
             });
 
-            api.getTrackingId()
+            api.getGAProperty()
             .then((story: any) => {
                 const {gaTrackingId: property} = story;
 
@@ -179,7 +179,7 @@ export default class Client {
     }
 
     /*
-        Set current video player ref
+        Bind player to client
      */
     public bindPlayer = (player: VideoPlayer, isFallback: boolean = false): void => {
         if (this.clientConfig) {

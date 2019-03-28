@@ -51,7 +51,7 @@ export default class DeliveryPipe {
         Fetch an Experience from the Imposium API, kill poll on finished render if in poll mode
      */
     public doGetExperience = (experienceId: string): void => {
-        this.api.getExperience(experienceId)
+        this.api.get(experienceId)
         .then((exp: IExperience) => {
             const {output, rendering} = exp;
             const hasOutput = (Object.keys(output).length > 0);
@@ -151,7 +151,7 @@ export default class DeliveryPipe {
     private doCreate = (config: ICreateConfig, startShortPoll: boolean = false, retryOnCollision: number = 0): void => {
         const {inventory, render, uuid, uploadProgress} = config;
 
-        this.api.postExperience(inventory, render, uuid, uploadProgress)
+        this.api.create(inventory, render, uuid, uploadProgress)
         .then((e: IExperience) => {
             if (startShortPoll) {
                 this.doGetExperience(e.id);
