@@ -13,7 +13,8 @@
         },
         "clientEmits": {
             "adding": "Adding job to queue...",
-            "added": "Added job to queue..."
+            "added": "Added job to queue...",
+            "finishedPolling": "Video ready for viewing."
         },
         "eventNames": {
             "EXPERIENCE_CREATED": "EXPERIENCE_CREATED",
@@ -33,7 +34,7 @@
 		"jwt": "Authorization"
 	},
     "stomp": {
-        "production": "wss://stomp.prod.k8s.nickel.media/wadsad",
+        "production": "wss://stomp.prod.k8s.nickel.media/ws",
         "staging": "wss://stomp.staging.k8s.nickel.media/ws",
         "local": "ws://127.0.0.1:15674/ws",
         "exchange": "/exchange/imposium/",

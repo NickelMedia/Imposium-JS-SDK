@@ -288,6 +288,7 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	export interface IClientEmits {
 	    adding: string;
 	    added: string;
+	    finishedPolling: string;
 	}
 	export interface IExperience {
 	    id: string;

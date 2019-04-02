@@ -68,7 +68,7 @@ export default class ExceptionPipe {
                 });
             }
 
-            // ExceptionPipe.hub.captureException(e);
+            ExceptionPipe.hub.captureException(e);
         });
     }
 

@@ -51,6 +51,7 @@ export interface IRenderHistory {
 export interface IClientEmits {
     adding: string;
     added: string;
+    finishedPolling: string;
 }
 
 export interface IExperience {
@@ -145,7 +146,7 @@ export default class Client {
                 this.clientConfig.storyId
             );
 
-            clientDelegates.set('experienceCreated', (e: IExperience, r: boolean) => this.experienceCreated(e, r));
+            clientDelegates.set('experienceCreated', (e: IExperience) => this.experienceCreated(e));
             clientDelegates.set('gotExperience', (e: IExperience) => this.gotExperience(e));
             clientDelegates.set('gotMessage', (m: IEmitData) => this.gotMessage(m));
             clientDelegates.set('internalError', (e: any) => this.internalError(e));
@@ -331,7 +332,7 @@ export default class Client {
     /*
         Handler for emitting expereince data on first creation
      */
-    private experienceCreated = (experience: IExperience, invokedRender: boolean): void => {
+    private experienceCreated = (experience: IExperience): void => {
         const {
             emits: {adding, added}, renderHistory: {prevMessage},
             eventDelegateRefs: {EXPERIENCE_CREATED, STATUS_UPDATE}
@@ -343,7 +344,7 @@ export default class Client {
             EXPERIENCE_CREATED(experience);
         }
 
-        if (invokedRender && prevMessage === adding) {
+        if ((prevMessage === adding || !prevMessage)) {
             this.gotMessage({id, status: added});
         }
 
@@ -354,7 +355,12 @@ export default class Client {
         Handler for validating and deferring / emitting experience data after rendering is complete
      */
     private gotExperience = (experience: IExperience): void => {
-        const {player, clientConfig: {storyId}, eventDelegateRefs: {GOT_EXPERIENCE, ERROR}} = this;
+        const {
+            player, clientConfig: {storyId},
+            eventDelegateRefs: {GOT_EXPERIENCE, ERROR},
+            emits: {added, finishedPolling}, renderHistory: {prevMessage}
+        } = this;
+
         const {id, output, rendering, moderation_status} = experience;
 
         try {
@@ -362,6 +368,10 @@ export default class Client {
 
             if (moderation_status === 'rejected') {
                 throw new ModerationError('rejection', id);
+            }
+
+            if (prevMessage === added) {
+                this.gotMessage({id, status: finishedPolling});
             }
 
             if (isFunc(GOT_EXPERIENCE)) {
@@ -373,6 +383,7 @@ export default class Client {
             }
 
             this.updateHistory('prevExperienceId', id);
+            this.updateHistory('prevMessage', '');
         } catch (e) {
             ExceptionPipe.trapError(e, storyId, ERROR);
         }

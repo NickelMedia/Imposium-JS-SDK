@@ -157,7 +157,7 @@ export default class DeliveryPipe {
                 this.doGetExperience(e.id);
             }
 
-            this.clientDelegates.get('experienceCreated')(e, render);
+            this.clientDelegates.get('experienceCreated')(e);
         })
         .catch((e: AxiosError) => {
             if (~e.message.indexOf('400') && retryOnCollision < 3) {
@@ -193,7 +193,10 @@ export default class DeliveryPipe {
                     deliveryDelegates
                 });
 
-                this.consumer.connect().then(() => { resolve(); });
+                this.consumer.connect()
+                .then(() => {
+                    resolve();
+                });
             });
         });
     }
