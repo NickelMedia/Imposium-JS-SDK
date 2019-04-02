@@ -82,9 +82,9 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    private http;
 	    private storyId;
 	    constructor(accessToken: string, env: string, storyId: string);
-	    getTrackingId: () => Promise<ITrackingResponse>;
-	    getExperience: (experienceId: string) => Promise<any>;
-	    postExperience: (inventory: any, render: boolean, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
+	    getGAProperty: () => Promise<ITrackingResponse>;
+	    get: (experienceId: string) => Promise<any>;
+	    create: (inventory: any, render: boolean, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
 	    triggerRender: (experienceId: string) => Promise<string>;
 	    private getAuthHeader;
 	    private uploadProgress;
@@ -118,37 +118,31 @@ declare module 'Imposium-JS-SDK/scaffolding/GoogleAnalytics' {
 }
 declare module 'Imposium-JS-SDK/video/VideoPlayer' {
 	import { IExperience } from 'Imposium-JS-SDK/client/Client';
-	export interface IBaseMediaEvents {
-	    play: () => void;
-	    pause: () => void;
-	    ended: () => void;
-	    loadeddata: () => void;
-	}
 	export default abstract class VideoPlayer {
-	    private static readonly intervalRate;
-	    private static readonly playbackEvents;
+	    private static readonly INTERVAL_RATE;
+	    private static readonly PLAYBACK_EVENTS;
 	    private static readonly GA_EMIT_TYPE;
 	    private static readonly GA_EMIT_CATEGORY;
-	    experienceGenerated: (exp: IExperience) => void;
+	    abstract experienceGenerated: (exp: IExperience) => void;
 	    protected node: HTMLVideoElement;
 	    protected storyId: string;
-	    private readonly baseMediaEvents;
+	    private readonly playbackHandlers;
+	    private queuedGACalls;
 	    private gaProperty;
 	    private experienceId;
 	    private prevPlaybackEvent;
 	    private playbackInterval;
-	    private queuedGACalls;
 	    constructor(node: HTMLVideoElement);
 	    remove: () => void;
 	    setGaProperty: (gaProperty: string) => void;
 	    setStoryId: (storyId: string) => void;
 	    protected setExperienceId: (experienceId: string) => void;
-	    private emitGAEvent;
+	    private emitGAEventAction;
 	    private onLoad;
 	    private onPlay;
 	    private onPause;
+	    private onEnded;
 	    private checkPlayback;
-	    private onEnd;
 	}
 
 }
@@ -161,28 +155,30 @@ declare module 'Imposium-JS-SDK/video/FallbackPlayer' {
 	}
 
 }
-declare module 'Imposium-JS-SDK/client/stomp/Client' {
+declare module 'Imposium-JS-SDK/client/stomp/StompWS' {
 	import { DelegateMap } from 'Imposium-JS-SDK/client/DeliveryPipe';
 	export interface IStompConfig {
 	    experienceId: string;
-	    environment: string;
 	    consumerDelegates: DelegateMap;
 	}
-	export default class Stomp {
+	export default class StompWS {
 	    private static readonly EXCHANGE;
 	    private static readonly USERNAME;
 	    private static readonly PASSWORD;
 	    private static readonly OPEN_STATE;
+	    private static readonly MAX_RETRIES;
 	    private static readonly DEBUG_OFF;
 	    private experienceId;
 	    private consumerDelegates;
 	    private socket;
 	    private client;
 	    private subscription;
+	    private currRetry;
 	    constructor(c: IStompConfig);
-	    init: () => Promise<void>;
+	    init: (environment: string) => Promise<void>;
+	    forceClose: () => Promise<void>;
 	    private doSubscribe;
-	    disconnectAsync: () => Promise<void>;
+	    private onError;
 	}
 
 }
@@ -209,20 +205,18 @@ declare module 'Imposium-JS-SDK/client/stomp/Consumer' {
 	    output?: IExperienceOutput;
 	}
 	export default class MessageConsumer {
-	    private static readonly MAX_RETRIES;
 	    private static readonly EMITS;
-	    private retried;
 	    private environment;
 	    private experienceId;
 	    private deliveryDelegates;
 	    private stomp;
 	    constructor(c: IConsumerConfig);
 	    connect: () => Promise<void>;
-	    kill: () => Promise<void>;
-	    private validateFrame;
+	    destroy: () => Promise<void>;
+	    private validateFrameData;
 	    private emitMessageData;
 	    private emitSceneData;
-	    private stompError;
+	    private socketFailure;
 	}
 
 }
@@ -421,9 +415,10 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	}
 
 }
-declare module 'Imposium-JS-SDK/entry' {
+declare module 'Imposium-JS-SDK/Entry' {
 	import 'core-js/es6/promise';
 	import 'core-js/fn/symbol/key-for';
+	import 'core-js/fn/map/of';
 	import 'core-js/fn/object/assign';
 	import Client from 'Imposium-JS-SDK/client/Client';
 	import Player from 'Imposium-JS-SDK/video/Player';

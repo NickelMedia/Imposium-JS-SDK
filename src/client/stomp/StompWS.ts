@@ -6,7 +6,6 @@ const {...settings} = require('../../conf/settings.json').stomp;
 
 export interface IStompConfig {
     experienceId: string;
-    environment: string;
     consumerDelegates: DelegateMap;
 }
 
@@ -31,7 +30,6 @@ export default class StompWS {
     private currRetry: number = 0;
 
     constructor(c: IStompConfig) {
-        this.socket = new WebSocket(settings[c.environment]);
         this.experienceId = c.experienceId;
         this.consumerDelegates = c.consumerDelegates;
     }
@@ -39,10 +37,9 @@ export default class StompWS {
     /*
         Initializes STOMP connection & tooling
      */
-    public init = (): Promise<void> => {
-        const {socket} = this;
-
-        this.client = WebStomp.over(socket);
+    public init = (environment: string): Promise<void> => {
+        this.socket = new WebSocket(settings[environment]);
+        this.client = WebStomp.over(this.socket);
         this.client.debug = StompWS.DEBUG_OFF;
 
         return new Promise((resolve) => {
@@ -50,7 +47,7 @@ export default class StompWS {
                 StompWS.USERNAME,
                 StompWS.PASSWORD,
                 () => this.doSubscribe(resolve),
-                this.onError
+                (evt: CloseEvent) => this.onError(environment, evt)
             );
         });
     }
@@ -74,6 +71,7 @@ export default class StompWS {
             }
 
             client.disconnect(() => {
+                this.socket = null;
                 resolve();
             });
         });
@@ -98,7 +96,7 @@ export default class StompWS {
     /*
         Fires on WS close events due to errors
      */
-    private onError = (evt: CloseEvent): void => {
+    private onError = (environment: string, evt: CloseEvent): void => {
         const {currRetry, consumerDelegates} = this;
 
         if (currRetry < StompWS.MAX_RETRIES) {
@@ -108,7 +106,7 @@ export default class StompWS {
 
             this.forceClose()
             .then(() => {
-                this.init();
+                this.init(environment);
             });
         } else {
             consumerDelegates.get('socketFailure')(evt);

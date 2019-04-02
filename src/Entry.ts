@@ -26,6 +26,7 @@
 
 import 'core-js/es6/promise';
 import 'core-js/fn/symbol/key-for';
+import 'core-js/fn/map/of';
 import 'core-js/fn/object/assign';
 
 import ExceptionPipe from './scaffolding/ExceptionPipe';

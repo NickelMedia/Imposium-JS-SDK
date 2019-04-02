@@ -59,12 +59,11 @@ export default class MessageConsumer {
 
         this.stomp = new StompWS({
             experienceId,
-            environment,
             consumerDelegates
         });
 
         return new Promise((resolve) => {
-            this.stomp.init()
+            this.stomp.init(environment)
             .then(() => {
                 resolve();
             });

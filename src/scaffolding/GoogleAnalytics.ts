@@ -80,8 +80,8 @@ export default class GoogleAnalytics {
         };
 
         for (const paramName of Object.keys(event)) {
-            const seperator: string = (pixelUrl === GoogleAnalytics.BASE_URL) ? '?' : '&';
-            pixelUrl += `${seperator}${paramName}=${encodeURIComponent(event[paramName])}`;
+            const separator: string = (pixelUrl === GoogleAnalytics.BASE_URL) ? '?' : '&';
+            pixelUrl += `${separator}${paramName}=${encodeURIComponent(event[paramName])}`;
         }
 
         axios.get(pixelUrl)
