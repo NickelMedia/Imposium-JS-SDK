@@ -22,13 +22,13 @@ export interface ICreateConfig {
 }
 
 export default class DeliveryPipe {
-    private static readonly POLL_INTERVAL: number = 1000;
     private static readonly WS_MODE: string = 'ws';
     private static readonly POLL_MODE: string = 'poll';
 
-    private mode: string = DeliveryPipe.WS_MODE;
+    private mode: string = '';
     private environment: string = '';
     private shortPollTimeout: number = -1;
+    private pollInterval: number = 5000;
     private api: API = null;
     private consumer: MessageConsumer = null;
     private clientDelegates: DelegateMap = null;
@@ -48,16 +48,23 @@ export default class DeliveryPipe {
     }
 
     /*
+        Set poll interval time in seconds
+     */
+    public setTimeoutInterval = (interval: number): void => {
+        this.pollInterval = interval;
+    }
+
+    /*
         Fetch an Experience from the Imposium API, kill poll on finished render if in poll mode
      */
     public doGetExperience = (experienceId: string): void => {
         this.api.get(experienceId)
         .then((exp: IExperience) => {
             const {output, rendering} = exp;
-            const hasOutput = (Object.keys(output).length > 0);
+            const hasOutput = (typeof output !== 'undefined' && Object.keys(output).length > 0);
 
             // Rendered resource was requested
-            if (hasOutput && !rendering) {
+            if (hasOutput) {
                 clearTimeout(this.shortPollTimeout);
                 this.clientDelegates.get('gotExperience')(exp);
             }
@@ -138,9 +145,11 @@ export default class DeliveryPipe {
         if (this.mode === DeliveryPipe.WS_MODE) {
             this.startConsumer(experienceId);
         } else {
+            clearTimeout(this.shortPollTimeout);
+
             this.shortPollTimeout = window.setTimeout(
                 () => this.doGetExperience(experienceId),
-                DeliveryPipe.POLL_INTERVAL
+                this.pollInterval
             );
         }
     }

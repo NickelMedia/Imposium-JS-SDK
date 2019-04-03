@@ -41,6 +41,8 @@ export interface IClientConfig {
     actId: string;
     sceneId: string;
     environment: string;
+    deliveryMode: string;
+    pollRate: number;
 }
 
 export interface IRenderHistory {
@@ -156,6 +158,9 @@ export default class Client {
                 clientDelegates,
                 environment: this.clientConfig.environment,
             });
+
+            this.deliveryPipe.setMode(this.clientConfig.deliveryMode);
+            this.deliveryPipe.setTimeoutInterval(this.clientConfig.pollRate);
 
             api.getGAProperty()
             .then((story: any) => {
@@ -364,8 +369,6 @@ export default class Client {
         const {id, output, rendering, moderation_status} = experience;
 
         try {
-            const hasOutput: boolean = (Object.keys(output).length > 0);
-
             if (moderation_status === 'rejected') {
                 throw new ModerationError('rejection', id);
             }

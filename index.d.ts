@@ -236,18 +236,19 @@ declare module 'Imposium-JS-SDK/client/DeliveryPipe' {
 	    uploadProgress: (n: number) => any;
 	}
 	export default class DeliveryPipe {
-	    private static readonly POLL_INTERVAL;
 	    private static readonly WS_MODE;
 	    private static readonly POLL_MODE;
 	    private mode;
 	    private environment;
 	    private shortPollTimeout;
+	    private pollInterval;
 	    private api;
 	    private consumer;
 	    private clientDelegates;
 	    private configCache;
 	    constructor(c: IDeliveryPipeConfig);
 	    setMode: (mode: string) => void;
+	    setTimeoutInterval: (interval: number) => void;
 	    doGetExperience: (experienceId: string) => void;
 	    createPrestep: (inventory: any, render: boolean, uploadProgress: (n: number) => any) => void;
 	    private startRender;
@@ -280,6 +281,8 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    actId: string;
 	    sceneId: string;
 	    environment: string;
+	    deliveryMode: string;
+	    pollRate: number;
 	}
 	export interface IRenderHistory {
 	    prevExperienceId: string;
