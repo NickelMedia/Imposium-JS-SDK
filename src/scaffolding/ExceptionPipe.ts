@@ -75,11 +75,10 @@ export default class ExceptionPipe {
     private static sentryClient: BrowserClient = new BrowserClient({
         dsn: sentry.dsn,
         beforeSend: (e: SentryEvent) => ExceptionPipe.cleanDucktype(e),
-        release: `${ExceptionPipe.projectName}@${version}`
+        release: `${sentry.projectName}@${version}`
     });
 
     private static hub: Hub = new Hub(ExceptionPipe.sentryClient);
-    private static projectName: string = sentry.projectName;
 
     /*
         Clean up sentry payloads before capturing exceptions

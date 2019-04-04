@@ -55,7 +55,6 @@ declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
 	    static trapError: (e: any, storyId: string, callback?: (e: ImposiumError) => () => any) => void;
 	    private static sentryClient;
 	    private static hub;
-	    private static projectName;
 	    private static cleanDucktype;
 	}
 
