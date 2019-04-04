@@ -330,11 +330,11 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	export default class Client {
 	    static eventNames: IClientEvents;
 	    clientConfig: IClientConfig;
-	    private eventDelegateRefs;
 	    private deliveryPipe;
 	    private player;
 	    private renderHistory;
 	    private emits;
+	    private eventDelegateRefs;
 	    private playerIsFallback;
 	    constructor(config: IClientConfig);
 	    setup: (config: IClientConfig) => void;
