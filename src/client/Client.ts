@@ -102,11 +102,11 @@ export default class Client {
 
     public static eventNames: IClientEvents = settings.eventNames;
     public clientConfig: IClientConfig = undefined;
-    private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.eventNames);
-    private deliveryPipe: DeliveryPipe = null;
+    private deliveryPipe: DeliveryPipe = undefined;
     private player: VideoPlayer = undefined;
     private renderHistory: IRenderHistory = settings.emptyHistory;
     private emits: IClientEmits = settings.clientEmits;
+    private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.eventNames);
     private playerIsFallback: boolean = false;
 
     /*
