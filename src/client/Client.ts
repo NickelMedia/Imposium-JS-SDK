@@ -107,7 +107,6 @@ export default class Client {
     private player: VideoPlayer = null;
     private renderHistory: IRenderHistory = settings.emptyHistory;
     private emits: IClientEmits = settings.clientEmits;
-    private gaProperty: string = '';
     private playerIsFallback: boolean = false;
 
     /*

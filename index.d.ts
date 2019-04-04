@@ -335,7 +335,6 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    private player;
 	    private renderHistory;
 	    private emits;
-	    private gaProperty;
 	    private playerIsFallback;
 	    constructor(config: IClientConfig);
 	    setup: (config: IClientConfig) => void;
