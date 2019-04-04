@@ -104,7 +104,7 @@ export default class Client {
     public clientConfig: IClientConfig = undefined;
     private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.eventNames);
     private deliveryPipe: DeliveryPipe = null;
-    private player: VideoPlayer = null;
+    private player: VideoPlayer = undefined;
     private renderHistory: IRenderHistory = settings.emptyHistory;
     private emits: IClientEmits = settings.clientEmits;
     private playerIsFallback: boolean = false;
