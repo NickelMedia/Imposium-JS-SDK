@@ -6,8 +6,6 @@ import {version} from './Version';
 const {...warnings} = require('../conf/warnings.json');
 const {sentry} = require('../conf/settings.json');
 
-console.log(sentry.projectName)
-
 export default class ExceptionPipe {
     /*
         Log out warnings
