@@ -1,74 +1,67 @@
-import Queue from '../scaffolding/Queue';
-import Analytics from '../analytics/Analytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
+import GoogleAnalytics, {IGAProtocol} from '../scaffolding/GoogleAnalytics';
 import {IExperience} from '../client/Client';
-
 import {PlayerConfigurationError} from '../scaffolding/Exceptions';
 
 const settings = require('../conf/settings.json').videoPlayer;
 
-export interface IBaseMediaEvents {
-    play: () => void;
-    pause: () => void;
-    ended: () => void;
-    loadStart: () => void;
-}
+type BaseMediaEvent = () => void;
+type BaseMediaEvents = Map<string, BaseMediaEvent>;
 
 export default abstract class VideoPlayer {
+    private static readonly INTERVAL_RATE: number = settings.checkPlaybackRateMs;
+    private static readonly PLAYBACK_EVENTS: number[] = settings.playbackEvents;
+    private static readonly GA_EMIT_TYPE: string = 'event';
+    private static readonly GA_EMIT_CATEGORY: string = 'video_player';
 
-    // Playback event constants
-    private static readonly intervalRate: number = settings.checkPlaybackRateMs;
-    private static readonly playbackEvents: number[] = settings.playbackEvents;
-
-    // Delegate placeholder
-    public experienceGenerated: (exp: IExperience) => void;
+    // Called when client gets experience data
+    public abstract experienceGenerated: (exp: IExperience) => void;
 
     // HTML Video element ref, active storyId on client
     protected node: HTMLVideoElement = null;
     protected storyId: string = '';
 
-    private readonly baseMediaEvents: IBaseMediaEvents = {
-        play: () => this.onPlay(),
-        pause: () => this.onPause(),
-        ended: () => this.onEnd(),
-        loadStart: () => this.onLoad()
-    };
+    // Base callbacks required in order to collect / measue. Add by media event name
+    private readonly playbackHandlers: BaseMediaEvents = new Map(
+        [
+            ['play', () => this.onPlay()],
+            ['pause', () => this.onPause()],
+            ['ended', () => this.onEnded()],
+            ['loaded', () => this.onLoad()],
+        ],
+    );
 
+    private queuedGACalls: IGAProtocol[] = [];
     private gaProperty: string = '';
     private experienceId: string = '';
     private prevPlaybackEvent: number = 0;
     private playbackInterval: number = -1;
-    private deferredGaCalls: Queue = new Queue();
 
     /*
-        Basis of Imposum/Fallback video player objects
+        Basis of Imposum / Fallback video player objects
      */
     constructor(node: HTMLVideoElement) {
         try {
-            if (node instanceof HTMLVideoElement) {
-                const {baseMediaEvents, storyId} = this;
-
-                this.node = node;
-
-                for (const key of Object.keys(baseMediaEvents)) {
-                    this.node.addEventListener(key, this.baseMediaEvents[key]);
-                }
-            } else {
+            if (!(node instanceof HTMLVideoElement)) {
                 throw new PlayerConfigurationError('invalidPlayerRef', null);
             }
+
+            for (const [key, event] of this.playbackHandlers.entries()) {
+                node.addEventListener(key, event);
+            }
+
+            this.node = node;
         } catch (e) {
-            ExceptionPipe.trapError(e, '');
+            ExceptionPipe.trapError(e, this.storyId);
         }
     }
 
     /*
-        Remove set events set on the supplied player reference
+        Remove any callbacks bound to video player events
      */
     public remove = (): void => {
-        const {baseMediaEvents, node} = this;
-
-        for (const key of Object.keys(baseMediaEvents)) {
-            node.removeEventListener(key, baseMediaEvents[key]);
+        for (const [key, event] of this.playbackHandlers.entries()) {
+            this.node.removeEventListener(key, event);
         }
     }
 
@@ -76,18 +69,15 @@ export default abstract class VideoPlayer {
         Set the current GA property and flush the pre mature GA calls
      */
     public setGaProperty = (gaProperty: string): void => {
-        const {deferredGaCalls} = this;
-
-        // Flush out pending requests if the user changes a story
-        if (this.gaProperty && this.gaProperty !== gaProperty && !deferredGaCalls.isEmpty()) {
-            deferredGaCalls.reset();
+        // Clear out queued GA requests if the user changes a story
+        if (this.gaProperty && this.gaProperty !== gaProperty && this.queuedGACalls.length > 0) {
+            this.queuedGACalls = [];
         }
 
         this.gaProperty = gaProperty;
 
-        while (deferredGaCalls.peek()) {
-            Analytics.send(deferredGaCalls.peek());
-            deferredGaCalls.pop();
+        while (this.queuedGACalls.length) {
+            GoogleAnalytics.send(this.queuedGACalls.pop());
         }
     }
 
@@ -106,24 +96,25 @@ export default abstract class VideoPlayer {
     }
 
     /*
-        Record a video "view" event when the player loads metadata successfully
+        Emit or queue a GA event call,
+     */
+    private emitGAEventAction = (ea: string): void => {
+        const {GA_EMIT_TYPE: t, GA_EMIT_CATEGORY: ec} = VideoPlayer;
+        const {gaProperty: tid, experienceId: el} = this;
+        const call: IGAProtocol = {t, tid, ec, el, ea};
+
+        if (this.gaProperty) {
+            GoogleAnalytics.send(call);
+        } else {
+            this.queuedGACalls.push(call);
+        }
+    }
+
+    /*
+        Record loaded event
      */
     private onLoad = (): void => {
-        const {gaProperty, experienceId, deferredGaCalls} = this;
-
-        const call = {
-            prp: gaProperty,
-            t: 'event',
-            ec: 'video_player',
-            ea: 'view',
-            el: experienceId
-        };
-
-        if (gaProperty) {
-            Analytics.send(call);
-        } else {
-            deferredGaCalls.enqueue(call);
-        }
+        this.emitGAEventAction('loaded');
     }
 
     /*
@@ -131,120 +122,55 @@ export default abstract class VideoPlayer {
         analytics calls
      */
     private onPlay = (): void => {
-        const {gaProperty, experienceId, deferredGaCalls} = this;
         const {setInterval} = window;
 
-        const call = {
-            prp: gaProperty,
-            t: 'event',
-            ec: 'video_player',
-            ea: 'play',
-            el: experienceId
-        };
-
         clearInterval(this.playbackInterval);
-
         this.playbackInterval = setInterval(
             () => this.checkPlayback(),
-            VideoPlayer.intervalRate
+            VideoPlayer.INTERVAL_RATE
         );
 
-        if (gaProperty) {
-            Analytics.send(call);
-        } else {
-            deferredGaCalls.enqueue(call);
-        }
+        this.emitGAEventAction('play');
     }
 
     /*
-        Clear the interval on pause to ensure no false analytics calls occur
+        Clear the interval on pause to prevent false positives
      */
     private onPause = (): void => {
-        const {gaProperty, experienceId, deferredGaCalls, playbackInterval, node} = this;
+        clearInterval(this.playbackInterval);
 
-        const call = {
-            prp: gaProperty,
-            t: 'event',
-            ec: 'video_player',
-            ea: 'pause',
-            el: experienceId
-        };
-
-        clearInterval(playbackInterval);
-
-        if (node.duration !== node.currentTime) {
-            if (gaProperty) {
-                Analytics.send(call);
-            } else {
-                deferredGaCalls.enqueue(call);
-            }
+        if (this.node.duration !== this.node.currentTime) {
+            this.emitGAEventAction('pause');
         }
     }
 
     /*
-        Logic that checks to see what playback event should be fire based
-        on the current playback progress, clears the interval if the node
-        is / becomes un set to prevent bad calls
+        Clean up the timer and emit the final playback event
+     */
+    private onEnded = (): void => {
+        clearInterval(this.playbackInterval);
+
+        this.emitGAEventAction('playback_1');
+        this.prevPlaybackEvent = 0;
+    }
+
+    /*
+        Logic that checks to see what playback event should be fired based
+        on the current playback progress, clears timer if markup context
+        is lost.
      */
     private checkPlayback = (): void => {
-        const {
-            node,
-            prevPlaybackEvent,
-            gaProperty,
-            experienceId,
-            deferredGaCalls,
-            playbackInterval
-        } = this;
-
-        if (node) {
-            const {currentTime, duration} = node;
+        if (this.node) {
+            const {currentTime, duration} = this.node;
             const perc: number = currentTime / duration;
-            const next: number = VideoPlayer.playbackEvents[prevPlaybackEvent];
+            const next: number = VideoPlayer.PLAYBACK_EVENTS[this.prevPlaybackEvent];
 
             if (perc > next) {
-                const call = {
-                    prp: gaProperty,
-                    t: 'event',
-                    ec: 'video_player',
-                    ea: `playback_${next}`,
-                    el: experienceId
-                };
-
-                if (gaProperty) {
-                    Analytics.send(call);
-                } else {
-                    deferredGaCalls.enqueue(call);
-                }
-
+                this.emitGAEventAction(`playback_${next}`);
                 this.prevPlaybackEvent++;
             }
         } else {
-            clearInterval(playbackInterval);
+            clearInterval(this.playbackInterval);
         }
-    }
-
-    /*
-        Clear the playback interval and emit a final playback analytics call
-     */
-    private onEnd = (): void => {
-        const {gaProperty, experienceId, deferredGaCalls, playbackInterval} = this;
-
-        clearInterval(playbackInterval);
-
-        const call = {
-            prp: gaProperty,
-            t: 'event',
-            ec: 'video_player',
-            ea: 'playback_1',
-            el: experienceId
-        };
-
-        if (gaProperty) {
-            Analytics.send(call);
-        } else {
-            deferredGaCalls.enqueue(call);
-        }
-
-        this.prevPlaybackEvent = 0;
     }
 }

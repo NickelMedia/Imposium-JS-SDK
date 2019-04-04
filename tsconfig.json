@@ -9,8 +9,11 @@
             "dom",
             "es6",
             "es5",
-            "es2015.promise"
-        ]
+            "es2015.promise",
+            "es2015.iterable",
+            "es2015.collection"
+        ],
+        "downlevelIteration": true
     },
     "include": [
         "./src/**/*"

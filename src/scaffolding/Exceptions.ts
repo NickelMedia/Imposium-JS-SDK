@@ -42,11 +42,13 @@ export class ModerationError extends ImposiumError {
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, ModerationError);
         }
+
+        this.experienceId = experienceId || '<not_set>';
     }
 
     public log = (): void => {
         console.error(`${this.logHeader}
-            \nReason: Moderation Issue
+            \nReason: Failed to pass moderation
             \nExperience ID: ${this.experienceId}
             \nMessage: ${this.message}`
         );
