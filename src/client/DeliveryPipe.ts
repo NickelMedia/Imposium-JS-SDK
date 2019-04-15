@@ -170,7 +170,11 @@ export default class DeliveryPipe {
         })
         .catch((e: AxiosError) => {
             if (~e.message.indexOf('400') && retryOnCollision < 3) {
+                const uuid: string = generateUUID();
+
+                config.uuid = uuid;
                 retryOnCollision = retryOnCollision + 1;
+                
                 this.doCreate(config, startShortPoll, retryOnCollision);
             } else {
                 const httpError = new HTTPError('httpFailure', uuid, e);
