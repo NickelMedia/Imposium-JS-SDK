@@ -88,18 +88,18 @@ export default class DeliveryPipe {
     /*
         Run config for create call through delivery gateways
      */
-    public createPrestep = (inventory: any, render: boolean, uploadProgress: (n: number) => any): void => {
+    public createPrestep = (inventory: any, render: boolean, uploadProgress: (n: number) => any, retryOnCollision: number = 0): void => {
         const uuid: string = generateUUID();
         const config: ICreateConfig = {inventory, render, uuid, uploadProgress};
 
         clearTimeout(this.shortPollTimeout);
 
         if (!render) {
-            this.doCreate(config);
+            this.doCreate(config, false, retryOnCollision);
         }
 
         if (render && this.mode === DeliveryPipe.POLL_MODE) {
-            this.doCreate(config, true);
+            this.doCreate(config, true, retryOnCollision);
         }
 
         if (render && this.mode === DeliveryPipe.WS_MODE) {
@@ -107,7 +107,7 @@ export default class DeliveryPipe {
             this.configCache.set(uuid, config);
 
             this.startConsumer(uuid)
-            .then(() => { this.doCreate(config); });
+            .then(() => { this.doCreate(config, false, retryOnCollision); });
         }
     }
 
@@ -157,11 +157,13 @@ export default class DeliveryPipe {
     /*
         POST data to Imposium server, create experience record, defer and or poll on success
      */
-    private doCreate = (config: ICreateConfig, startShortPoll: boolean = false, retryOnCollision: number = 0): void => {
+    private doCreate = (config: ICreateConfig, startShortPoll: boolean = false, retried: number): void => {
         const {inventory, render, uuid, uploadProgress} = config;
 
         this.api.create(inventory, render, uuid, uploadProgress)
         .then((e: IExperience) => {
+            this.configCache.delete(uuid);
+
             if (startShortPoll) {
                 this.doGetExperience(e.id);
             }
@@ -169,13 +171,14 @@ export default class DeliveryPipe {
             this.clientDelegates.get('experienceCreated')(e);
         })
         .catch((e: AxiosError) => {
-            if (~e.message.indexOf('400') && retryOnCollision < 3) {
-                const uuid: string = generateUUID();
+            if (e.response && e.response.status === 400 && retried < 3) {
+                this.configCache.delete(uuid);
+                retried = retried + 1;
 
-                config.uuid = uuid;
-                retryOnCollision = retryOnCollision + 1;
-                
-                this.doCreate(config, startShortPoll, retryOnCollision);
+                this.killConsumer()
+                .then(() => {
+                    this.createPrestep(config.inventory, config.render, config.uploadProgress, retried);
+                });
             } else {
                 const httpError = new HTTPError('httpFailure', uuid, e);
                 this.clientDelegates.get('internalError')(httpError);
@@ -243,7 +246,7 @@ export default class DeliveryPipe {
 
         if (typeof cachedConfig !== 'undefined') {
             this.configCache.delete(experienceId);
-            this.doCreate(cachedConfig, true);
+            this.createPrestep(cachedConfig.inventory, cachedConfig.render, cachedConfig.uploadProgress);
         } else {
             this.doGetExperience(experienceId);
         }

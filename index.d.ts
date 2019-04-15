@@ -249,7 +249,7 @@ declare module 'Imposium-JS-SDK/client/DeliveryPipe' {
 	    setMode: (mode: string) => void;
 	    setTimeoutInterval: (interval: number) => void;
 	    doGetExperience: (experienceId: string) => void;
-	    createPrestep: (inventory: any, render: boolean, uploadProgress: (n: number) => any) => void;
+	    createPrestep: (inventory: any, render: boolean, uploadProgress: (n: number) => any, retryOnCollision?: number) => void;
 	    private startRender;
 	    private consumeOnRefresh;
 	    private doCreate;
