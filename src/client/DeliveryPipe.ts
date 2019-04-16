@@ -88,7 +88,12 @@ export default class DeliveryPipe {
     /*
         Run config for create call through delivery gateways
      */
-    public createPrestep = (inventory: any, render: boolean, uploadProgress: (n: number) => any, retryOnCollision: number = 0): void => {
+    public createPrestep = (
+        inventory: any,
+        render: boolean,
+        uploadProgress: (n: number) => any,
+        retryOnCollision: number = 0
+    ): void => {
         const uuid: string = generateUUID();
         const config: ICreateConfig = {inventory, render, uuid, uploadProgress};
 
@@ -177,7 +182,12 @@ export default class DeliveryPipe {
 
                 this.killConsumer()
                 .then(() => {
-                    this.createPrestep(config.inventory, config.render, config.uploadProgress, retried);
+                    this.createPrestep(
+                        config.inventory,
+                        config.render,
+                        config.uploadProgress,
+                        retried
+                    );
                 });
             } else {
                 const httpError = new HTTPError('httpFailure', uuid, e);
