@@ -5,7 +5,7 @@ import {PlayerConfigurationError} from '../scaffolding/Exceptions';
 
 const settings = require('../conf/settings.json').videoPlayer;
 
-type BaseMediaEvent = () => void;
+type BaseMediaEvent = (...args) => void;
 type BaseMediaEvents = Map<string, BaseMediaEvent>;
 
 export default abstract class VideoPlayer {
@@ -28,6 +28,7 @@ export default abstract class VideoPlayer {
             ['pause', () => this.onPause()],
             ['ended', () => this.onEnded()],
             ['loaded', () => this.onLoad()],
+            ['volumechange', () => this.onVolumeChange()]
         ],
     );
 
@@ -36,6 +37,7 @@ export default abstract class VideoPlayer {
     private experienceId: string = '';
     private prevPlaybackEvent: number = 0;
     private playbackInterval: number = -1;
+    private muted: boolean = false;
 
     /*
         Basis of Imposum / Fallback video player objects
@@ -51,6 +53,7 @@ export default abstract class VideoPlayer {
             }
 
             this.node = node;
+            this.muted = node.muted;
         } catch (e) {
             ExceptionPipe.trapError(e, this.storyId);
         }
@@ -115,6 +118,21 @@ export default abstract class VideoPlayer {
      */
     private onLoad = (): void => {
         this.emitGAEventAction('loaded');
+    }
+
+    /*
+        Record mute events
+     */
+    private onVolumeChange = (): void => {
+        if (!this.muted && this.node.muted) {
+            this.emitGAEventAction('muted');
+            this.muted = true;
+        }
+
+        if (this.muted && !this.node.muted) {
+            this.emitGAEventAction('unmuted');
+            this.muted = false;
+        }
     }
 
     /*
