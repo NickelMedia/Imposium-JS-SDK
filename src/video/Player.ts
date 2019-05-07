@@ -60,8 +60,8 @@ export default class ImposiumPlayer extends VideoPlayer {
     };
 
     private static readonly hlsSupportLevels: any = {
-        NATIVE : settings.hlsSupportLevels.native,
-        HLSJS  : settings.hlsSupportLevels.hlsjs
+        NATIVE: settings.hlsSupportLevels.native,
+        HLSJS: settings.hlsSupportLevels.hlsjs
     };
 
     private eventDelegateRefs: any = {

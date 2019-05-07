@@ -93,6 +93,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 declare module 'Imposium-JS-SDK/scaffolding/GoogleAnalytics' {
 	export interface IGAProtocol {
 	    v?: string;
+	    ds?: string;
 	    tid?: string;
 	    z?: string;
 	    cid?: string;
@@ -131,6 +132,7 @@ declare module 'Imposium-JS-SDK/video/VideoPlayer' {
 	    private experienceId;
 	    private prevPlaybackEvent;
 	    private playbackInterval;
+	    private muted;
 	    constructor(node: HTMLVideoElement);
 	    remove: () => void;
 	    setGaProperty: (gaProperty: string) => void;
@@ -138,6 +140,7 @@ declare module 'Imposium-JS-SDK/video/VideoPlayer' {
 	    protected setExperienceId: (experienceId: string) => void;
 	    private emitGAEventAction;
 	    private onLoad;
+	    private onVolumeChange;
 	    private onPlay;
 	    private onPause;
 	    private onEnded;

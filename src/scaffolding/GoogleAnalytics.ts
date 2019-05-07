@@ -17,6 +17,7 @@ const {...settings} = require('../conf/settings.json').analytics;
 
 export interface IGAProtocol {
     v?: string; // Protocol version
+    ds?: string; // data source
     tid?: string; // Web property
     z?: string; // cache buster
     cid?: string; // client id
@@ -74,6 +75,7 @@ export default class GoogleAnalytics {
         // merge event data with base GA params
         event = {
             v: '1', // GA version
+            ds: 'web',
             z: `${Math.round(new Date().getTime() / 1000)}`, // unique prop for the emit
             cid: GoogleAnalytics.CLIENT_ID,
             ...event

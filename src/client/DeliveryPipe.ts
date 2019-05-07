@@ -233,14 +233,14 @@ export default class DeliveryPipe {
     private killConsumer = (): Promise<void> => {
         return new Promise((resolve) => {
             if (!this.consumer) {
-                resolve();
+                return resolve();
+            } else {
+                this.consumer.destroy()
+                .then(() => {
+                    this.consumer = null;
+                    return resolve();
+                });
             }
-
-            this.consumer.destroy()
-            .then(() => {
-                this.consumer = null;
-                resolve();
-            });
         });
     }
 
