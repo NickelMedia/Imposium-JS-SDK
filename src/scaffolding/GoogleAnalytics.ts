@@ -35,13 +35,19 @@ export interface IGACache {
 
 export default class GoogleAnalytics {
 
+    public static gaPlacement: string = '';
+
     /*
         Pull a client ID from localstorage or generate a fresh one.
-        This essentially intializes the GA event bus
+        This essentially intializes the GA event bus & assign a placement
      */
-    public static pullClientId = (now: Date = new Date()): void => {
+    public static initialize = (placement: string): void => {
         try {
+            const now: Date = new Date();
             const cache: IGACache = JSON.parse(localStorage.getItem(GoogleAnalytics.CACHE_KEY)) || {};
+
+            // Assign placement, generally it's just web but for special ad tech cases we can override
+            GoogleAnalytics.gaPlacement = placement;
 
             // If cache isn't expired, use cached GUID to help provide more accurate metrics
             if (cache.uuid && cache.expiry >= new Date().valueOf()) {
@@ -75,9 +81,9 @@ export default class GoogleAnalytics {
         // merge event data with base GA params
         event = {
             v: '1', // GA version
-            ds: 'web',
-            z: `${Math.round(new Date().getTime() / 1000)}`, // unique prop for the emit
+            ds: GoogleAnalytics.gaPlacement,
             cid: GoogleAnalytics.CLIENT_ID,
+            z: `${Math.round(new Date().getTime() / 1000)}`, // bust cache on IE, etc
             ...event
         };
 
