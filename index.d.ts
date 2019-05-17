@@ -108,7 +108,8 @@ declare module 'Imposium-JS-SDK/scaffolding/GoogleAnalytics' {
 	    expiry: number;
 	}
 	export default class GoogleAnalytics {
-	    static pullClientId: (now?: Date) => void;
+	    static gaPlacement: string;
+	    static initialize: (placement: string) => void;
 	    static send: (event: IGAProtocol) => void;
 	    private static readonly BASE_URL;
 	    private static readonly CACHE_KEY;
@@ -283,6 +284,7 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    actId: string;
 	    sceneId: string;
 	    environment: string;
+	    gaPlacement: string;
 	    deliveryMode: string;
 	    pollRate: number;
 	}
