@@ -20,6 +20,7 @@ export default abstract class VideoPlayer {
     // HTML Video element ref, active storyId on client
     protected node: HTMLVideoElement = null;
     protected storyId: string = '';
+    protected deviceType: string = '';
 
     // Base callbacks required in order to collect / measue. Add by media event name
     private readonly playbackHandlers: BaseMediaEvents = new Map(
@@ -27,7 +28,7 @@ export default abstract class VideoPlayer {
             ['play', () => this.onPlay()],
             ['pause', () => this.onPause()],
             ['ended', () => this.onEnded()],
-            ['loaded', () => this.onLoad()],
+            ['loadeddata', () => this.onLoad()],
             ['volumechange', () => this.onVolumeChange()]
         ],
     );
@@ -92,6 +93,13 @@ export default abstract class VideoPlayer {
     }
 
     /*
+        Set device type for dupont only
+     */
+    public setDeviceType = (deviceType: string): void => {
+        this.deviceType = deviceType;
+    }
+
+    /*
         Set the current experience id per job that gets passed to analytics calls
      */
     protected setExperienceId = (experienceId: string): void => {
@@ -107,7 +115,8 @@ export default abstract class VideoPlayer {
         const call: IGAProtocol = {t, tid, ec, el, ea};
 
         if (this.gaProperty) {
-            GoogleAnalytics.send(call);
+            // GoogleAnalytics.send(call);
+            GoogleAnalytics.sendMatomoEvent({e_c: ec, e_a: ea, e_n: el}, this.storyId, this.deviceType);
         } else {
             this.queuedGACalls.push(call);
         }
@@ -117,7 +126,7 @@ export default abstract class VideoPlayer {
         Record loaded event
      */
     private onLoad = (): void => {
-        this.emitGAEventAction('loaded');
+        this.emitGAEventAction('load');
     }
 
     /*

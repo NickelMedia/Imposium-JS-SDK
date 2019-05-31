@@ -15,6 +15,18 @@ const {...settings} = require('../conf/settings.json').analytics;
     https: //developers.google.com/analytics/devguides/collection/protocol/v1/parameters
  */
 
+/*
+    Matomo media request structure
+
+    https://imposium.matomo.cloud/piwik.php?idsite={SITE_ID}&rec=1&action_name={DATA_SOURCE / PLACEMENT_NAME}&uid={UUIDv4}&rand={RANDOM_NUM}&ma_id={EXPERIENCE_ID}&ma_mt=video
+    
+    action_name = data source name followed by a placement name (if set) so "web / quartz" or "vast / dupontdotcom" for example
+    uid = user id (uuidv4)
+    rand = cache buster for IE, etc.
+    ma_id = unique id for the media so experience id works here
+    ma_mt = media type
+ */
+
 export interface IGAProtocol {
     v?: string; // Protocol version
     ds?: string; // data source
@@ -36,18 +48,20 @@ export interface IGACache {
 export default class GoogleAnalytics {
 
     public static gaPlacement: string = '';
+    public static campaignName: string = '';
 
     /*
         Pull a client ID from localstorage or generate a fresh one.
         This essentially intializes the GA event bus & assign a placement
      */
-    public static initialize = (placement: string): void => {
+    public static initialize = (placement: string, campaignName: string): void => {
         try {
             const now: Date = new Date();
             const cache: IGACache = JSON.parse(localStorage.getItem(GoogleAnalytics.CACHE_KEY)) || {};
 
             // Assign placement, generally it's just web but for special ad tech cases we can override
             GoogleAnalytics.gaPlacement = placement;
+            GoogleAnalytics.campaignName = campaignName;
 
             // If cache isn't expired, use cached GUID to help provide more accurate metrics
             if (cache.uuid && cache.expiry >= new Date().valueOf()) {
@@ -97,6 +111,41 @@ export default class GoogleAnalytics {
             ExceptionPipe.logWarning('analytics', 'requestFailed');
         });
     }
+
+    public static sendMatomoEvent = (params: any, storyId: string, deviceType: string) => {
+        // const customVars: string = JSON.stringify({
+        //     '1': ['story_id', storyId],
+        //     '2': ['device', deviceType],
+        //     '3': ['placement', GoogleAnalytics.gaPlacement]
+        // });
+
+        let matomoUrl = 'https://imposium.matomo.cloud/matomo.php';
+
+        const event = {
+            idsite: '1',
+            rec: '1',
+            dimension3: storyId,
+            dimension4: deviceType,
+            dimension5: GoogleAnalytics.gaPlacement,
+            // cvar: customVars,
+            _rcn: GoogleAnalytics.campaignName,
+            uid: GoogleAnalytics.CLIENT_ID,
+            rand: Math.round((new Date().getTime() / 1000)).toString(),
+            ...params
+        };
+        
+        const eventKeys = Object.keys(event);
+
+        for (const param of eventKeys) {
+            const separator: string = (eventKeys.indexOf(param) === 0) ? '?' : '&';
+            matomoUrl += `${separator}${param}=${encodeURIComponent(event[param])}`;
+        }
+
+        axios.get(matomoUrl)
+        .catch((e) => {
+            console.error('failed to send matomo req');
+        });
+    };
 
     private static readonly BASE_URL: string = settings.baseUrl;
     private static readonly CACHE_KEY: string = settings.cacheKey;

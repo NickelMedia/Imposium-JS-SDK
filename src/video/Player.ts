@@ -126,10 +126,16 @@ export default class ImposiumPlayer extends VideoPlayer {
         const {experienceCache} = this;
         const {qualityOverride} = this.imposiumPlayerConfig;
 
-        const {id, output: {videos, images}} = experience;
+        const {id, output: {videos, images}, input} = experience;
         let poster = '';
 
         this.setExperienceId(id);
+
+        if (input.hasOwnProperty('device')) {
+            this.setDeviceType(input.device);
+        } else {
+            this.setDeviceType('not_set');
+        }
 
         /*
             Will be used in upcoming features

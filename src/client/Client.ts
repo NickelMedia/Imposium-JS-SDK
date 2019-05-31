@@ -42,6 +42,7 @@ export interface IClientConfig {
     sceneId: string;
     environment: string;
     gaPlacement: string;
+    campaignName: string;
     deliveryMode: string;
     pollRate: number;
 }
@@ -62,6 +63,7 @@ export interface IExperience {
     rendering: boolean;
     date_created: number;
     moderation_status: string;
+    input: any;
     output: IExperienceOutput;
 }
 
@@ -167,7 +169,7 @@ export default class Client {
                 const {gaTrackingId: property} = story;
 
                 if (typeof property === 'string' && property.length > 0) {
-                    GoogleAnalytics.initialize(this.clientConfig.gaPlacement);
+                    GoogleAnalytics.initialize(this.clientConfig.gaPlacement, this.clientConfig.campaignName);
 
                     if (typeof this.player !== 'undefined') {
                         this.player.setGaProperty(property);
