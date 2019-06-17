@@ -116,7 +116,7 @@ export default abstract class VideoPlayer {
 
         if (this.gaProperty) {
             // GoogleAnalytics.send(call);
-            GoogleAnalytics.sendMatomoEvent({e_c: ec, e_a: ea, e_n: el}, this.storyId, this.deviceType);
+            GoogleAnalytics.sendMatomoEvent({e_c: ec, e_a: ea, dimension6: el, e_n: this.storyId}, this.deviceType);
         } else {
             this.queuedGACalls.push(call);
         }

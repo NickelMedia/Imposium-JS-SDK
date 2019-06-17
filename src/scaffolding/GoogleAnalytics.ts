@@ -112,7 +112,7 @@ export default class GoogleAnalytics {
         });
     }
 
-    public static sendMatomoEvent = (params: any, storyId: string, deviceType: string) => {
+    public static sendMatomoEvent = (params: any, deviceType: string) => {
         // const customVars: string = JSON.stringify({
         //     '1': ['story_id', storyId],
         //     '2': ['device', deviceType],
@@ -124,7 +124,6 @@ export default class GoogleAnalytics {
         const event = {
             idsite: '1',
             rec: '1',
-            dimension3: storyId,
             dimension4: deviceType,
             dimension5: GoogleAnalytics.gaPlacement,
             // cvar: customVars,
