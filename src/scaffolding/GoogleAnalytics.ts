@@ -89,15 +89,17 @@ export default class GoogleAnalytics {
         can be digested by the GA collect API. Any event provided params need to be
         url encoded to prevent errors.
      */
-    public static send = (event: IGAProtocol): void => {
+    public static send = (event: IGAProtocol, storyId: string, deviceType: string): void => {
         let pixelUrl: string = GoogleAnalytics.BASE_URL;
 
         // merge event data with base GA params
-        event = {
+        (event as any) = {
             v: '1', // GA version
             ds: GoogleAnalytics.gaPlacement,
             cid: GoogleAnalytics.CLIENT_ID,
             z: `${Math.round(new Date().getTime() / 1000)}`, // bust cache on IE, etc
+            cd1: encodeURIComponent(storyId),
+            cd2: encodeURIComponent(deviceType),
             ...event
         };
 
@@ -112,7 +114,7 @@ export default class GoogleAnalytics {
         });
     }
 
-    public static sendMatomoEvent = (params: any, storyId: string, deviceType: string) => {
+    public static sendMatomoEvent = (params: any, deviceType: string) => {
         // const customVars: string = JSON.stringify({
         //     '1': ['story_id', storyId],
         //     '2': ['device', deviceType],
@@ -124,7 +126,6 @@ export default class GoogleAnalytics {
         const event = {
             idsite: '1',
             rec: '1',
-            dimension3: storyId,
             dimension4: deviceType,
             dimension5: GoogleAnalytics.gaPlacement,
             // cvar: customVars,

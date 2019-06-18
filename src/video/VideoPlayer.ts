@@ -81,7 +81,7 @@ export default abstract class VideoPlayer {
         this.gaProperty = gaProperty;
 
         while (this.queuedGACalls.length) {
-            GoogleAnalytics.send(this.queuedGACalls.pop());
+            GoogleAnalytics.send(this.queuedGACalls.pop(), this.storyId, this.deviceType);
         }
     }
 
@@ -115,8 +115,8 @@ export default abstract class VideoPlayer {
         const call: IGAProtocol = {t, tid, ec, el, ea};
 
         if (this.gaProperty) {
-            // GoogleAnalytics.send(call);
-            GoogleAnalytics.sendMatomoEvent({e_c: ec, e_a: ea, e_n: el}, this.storyId, this.deviceType);
+            GoogleAnalytics.send(call, this.storyId, this.deviceType);
+            GoogleAnalytics.sendMatomoEvent({e_c: ec, e_a: ea, dimension6: el, e_n: this.storyId}, this.deviceType);
         } else {
             this.queuedGACalls.push(call);
         }
