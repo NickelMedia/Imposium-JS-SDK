@@ -7,7 +7,7 @@ import less from 'gulp-less';
 import plumber from 'gulp-plumber';
 import sourceMaps from 'gulp-sourcemaps';
 import LessPluginAutoprefix from 'less-plugin-autoprefix';
-import gutil from 'gulp-util';
+import log from 'fancy-log';
 import runSequence from 'run-sequence';
 
 const config = {
@@ -43,7 +43,7 @@ gulp.task('compile-less', (done) => {
             ]
         }))
         .on('error' ,function(err){
-            gutil.log(err);
+            log(err);
             this.emit('end');
         })
         .pipe(sourceMaps.init({loadMaps: true}))
