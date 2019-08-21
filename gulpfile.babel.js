@@ -29,7 +29,8 @@ const paths = {
 
 const watchOpts = {};
  
-gulp.task('compile-less', () => {
+gulp.task('compile-less', (done) => {
+    
     return gulp.src(paths.in.lessEntry)
         .pipe(sourceMaps.init())
         .pipe(less({
@@ -52,11 +53,10 @@ gulp.task('compile-less', () => {
         .pipe(gulp.dest(paths.out.cssDir));
 });
 
-gulp.task('default', ['watch']);
+gulp.task('default', gulp.series('compile-less', (done) => {
 
-gulp.task('build', () => { runSequence(['compile-less']); });
-
-gulp.task('watch', ['build'], () => {
     gulp.watch(paths.in.lessGlob, watchOpts, () => { runSequence('compile-less'); });
-});
 
+    done();
+    
+}));
