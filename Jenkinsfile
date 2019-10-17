@@ -107,7 +107,7 @@ runPipeline {
             ingress: [
                 hosts: [
                     [
-                        hostName: "sdk-docs.dev.imposium.com",
+                        hostName: "sdk-docs.staging.imposium.com",
                         paths: [
                             [
                                 servicePort: 3000
