@@ -107,7 +107,7 @@ runPipeline {
             ingress: [
                 hosts: [
                     [
-                        hostName: "sdk-docs.dev.k8s.nickel.media",
+                        hostName: "sdk-docs.dev.imposium.com",
                         paths: [
                             [
                                 servicePort: 3000
