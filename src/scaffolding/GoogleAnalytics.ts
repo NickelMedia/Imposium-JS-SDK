@@ -19,7 +19,7 @@ export interface IGAProtocol {
     v?: string; // Protocol version
     ds?: string; // data source
     tid?: string; // Web property
-    dr? : string; //Referrer
+    dr?: string; // Referrer
     z?: string; // cache buster
     cid?: string; // client id
     t: string; // emit type
@@ -77,7 +77,6 @@ export default class GoogleAnalytics {
         url encoded to prevent errors.
      */
     public static send = (event: IGAProtocol): void => {
-        
         let pixelUrl: string = GoogleAnalytics.BASE_URL;
         const ref = (document as any).referrer;
 
@@ -90,8 +89,8 @@ export default class GoogleAnalytics {
             ...event
         };
 
-        //only set the referrer if it's not empty
-        if(ref !== ''){
+        // only set the referrer if it's not empty
+        if (ref !== '') {
             event['dr'] = ref;
         }
 
