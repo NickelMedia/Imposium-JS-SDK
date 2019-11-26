@@ -14,4 +14,5 @@ generate-types.sh
 index.d.ts
 publish.sh
 gulpfile.babel.js
+/.sentryclirc
 

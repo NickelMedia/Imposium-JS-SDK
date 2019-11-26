@@ -95,6 +95,7 @@ declare module 'Imposium-JS-SDK/scaffolding/GoogleAnalytics' {
 	    v?: string;
 	    ds?: string;
 	    tid?: string;
+	    dr?: string;
 	    z?: string;
 	    cid?: string;
 	    t: string;
@@ -420,15 +421,5 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	    private setPlayerData;
 	    private pauseIfPlaying;
 	}
-
-}
-declare module 'Imposium-JS-SDK/Entry' {
-	import 'core-js/es6/promise';
-	import 'core-js/fn/symbol/key-for';
-	import 'core-js/fn/map/of';
-	import 'core-js/fn/object/assign';
-	import Client from 'Imposium-JS-SDK/client/Client';
-	import Player from 'Imposium-JS-SDK/video/Player';
-	export { Client, Player, clientEvents as Events, playerEvents as PlayerEvents };
 
 }
