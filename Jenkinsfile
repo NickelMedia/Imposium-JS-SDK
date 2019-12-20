@@ -1,5 +1,6 @@
 runPipeline {
     projectName = "imposium-js-sdk-docs"
+    useECR = true
     images = [
         [imageName: "imposium-js-sdk-docs"]
     ]

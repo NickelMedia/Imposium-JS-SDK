@@ -63,20 +63,26 @@
                 captionInput = document.getElementById('caption'),
                 statusField = document.getElementById('status'),
                 imageInput = document.getElementById('image');
+
             //Create an instance of the Client and Player
             var client = new Imposium.Client({
                 accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
                 storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
             });
+
             var player = new Imposium.Player(videoNode, client);
+
             //Listen to the client STATUS_UPDATE event to populate the status field
             client.on(Imposium.Events.STATUS_UPDATE, setStatus);
+
             //Listen for the EXPERIENCE_CREATED event to pull the experience ID and write it to the URL
             client.on(Imposium.Events.EXPERIENCE_CREATED, gotExperience);
+
             //Listen for input event to trigger input validation
             captionInput.addEventListener('change', validateForm);
             imageInput.addEventListener('change', validateForm);
             btnSubmit.addEventListener('click', submit);
+
             //On page load, check for an experience ID in the URL
             if(window.location.hash){
                 var experienceId = window.location.hash.replace('#','');
@@ -84,6 +90,7 @@
                     client.getExperience(experienceId);
                 }
             }
+
             function submit(e){
                 e.preventDefault();
                 //Build the inventory object
@@ -94,14 +101,17 @@
                 //Create the Imposium Experience
                 client.createExperience(inventory);
             }
+
             //Writes the experience ID to the URL
             function gotExperience(e){
                 window.location.hash = '#' + e.id;
             }
+
             //Set the content of the status update field
             function setStatus(e){
                 statusField.innerHTML = e.status;
             }
+
             //Validate the two inputs in the inputs field, enable the submit button if they are filled out
             function validateForm(){
                 if(captionInput.value != '' && imageInput.files.length > 0){
