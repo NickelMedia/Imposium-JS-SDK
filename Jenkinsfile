@@ -1,5 +1,6 @@
 runPipeline {
     projectName = "imposium-js-sdk-docs"
+    useECR = true
     images = [
         [imageName: "imposium-js-sdk-docs"]
     ]
@@ -107,7 +108,7 @@ runPipeline {
             ingress: [
                 hosts: [
                     [
-                        hostName: "sdk-docs.dev.k8s.nickel.media",
+                        hostName: "sdk-docs.staging.imposium.com",
                         paths: [
                             [
                                 servicePort: 3000
