@@ -76,7 +76,7 @@ export default class ExceptionPipe {
     private static sentryClient: BrowserClient = new BrowserClient({
         debug: false,
         dsn: sentry.dsn,
-        integrations: [new Integrations.UserAgent],
+        integrations: [new Integrations.UserAgent()],
         beforeSend: (e: Event) => ExceptionPipe.cleanDucktype(e),
         release: `${sentry.projectName}@${version}`
     });
