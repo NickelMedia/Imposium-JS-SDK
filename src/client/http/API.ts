@@ -66,7 +66,12 @@ export default class API {
     /*
         create a new experience record and resolve fresh experience data
      */
-    public create = (inventory: any, render: boolean, uuid: string, progress: (p: number) => any = null): Promise<IExperience> => {
+    public create = (
+        inventory: any,
+        render: boolean,
+        uuid: string,
+        progress: (p: number) => any = null
+    ): Promise<IExperience> => {
         const route: string  = (render) ? '/experience/render' : '/experience';
         const formData: FormData = inventoryToFormData(this.storyId, inventory);
         const config: AxiosRequestConfig = {onUploadProgress: (e) => this.uploadProgress(e, progress)};
