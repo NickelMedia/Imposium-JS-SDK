@@ -1,3 +1,34 @@
+declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
+	export const prepConfig: (config: any, defaults: any) => void;
+	export const inRangeNumeric: (n: number, min: number, max: number) => boolean;
+	export const isFunc: (f: any) => boolean;
+	export const keyExists: (o: any, key: string) => number;
+	export const cloneWithKeys: (o: any) => {};
+	export const calculateMbps: (startTime: number, filesize: number) => number;
+	export const calculateAverageMbps: (speeds: number[]) => number;
+	export const generateUUID: () => string;
+	export const inventoryToFormData: (storyId: string, inventory: any) => any;
+
+}
+declare module 'Imposium-JS-SDK/client/http/API' {
+	import { IExperience } from 'Imposium-JS-SDK/client/Client';
+	export interface ITrackingResponse {
+	    gaTrackingId: string;
+	}
+	export default class API {
+	    private static readonly retry;
+	    private http;
+	    private storyId;
+	    constructor(accessToken: string, env: string, storyId: string);
+	    getGAProperty: () => Promise<ITrackingResponse>;
+	    get: (experienceId: string) => Promise<any>;
+	    create: (inventory: any, render: boolean, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
+	    triggerRender: (experienceId: string) => Promise<string>;
+	    private getAuthHeader;
+	    private uploadProgress;
+	}
+
+}
 declare module 'Imposium-JS-SDK/scaffolding/Version' {
 	export const version = "[AIV]{version}[/AIV]";
 	export const printVersion: () => void;
@@ -56,37 +87,6 @@ declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
 	    private static sentryClient;
 	    private static hub;
 	    private static cleanDucktype;
-	}
-
-}
-declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
-	export const prepConfig: (config: any, defaults: any) => void;
-	export const inRangeNumeric: (n: number, min: number, max: number) => boolean;
-	export const isFunc: (f: any) => boolean;
-	export const keyExists: (o: any, key: string) => number;
-	export const cloneWithKeys: (o: any) => {};
-	export const calculateMbps: (startTime: number, filesize: number) => number;
-	export const calculateAverageMbps: (speeds: number[]) => number;
-	export const generateUUID: () => string;
-	export const inventoryToFormData: (storyId: string, inventory: any) => any;
-
-}
-declare module 'Imposium-JS-SDK/client/http/API' {
-	import { IExperience } from 'Imposium-JS-SDK/client/Client';
-	export interface ITrackingResponse {
-	    gaTrackingId: string;
-	}
-	export default class API {
-	    private static readonly retry;
-	    private http;
-	    private storyId;
-	    constructor(accessToken: string, env: string, storyId: string);
-	    getGAProperty: () => Promise<ITrackingResponse>;
-	    get: (experienceId: string) => Promise<any>;
-	    create: (inventory: any, render: boolean, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
-	    triggerRender: (experienceId: string) => Promise<string>;
-	    private getAuthHeader;
-	    private uploadProgress;
 	}
 
 }
@@ -421,5 +421,15 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	    private setPlayerData;
 	    private pauseIfPlaying;
 	}
+
+}
+declare module 'Imposium-JS-SDK/Entry' {
+	import 'core-js/es6/promise';
+	import 'core-js/fn/symbol/key-for';
+	import 'core-js/fn/map/of';
+	import 'core-js/fn/object/assign';
+	import Client from 'Imposium-JS-SDK/client/Client';
+	import Player from 'Imposium-JS-SDK/video/Player';
+	export { Client, Player, clientEvents as Events, playerEvents as PlayerEvents };
 
 }
