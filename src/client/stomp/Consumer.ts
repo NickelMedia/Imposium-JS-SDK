@@ -156,7 +156,7 @@ export default class MessageConsumer {
     private socketFailure = (e: CloseEvent): void => {
         const {experienceId, deliveryDelegates} = this;
         const socketError = new SocketError('tcpFailure', experienceId, e);
-        
+
         this.stomp = null;
         deliveryDelegates.get('consumerFailure')(experienceId, socketError);
     }

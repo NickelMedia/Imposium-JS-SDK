@@ -1,5 +1,4 @@
-import {AxiosError} from 'axios';
-import {BrowserClient, BrowserOptions, Hub, Scope, SentryEvent} from '@sentry/browser';
+import {BrowserClient, Hub, Scope, Event} from '@sentry/browser';
 import {ImposiumError, UncaughtError} from './Exceptions';
 import {version} from './Version';
 
@@ -35,46 +34,49 @@ export default class ExceptionPipe {
         e.log();
 
         // Trace err with Sentry.io
-        ExceptionPipe.hub.configureScope((scope: Scope) => {
-            scope.setTag('type', e.type);
-            scope.setTag('version', e.version);
-            scope.setTag('storyId', (storyId) ? storyId : '<not_set>');
+        ExceptionPipe.hub.run((currentHub) => {
+            currentHub.configureScope((scope: Scope) => {
+                scope.setTag('type', e.type);
+                scope.setTag('version', e.version);
+                scope.setTag('storyId', (storyId) ? storyId : '<not_set>');
 
-            if (e.experienceId) {
-                scope.setTag('experienceId', e.experienceId);
-            }
-
-            // Grab available axios error details
-            if (e.axiosError) {
-                if (typeof e.axiosError.response === 'object') {
-                    scope.setExtra('response', e.axiosError.response);
-                } else if (typeof e.axiosError.request === 'object') {
-                    scope.setExtra('request', e.axiosError.request);
-                    scope.setExtra('reuqestConfig', e.axiosError.config);
-                } else {
-                    scope.setExtra('axiosErrorMessage', e.axiosError.message);
-                    scope.setExtra('reuqestConfig', e.axiosError.config);
+                if (e.experienceId) {
+                    scope.setTag('experienceId', e.experienceId);
                 }
-            }
 
-            // Grab anything that can be helpful from the socket CloseEvent
-            if (e.closeEvent) {
-                scope.setExtra('socketCloseEvent', {
-                    code: e.closeEvent.code,
-                    type: e.closeEvent.type,
-                    timestamp: e.closeEvent.timeStamp,
-                    wsUrl: e.closeEvent.target.url,
-                    wsBufferedAmount: e.closeEvent.target.bufferedAmount
-                });
-            }
+                // Grab available axios error details
+                if (e.axiosError) {
+                    if (typeof e.axiosError.response === 'object') {
+                        scope.setExtra('response', e.axiosError.response);
+                    } else if (typeof e.axiosError.request === 'object') {
+                        scope.setExtra('request', e.axiosError.request);
+                        scope.setExtra('reuqestConfig', e.axiosError.config);
+                    } else {
+                        scope.setExtra('axiosErrorMessage', e.axiosError.message);
+                        scope.setExtra('reuqestConfig', e.axiosError.config);
+                    }
+                }
 
-            ExceptionPipe.hub.captureException(e);
+                // Grab anything that can be helpful from the socket CloseEvent
+                if (e.closeEvent) {
+                    scope.setExtra('socketCloseEvent', {
+                        code: e.closeEvent.code,
+                        type: e.closeEvent.type,
+                        timestamp: e.closeEvent.timeStamp,
+                        wsUrl: e.closeEvent.target.url,
+                        wsBufferedAmount: e.closeEvent.target.bufferedAmount
+                    });
+                }
+
+                currentHub.captureException(e);
+            });
         });
     }
 
     private static sentryClient: BrowserClient = new BrowserClient({
+        debug: false,
         dsn: sentry.dsn,
-        beforeSend: (e: SentryEvent) => ExceptionPipe.cleanDucktype(e),
+        beforeSend: (e: Event) => ExceptionPipe.cleanDucktype(e),
         release: `${sentry.projectName}@${version}`
     });
 
@@ -83,7 +85,7 @@ export default class ExceptionPipe {
     /*
         Clean up sentry payloads before capturing exceptions
      */
-    private static cleanDucktype = (evt: SentryEvent): SentryEvent | Promise<SentryEvent> => {
+    private static cleanDucktype = (evt: Event): Event | Promise<Event> => {
         // Delete irrelevant default values from duck-typed errs to cut down on clutter in reports
         if (typeof evt.extra === 'undefined') {
             return evt;
