@@ -424,10 +424,10 @@ declare module 'Imposium-JS-SDK/video/Player' {
 
 }
 declare module 'Imposium-JS-SDK/Entry' {
-	import 'core-js/es6/promise';
-	import 'core-js/fn/symbol/key-for';
-	import 'core-js/fn/map/of';
-	import 'core-js/fn/object/assign';
+	import 'core-js/es/promise';
+	import 'core-js/features/symbol/key-for';
+	import 'core-js/features/map/of';
+	import 'core-js/features/object/assign';
 	import Client from 'Imposium-JS-SDK/client/Client';
 	import Player from 'Imposium-JS-SDK/video/Player';
 	export { Client, Player, clientEvents as Events, playerEvents as PlayerEvents };
