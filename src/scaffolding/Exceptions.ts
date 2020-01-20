@@ -110,6 +110,14 @@ export class HTTPError extends ImposiumError {
             Error.captureStackTrace(this, HTTPError);
         }
 
+        if (
+            e.hasOwnProperty('response') &&
+            e.response.hasOwnProperty('data') &&
+            e.response.data.hasOwnProperty('error')
+        ) {
+            this.message = e.response.data.error;
+        }
+
         this.experienceId = experienceId || '<not_set>';
         this.axiosError = e;
     }

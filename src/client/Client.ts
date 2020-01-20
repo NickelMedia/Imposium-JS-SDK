@@ -284,6 +284,12 @@ export default class Client {
                     throw new ClientConfigurationError('badConfigOnGet', Client.eventNames.GOT_EXPERIENCE);
                 }
 
+                console.log(experienceId.length)
+                if (experienceId.length > settings.uuidLength) {
+                    console.log('huh?')
+                    experienceId = experienceId.substring(0, settings.uuidLength);
+                }
+
                 this.deliveryPipe.doGetExperience(experienceId);
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
