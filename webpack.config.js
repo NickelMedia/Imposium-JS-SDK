@@ -1,7 +1,7 @@
 const package = require('./package.json');
 const path = require('path');
 const webpack = require('webpack');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+// const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 const WebpackAutoInject = require('webpack-auto-inject-version');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const SentryCliPlugin = require('@sentry/webpack-plugin');
@@ -48,11 +48,11 @@ config = {
     plugins: [
         new WebpackAutoInject(VERSIONING_CONF)
     ],
-    optimization: {
-        minimizer: [
-            new UglifyJSPlugin(COMPRESSION_OPTS)
-        ]
-    },
+    // optimization: {
+    //     minimizer: [
+    //         new UglifyJSPlugin(COMPRESSION_OPTS)
+    //     ]
+    // },
     output: {
         path: BUNDLE_LOC,
         library: LIB_NAME,
