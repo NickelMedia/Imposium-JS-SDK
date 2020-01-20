@@ -51,10 +51,9 @@
     "@sentry/browser": "^5.11.1",
     "axios": "^0.19.1",
     "axios-retry": "^3.1.2",
-    "core-js": "^2.6.9",
+    "core-js": "^3.6.4",
     "jwt-decode": "^2.2.0",
-    "webstomp-client": "^1.2.6",
-    "ws": "^3.2.0"
+    "webstomp-client": "^1.2.6"
   },
   "typings": "./index.d.ts"
 }
