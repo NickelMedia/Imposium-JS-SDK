@@ -112,8 +112,11 @@ export class HTTPError extends ImposiumError {
 
         if (
             e.hasOwnProperty('response') &&
+            typeof e.response === 'object' &&
             e.response.hasOwnProperty('data') &&
-            e.response.data.hasOwnProperty('error')
+            typeof e.response.data === 'object' &&
+            e.response.data.hasOwnProperty('error') &&
+            typeof e.response.data.error === 'string'
         ) {
             this.message = e.response.data.error;
         }
@@ -134,11 +137,12 @@ export class HTTPError extends ImposiumError {
 }
 
 export class SocketError extends ImposiumError {
+    public wasConnected: boolean = false;
     private experienceId: string = null;
     private closeEvent: CloseEvent = null;
 
-    constructor(messageKey: string, experienceId: string, evt: CloseEvent) {
-        super(errors[types.NETWORK][messageKey], types.NETWORK);
+    constructor(messageKey: string, experienceId: string, evt: CloseEvent, wasConnected: boolean) {
+        super(`${errors[types.NETWORK][messageKey]} Code: ${evt.code}`, types.NETWORK);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, SocketError);
@@ -146,6 +150,7 @@ export class SocketError extends ImposiumError {
 
         this.experienceId = experienceId || '<not_set>';
         this.closeEvent = evt;
+        this.wasConnected = wasConnected;
     }
 
     public log = (): void => {

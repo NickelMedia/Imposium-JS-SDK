@@ -55,7 +55,7 @@ export default class MessageConsumer {
         const consumerDelegates: DelegateMap = new Map();
 
         consumerDelegates.set('validateFrameData', (f: Frame) => this.validateFrameData(f));
-        consumerDelegates.set('socketFailure', (e: CloseEvent) => this.socketFailure(e));
+        consumerDelegates.set('socketFailure', (e: CloseEvent, wasConnected) => this.socketFailure(e, wasConnected));
 
         this.stomp = new StompWS({
             experienceId,
@@ -112,7 +112,7 @@ export default class MessageConsumer {
                     break;
             }
         } catch (e) {
-            const socketError = new SocketError('messageParseFailed', experienceId, e);
+            const socketError = new SocketError('messageParseFailed', experienceId, e, true);
             deliveryDelegates.get('internalError')(socketError);
         }
     }
@@ -126,7 +126,7 @@ export default class MessageConsumer {
 
         try {
             if (status === settings.errorOverTcp) {
-                throw new SocketError('errorOverTcp', id, null);
+                throw new SocketError('errorOverTcp', id, null, true);
             }
 
             deliveryDelegates.get('gotMessage')(emitData);
@@ -153,9 +153,9 @@ export default class MessageConsumer {
     /*
         Called on total socket failures (i.e: max retries exceeded)
      */
-    private socketFailure = (e: CloseEvent): void => {
+    private socketFailure = (e: CloseEvent, wasConnected: boolean): void => {
         const {experienceId, deliveryDelegates} = this;
-        const socketError = new SocketError('tcpFailure', experienceId, e);
+        const socketError = new SocketError('tcpFailure', experienceId, e, wasConnected);
 
         this.stomp = null;
         deliveryDelegates.get('consumerFailure')(experienceId, socketError);

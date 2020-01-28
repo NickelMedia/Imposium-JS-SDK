@@ -15,4 +15,4 @@ index.d.ts
 publish.sh
 gulpfile.babel.js
 /.sentryclirc
-
+.idea
