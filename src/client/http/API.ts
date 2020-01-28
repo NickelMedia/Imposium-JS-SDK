@@ -1,5 +1,5 @@
 import * as jwt_decode from 'jwt-decode';
-import axiosRetry = require('axios-retry');
+import * as axiosRetry from 'axios-retry';
 import axios, {AxiosInstance, AxiosResponse, AxiosRequestConfig, AxiosError} from 'axios';
 import {IExperience} from '../Client';
 import {inventoryToFormData} from '../../scaffolding/Helpers';
@@ -18,7 +18,17 @@ export default class API {
 
     constructor(accessToken: string, env: string, storyId: string) {
         const {version, currentVersion} = settings;
+        const retryConfig: any = {
+            retryDelay: API.retry.exponentialDelay,
+            retryCondition: (e) => {
+                console.log('the axios err', e, e.config);
+                console.log('is network or idempotent', axiosRetry.isNetworkOrIdempotentRequestError(e));
 
+                return axiosRetry.isNetworkOrIdempotentRequestError(e);
+            }
+        };
+
+        this.storyId = storyId;
         this.http = axios.create({
             baseURL: settings[env],
             headers: {
@@ -27,10 +37,8 @@ export default class API {
             }
         });
 
-        this.storyId = storyId;
-
         // Adds exponential back off to requests
-        API.retry(this.http, {retryDelay: API.retry.exponentialDelay});
+        API.retry(this.http, retryConfig);
     }
 
     /*

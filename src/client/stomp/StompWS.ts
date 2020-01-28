@@ -28,6 +28,7 @@ export default class StompWS {
     private client: WebStomp.Client = null;
     private subscription: WebStomp.Subscription = null;
     private currRetry: number = 0;
+    private didConnect: boolean = false;
 
     constructor(c: IStompConfig) {
         this.experienceId = c.experienceId;
@@ -39,6 +40,7 @@ export default class StompWS {
      */
     public init = (environment: string): Promise<void> => {
         this.socket = new WebSocket(settings[environment]);
+        this.socket.onopen = () => { this.didConnect = true; };
         this.client = WebStomp.over(this.socket);
         this.client.debug = StompWS.DEBUG_OFF;
 
@@ -109,7 +111,7 @@ export default class StompWS {
                 this.init(environment);
             });
         } else {
-            consumerDelegates.get('socketFailure')(evt);
+            consumerDelegates.get('socketFailure')(evt, this.didConnect);
         }
     }
 }
