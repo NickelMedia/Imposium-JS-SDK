@@ -44,7 +44,7 @@
         "exchange": "/exchange/imposium/",
         "username": "imposium_stomp",
         "password": "Teehe1ceeMe7Pe1d",
-        "maxRetries": 2
+        "maxRetries": 0
     },
     "sentry": {
         "dsn": "https://17ffe982179e4d60a1df2062198d7ade@sentry.io/1411258",

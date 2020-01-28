@@ -28,6 +28,7 @@ export default class StompWS {
     private client: WebStomp.Client = null;
     private subscription: WebStomp.Subscription = null;
     private currRetry: number = 0;
+    private didConnect: boolean = false;
 
     constructor(c: IStompConfig) {
         this.experienceId = c.experienceId;
@@ -85,6 +86,7 @@ export default class StompWS {
         const {experienceId, client, consumerDelegates} = this;
         const queueLoc: string = `${EXCHANGE}${experienceId}`;
 
+        this.didConnect = true;
         this.subscription = client.subscribe(
             queueLoc,
             consumerDelegates.get('validateFrameData')
@@ -109,7 +111,7 @@ export default class StompWS {
                 this.init(environment);
             });
         } else {
-            consumerDelegates.get('socketFailure')(evt);
+            consumerDelegates.get('socketFailure')(evt, this.didConnect);
         }
     }
 }

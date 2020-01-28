@@ -112,7 +112,7 @@ export default class DeliveryPipe {
             this.configCache.set(uuid, config);
 
             this.startConsumer(uuid)
-            .then(() => { this.doCreate(config, false, retryOnCollision); });
+            .then(() => this.doCreate(config, false, retryOnCollision));
         }
     }
 
@@ -192,6 +192,7 @@ export default class DeliveryPipe {
             } else {
                 const httpError = new HTTPError('httpFailure', uuid, e);
                 this.clientDelegates.get('internalError')(httpError);
+                this.killConsumer();
             }
         });
     }
@@ -252,7 +253,10 @@ export default class DeliveryPipe {
         const cachedConfig: ICreateConfig = this.configCache.get(experienceId);
 
         this.setMode(DeliveryPipe.POLL_MODE);
-        this.clientDelegates.get('internalError')(e);
+
+        if (e.wasConnected) {
+            this.clientDelegates.get('internalError')(e);
+        }
 
         if (typeof cachedConfig !== 'undefined') {
             this.configCache.delete(experienceId);
