@@ -19,13 +19,7 @@ export default class API {
     constructor(accessToken: string, env: string, storyId: string) {
         const {version, currentVersion} = settings;
         const retryConfig: any = {
-            retryDelay: API.retry.exponentialDelay,
-            retryCondition: (e) => {
-                console.log('the axios err', e, e.config);
-                console.log('is network or idempotent', axiosRetry.isNetworkOrIdempotentRequestError(e));
-
-                return axiosRetry.isNetworkOrIdempotentRequestError(e);
-            }
+            retryDelay: API.retry.exponentialDelay
         };
 
         this.storyId = storyId;

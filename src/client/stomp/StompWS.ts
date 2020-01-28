@@ -40,7 +40,6 @@ export default class StompWS {
      */
     public init = (environment: string): Promise<void> => {
         this.socket = new WebSocket(settings[environment]);
-        this.socket.onopen = () => { this.didConnect = true; };
         this.client = WebStomp.over(this.socket);
         this.client.debug = StompWS.DEBUG_OFF;
 
@@ -87,6 +86,7 @@ export default class StompWS {
         const {experienceId, client, consumerDelegates} = this;
         const queueLoc: string = `${EXCHANGE}${experienceId}`;
 
+        this.didConnect = true;
         this.subscription = client.subscribe(
             queueLoc,
             consumerDelegates.get('validateFrameData')
