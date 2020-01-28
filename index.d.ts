@@ -67,9 +67,10 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	    log: () => void;
 	}
 	export class SocketError extends ImposiumError {
+	    wasConnected: boolean;
 	    private experienceId;
 	    private closeEvent;
-	    constructor(messageKey: string, experienceId: string, evt: CloseEvent);
+	    constructor(messageKey: string, experienceId: string, evt: CloseEvent, wasConnected: boolean);
 	    log: () => void;
 	}
 	export class UncaughtError extends ImposiumError {
@@ -178,6 +179,7 @@ declare module 'Imposium-JS-SDK/client/stomp/StompWS' {
 	    private client;
 	    private subscription;
 	    private currRetry;
+	    private didConnect;
 	    constructor(c: IStompConfig);
 	    init: (environment: string) => Promise<void>;
 	    forceClose: () => Promise<void>;
