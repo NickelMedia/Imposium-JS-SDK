@@ -1,6 +1,10 @@
 Imposium JavaScript SDK
 ====================================================
 
+Documentation
+======
+(https://docs.imposium.com/js-sdk/)
+
 Basic Example
 ======
 
