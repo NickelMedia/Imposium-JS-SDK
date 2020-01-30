@@ -3,7 +3,7 @@ Imposium JavaScript SDK
 
 Documentation
 ======
-https://docs.imposium.com/js-sdk/
+<a href="https://docs.imposium.com/js-sdk/" target="_blank">https://docs.imposium.com/js-sdk/</a>
 
 Basic Example
 ======
