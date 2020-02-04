@@ -40,7 +40,7 @@ export default class API {
      */
     public getGAProperty = (): Promise<ITrackingResponse> => {
         return new Promise((resolve, reject) => {
-            this.http.get(`/story/${this.storyId}/ga`)
+            this.http.get(`/story/${this.storyId}/property`)
             .then((res: AxiosResponse) => {
                 resolve(res.data);
             })
