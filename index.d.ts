@@ -26,6 +26,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    triggerRender: (experienceId: string) => Promise<string>;
 	    private getAuthHeader;
 	    private uploadProgress;
+	    private shouldRequestBeRetried;
 	}
 
 }
