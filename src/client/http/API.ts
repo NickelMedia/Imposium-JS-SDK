@@ -19,7 +19,8 @@ export default class API {
     constructor(accessToken: string, env: string, storyId: string) {
         const {version, currentVersion} = settings;
         const retryConfig: any = {
-            retryDelay: API.retry.exponentialDelay
+            retryDelay: API.retry.exponentialDelay,
+            retryCondition: this.shouldRequestBeRetried
         };
 
         this.storyId = storyId;
@@ -134,4 +135,16 @@ export default class API {
             callback(perc);
         }
     }
+
+    private shouldRequestBeRetried = (e: AxiosError): boolean => {
+        if (
+            typeof e.config === 'object' &&
+            e.config.hasOwnProperty('url') &&
+            e.config.url === '/experience/render'
+        ) {
+            return false;
+        }
+
+        return axiosRetry.isNetworkOrIdempotentRequestError(e);
+    };
 }
