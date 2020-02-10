@@ -130,9 +130,9 @@ declare module 'Imposium-JS-SDK/video/VideoPlayer' {
 	    abstract experienceGenerated: (exp: IExperience) => void;
 	    protected node: HTMLVideoElement;
 	    protected storyId: string;
+	    protected gaProperty: string;
 	    private readonly playbackHandlers;
 	    private queuedGACalls;
-	    private gaProperty;
 	    private experienceId;
 	    private prevPlaybackEvent;
 	    private playbackInterval;
@@ -338,6 +338,7 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	export default class Client {
 	    static eventNames: IClientEvents;
 	    clientConfig: IClientConfig;
+	    gaProperty: string;
 	    private deliveryPipe;
 	    private player;
 	    private renderHistory;
