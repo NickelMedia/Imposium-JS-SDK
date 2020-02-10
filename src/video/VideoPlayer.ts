@@ -20,6 +20,7 @@ export default abstract class VideoPlayer {
     // HTML Video element ref, active storyId on client
     protected node: HTMLVideoElement = null;
     protected storyId: string = '';
+    protected gaProperty: string = '';
 
     // Base callbacks required in order to collect / measue. Add by media event name
     private readonly playbackHandlers: BaseMediaEvents = new Map(
@@ -33,7 +34,6 @@ export default abstract class VideoPlayer {
     );
 
     private queuedGACalls: IGAProtocol[] = [];
-    private gaProperty: string = '';
     private experienceId: string = '';
     private prevPlaybackEvent: number = 0;
     private playbackInterval: number = -1;

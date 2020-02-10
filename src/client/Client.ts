@@ -103,6 +103,7 @@ export default class Client {
 
     public static eventNames: IClientEvents = settings.eventNames;
     public clientConfig: IClientConfig = undefined;
+    public gaProperty: string = '';
     private deliveryPipe: DeliveryPipe = undefined;
     private player: VideoPlayer = undefined;
     private renderHistory: IRenderHistory = settings.emptyHistory;
@@ -169,6 +170,7 @@ export default class Client {
                 if (typeof property === 'string' && property.length > 0) {
                     GoogleAnalytics.initialize(this.clientConfig.gaPlacement);
 
+                    this.gaProperty = property;
                     if (typeof this.player !== 'undefined') {
                         this.player.setGaProperty(property);
                     }
@@ -195,6 +197,9 @@ export default class Client {
             this.player = player;
 
             player.setStoryId(storyId);
+            if (this.gaProperty) {
+                player.setGaProperty(this.gaProperty);
+            }
         }
     }
 
