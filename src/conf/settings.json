@@ -9,7 +9,7 @@
 			"environment": "production",
             "gaPlacement": "web",
             "deliveryMode": "ws",
-            "pollRate": 5000
+            "pollRate": 1000
 		},
         "emptyHistory": {
             "prevExperienceId": "",

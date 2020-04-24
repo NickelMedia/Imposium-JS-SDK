@@ -27,8 +27,10 @@ export default class DeliveryPipe {
 
     private mode: string = '';
     private environment: string = '';
-    private shortPollTimeout: number = -1;
-    private pollInterval: number = 5000;
+    private lifetimeTimeout: number = 0;
+    private shortPollTimeout: number = 0;
+    private pollInterval: number = 1000;
+    private lifetimeDelay: number = 300000;
     private api: API = null;
     private consumer: MessageConsumer = null;
     private clientDelegates: DelegateMap = null;
@@ -65,7 +67,7 @@ export default class DeliveryPipe {
 
             // Rendered resource was requested
             if (hasOutput) {
-                clearTimeout(this.shortPollTimeout);
+                this.expireShortPoll();
                 this.clientDelegates.get('gotExperience')(exp);
             }
 
@@ -76,7 +78,7 @@ export default class DeliveryPipe {
 
             // Resource was requested during render job
             if (!hasOutput && rendering) {
-                this.consumeOnRefresh(experienceId);
+                this.waitForOutput(experienceId);
             }
         })
         .catch((e: AxiosError) => {
@@ -97,7 +99,7 @@ export default class DeliveryPipe {
         const uuid: string = generateUUID();
         const config: ICreateConfig = {inventory, render, uuid, uploadProgress};
 
-        clearTimeout(this.shortPollTimeout);
+        this.expireShortPoll();
 
         if (!render) {
             this.doCreate(config, false, retryOnCollision);
@@ -146,7 +148,7 @@ export default class DeliveryPipe {
     /*
         Start a consumer or short poll if an experience is requested mid-render
      */
-    private consumeOnRefresh = (experienceId: string): void => {
+    private waitForOutput = (experienceId: string): void => {
         if (this.mode === DeliveryPipe.WS_MODE) {
             this.startConsumer(experienceId);
         } else {
@@ -156,6 +158,13 @@ export default class DeliveryPipe {
                 () => this.doGetExperience(experienceId),
                 this.pollInterval
             );
+
+            if (!this.lifetimeTimeout) {
+                this.lifetimeTimeout = window.setTimeout(
+                    () => this.expireShortPoll(true),
+                    this.lifetimeDelay
+                );
+            }
         }
     }
 
@@ -263,6 +272,19 @@ export default class DeliveryPipe {
             this.createPrestep(cachedConfig.inventory, cachedConfig.render, cachedConfig.uploadProgress);
         } else {
             this.doGetExperience(experienceId);
+        }
+    }
+
+    /*
+        Kills the short poll if the user has been waiting for video longer than the max time allowed
+     */
+    private expireShortPoll = (emitErr: boolean = false): void => {
+        clearTimeout(this.shortPollTimeout);
+        clearTimeout(this.lifetimeTimeout);
+        this.lifetimeTimeout = 0;
+
+        if (emitErr) {
+            this.clientDelegates.get('internalError')(new Error('Fetching experience data took too long.'));
         }
     }
 }
