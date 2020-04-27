@@ -83,6 +83,8 @@ export default class DeliveryPipe {
         })
         .catch((e: AxiosError) => {
             const httpError = new HTTPError('httpFailure', experienceId, e);
+
+            this.expireShortPoll();
             this.clientDelegates.get('internalError')(httpError);
         });
     }
