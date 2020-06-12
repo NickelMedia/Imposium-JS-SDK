@@ -83,7 +83,7 @@ export const inventoryToFormData = (storyId: string, inventory: any): any => {
                     inventory[key] = '';
                 }
             } else if (data && data instanceof File) {
-                //Only accept Files (need filename)
+                // Only accept Files (need filename)
                 inventory[key] = '';
                 formData.append(key, data, data.name);
             }
