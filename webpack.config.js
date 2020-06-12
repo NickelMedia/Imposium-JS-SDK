@@ -72,11 +72,12 @@ module.exports = (env, argv) => {
     }
 
     if (env === 'sentry') {
-        config.plugins.push(
-            new SentryCliPlugin({
-                include: './lib'
-            })
-        );
+        // config.plugins.push(
+        //     new SentryCliPlugin({
+        //         include: './lib',
+        //         org:''
+        //     })
+        // );
     }
 
     return config;
