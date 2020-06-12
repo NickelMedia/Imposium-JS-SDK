@@ -82,10 +82,10 @@ export const inventoryToFormData = (storyId: string, inventory: any): any => {
                 } else {
                     inventory[key] = '';
                 }
-            } else if (data && data instanceof Blob || data instanceof File) {
-                // Deal with blobs && pre-parsed HTML5 File objects
+            } else if (data && data instanceof File) {
+                //Only accept Files (need filename)
                 inventory[key] = '';
-                formData.append(key, data, 'inventory.png');
+                formData.append(key, data, data.name);
             }
 
             // Add other inputs, for files this will just be a key that our API uses for a look up
