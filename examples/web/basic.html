@@ -62,17 +62,21 @@
 				videoNode = document.getElementById('dynamic-video'),
 				captionInput = document.getElementById('caption'),
 				statusField = document.getElementById('status'),
-				imageInput = document.getElementById('image');
+				imageInput = document.getElementById('image')
 
 			//Create an instance of the Client and Player
 			var client = new Imposium.Client({
-				accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
-				storyId:'295a80d0-871c-4def-a579-8a375d6942fc'
+				accessToken:'oo4eshiegiejie0sae3ohl6ieWap5eiF',
+				storyId:'c5e89cbb-ab6d-4aa7-e076-5e9eff63e626',
 			});
+			
 			var player = new Imposium.Player(videoNode, client);
 
 			//Listen to the client STATUS_UPDATE event to populate the status field
 			client.on(Imposium.Events.STATUS_UPDATE, setStatus);
+
+			//Listen to the client for ERROR event & log error to console
+			client.on(Imposium.Events.ERROR, setError)
 
 			//Listen for input event to trigger input validation
 			captionInput.addEventListener('change', validateForm);
@@ -95,8 +99,12 @@
 
 			//Set the content of the status update field
 			function setStatus(e){
-
 				statusField.innerHTML = e.status;
+			}
+
+			//Display error in console
+			function setError(e){
+				console.error(e)
 			}
 
 			//Validate the two inputs in the inputs field, enable the submit button if they are filled out
