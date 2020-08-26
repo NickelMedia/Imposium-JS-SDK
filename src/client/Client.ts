@@ -3,7 +3,7 @@ import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
 import GoogleAnalytics from '../scaffolding/GoogleAnalytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
-import DeliveryPipe, {DelegateMap, IDeliveryPipeConfig} from './DeliveryPipe';
+import DeliveryPipe, {DelegateMap} from './DeliveryPipe';
 import {IEmitData} from './stomp/Consumer';
 
 import {
@@ -16,7 +16,6 @@ import {
 import {
     prepConfig,
     keyExists,
-    generateUUID,
     cloneWithKeys,
     isFunc
 } from '../scaffolding/Helpers';
@@ -44,6 +43,7 @@ export interface IClientConfig {
     gaPlacement: string;
     deliveryMode: string;
     pollRate: number;
+    disabled: boolean;
 }
 
 export interface IRenderHistory {
@@ -165,7 +165,7 @@ export default class Client {
 
             api.getGAProperty()
             .then((story: any) => {
-                const {gaTrackingId: property} = story;
+                const {gaTrackingId: { property }, disabled} = story;
 
                 if (typeof property === 'string' && property.length > 0) {
                     GoogleAnalytics.initialize(this.clientConfig.gaPlacement);
@@ -174,6 +174,10 @@ export default class Client {
                     if (typeof this.player !== 'undefined') {
                         this.player.setGaProperty(property);
                     }
+                }
+
+                if (typeof disabled === 'boolean' && disabled) {
+                    throw new ClientConfigurationError('storyDisabled', Client.eventNames.ERROR);
                 }
             })
             .catch((e) => {

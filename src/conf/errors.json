@@ -4,6 +4,7 @@
     },
     "clientConfiguration": {
         "badConfig": "Your Imposium configuration is an invalid type.",
+        "storyDisabled": "This story has been disabled",
         "storyId": "An undefined or invalid storyId was set in your Imposium configuration.",
         "accessToken": "An undefined or invalid accessToken was set in your Imposium configuration.",
         "invalidEventName": "Invalid client event name.",
