@@ -62,7 +62,7 @@
 				videoNode = document.getElementById('dynamic-video'),
 				captionInput = document.getElementById('caption'),
 				statusField = document.getElementById('status'),
-				imageInput = document.getElementById('image')
+				imageInput = document.getElementById('image');
 
 			//Create an instance of the Client and Player
 			var client = new Imposium.Client({
@@ -76,7 +76,7 @@
 			client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
 			//Listen to the client for ERROR event & log error to console
-			client.on(Imposium.Events.ERROR, setError)
+			client.on(Imposium.Events.ERROR, setError);
 
 			//Listen for input event to trigger input validation
 			captionInput.addEventListener('change', validateForm);
@@ -104,7 +104,7 @@
 
 			//Display error in console
 			function setError(e){
-				console.error(e)
+				console.error(e);
 			}
 
 			//Validate the two inputs in the inputs field, enable the submit button if they are filled out
