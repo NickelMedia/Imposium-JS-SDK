@@ -7,7 +7,7 @@ declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
 	export const calculateMbps: (startTime: number, filesize: number) => number;
 	export const calculateAverageMbps: (speeds: number[]) => number;
 	export const generateUUID: () => string;
-	export const inventoryToFormData: (storyId: string, inventory: any) => any;
+	export const inventoryToFormData: (storyId: string, inventory: any, compositionId?: string) => any;
 
 }
 declare module 'Imposium-JS-SDK/client/http/API' {
@@ -19,7 +19,8 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    private static readonly retry;
 	    private http;
 	    private storyId;
-	    constructor(accessToken: string, env: string, storyId: string);
+	    private compositionId;
+	    constructor(accessToken: string, env: string, storyId: string, compositionId?: string);
 	    getGAProperty: () => Promise<ITrackingResponse>;
 	    get: (experienceId: string) => Promise<any>;
 	    create: (inventory: any, render: boolean, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
@@ -285,6 +286,7 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	export interface IClientConfig {
 	    accessToken: string;
 	    storyId: string;
+	    compositionId: string;
 	    actId: string;
 	    sceneId: string;
 	    environment: string;
@@ -425,15 +427,5 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	    private setPlayerData;
 	    private pauseIfPlaying;
 	}
-
-}
-declare module 'Imposium-JS-SDK/Entry' {
-	import 'core-js/es/promise';
-	import 'core-js/features/symbol/key-for';
-	import 'core-js/features/map/of';
-	import 'core-js/features/object/assign';
-	import Client from 'Imposium-JS-SDK/client/Client';
-	import Player from 'Imposium-JS-SDK/video/Player';
-	export { Client, Player, clientEvents as Events, playerEvents as PlayerEvents };
 
 }
