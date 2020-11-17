@@ -15,9 +15,9 @@ export default class API {
 
     private http: AxiosInstance = null;
     private storyId: string = '';
-    private compositionId : string = '';
+    private compositionId: string = '';
 
-    constructor(accessToken: string, env: string, storyId: string, compositionId:string = null) {
+    constructor(accessToken: string, env: string, storyId: string, compositionId: string = null) {
 
         console.log(`API: ${compositionId}`);
         const {version, currentVersion} = settings;
@@ -150,5 +150,5 @@ export default class API {
         }
 
         return axiosRetry.isNetworkOrIdempotentRequestError(e);
-    };
+    }
 }

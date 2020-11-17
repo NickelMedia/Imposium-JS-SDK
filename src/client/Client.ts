@@ -38,7 +38,7 @@ export interface IClientEvents {
 export interface IClientConfig {
     accessToken: string;
     storyId: string;
-    compositionId:string;
+    compositionId: string;
     actId: string;
     sceneId: string;
     environment: string;

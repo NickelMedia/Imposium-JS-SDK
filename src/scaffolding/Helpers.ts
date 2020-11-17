@@ -62,15 +62,15 @@ export const generateUUID = (): string => {
 };
 
 // Convert inventory map to form data object
-export const inventoryToFormData = (storyId: string, inventory: any, compositionId:string = null): any => {
+export const inventoryToFormData = (storyId: string, inventory: any, compositionId: string = null): any => {
     const formData = new FormData();
 
     formData.append('story_id', storyId);
 
-    if(compositionId){
+    if (compositionId) {
         formData.append('composition_id', compositionId);
     }
-    
+
     for (const key in inventory) {
         if (inventory[key]) {
 
