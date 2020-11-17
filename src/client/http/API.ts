@@ -15,8 +15,11 @@ export default class API {
 
     private http: AxiosInstance = null;
     private storyId: string = '';
+    private compositionId : string = '';
 
-    constructor(accessToken: string, env: string, storyId: string) {
+    constructor(accessToken: string, env: string, storyId: string, compositionId:string = null) {
+
+        console.log(`API: ${compositionId}`);
         const {version, currentVersion} = settings;
         const retryConfig: any = {
             retryDelay: API.retry.exponentialDelay,
@@ -24,6 +27,7 @@ export default class API {
         };
 
         this.storyId = storyId;
+        this.compositionId = compositionId;
         this.http = axios.create({
             baseURL: settings[env],
             headers: {
@@ -76,7 +80,7 @@ export default class API {
         progress: (p: number) => any = null
     ): Promise<IExperience> => {
         const route: string  = (render) ? '/experience/render' : '/experience';
-        const formData: FormData = inventoryToFormData(this.storyId, inventory);
+        const formData: FormData = inventoryToFormData(this.storyId, inventory, this.compositionId);
         const config: AxiosRequestConfig = {onUploadProgress: (e) => this.uploadProgress(e, progress)};
 
         formData.append('id', uuid);

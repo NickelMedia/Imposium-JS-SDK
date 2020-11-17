@@ -4,6 +4,7 @@
 		"defaultConfig": {
 			"accessToken": "",
 			"storyId": "",
+			"compositionId":"",
 			"actId": "",
 			"sceneId": "",
 			"environment": "production",
