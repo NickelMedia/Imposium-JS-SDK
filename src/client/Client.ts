@@ -38,6 +38,7 @@ export interface IClientEvents {
 export interface IClientConfig {
     accessToken: string;
     storyId: string;
+    compositionId:string;
     actId: string;
     sceneId: string;
     environment: string;
@@ -115,6 +116,9 @@ export default class Client {
         Initialize Imposium client
      */
     constructor(config: IClientConfig) {
+
+        console.log(config);
+
         this.setup(config);
     }
 
@@ -146,7 +150,8 @@ export default class Client {
             api = new API(
                 this.clientConfig.accessToken,
                 this.clientConfig.environment,
-                this.clientConfig.storyId
+                this.clientConfig.storyId,
+                this.clientConfig.compositionId
             );
 
             clientDelegates.set('experienceCreated', (e: IExperience) => this.experienceCreated(e));
