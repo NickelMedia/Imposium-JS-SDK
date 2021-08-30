@@ -117,8 +117,6 @@ export default class Client {
      */
     constructor(config: IClientConfig) {
 
-        console.log(config);
-
         this.setup(config);
     }
 
