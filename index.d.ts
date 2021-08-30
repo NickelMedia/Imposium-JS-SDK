@@ -230,7 +230,7 @@ declare module 'Imposium-JS-SDK/client/stomp/Consumer' {
 }
 declare module 'Imposium-JS-SDK/client/DeliveryPipe' {
 	import API from 'Imposium-JS-SDK/client/http/API';
-	export type VoidDelegate = (...args) => void;
+	export type VoidDelegate = (...args: any[]) => void;
 	export type DelegateMap = Map<string, VoidDelegate>;
 	export interface IDeliveryPipeConfig {
 	    api: API;
@@ -427,5 +427,31 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	    private setPlayerData;
 	    private pauseIfPlaying;
 	}
+
+}
+declare module 'Imposium-JS-SDK/Entry' {
+	import 'core-js/es/promise';
+	import 'core-js/features/symbol/key-for';
+	import 'core-js/features/map/of';
+	import 'core-js/features/object/assign';
+	import Client from 'Imposium-JS-SDK/client/Client';
+	import Player from 'Imposium-JS-SDK/video/Player'; const clientEvents: {
+	    EXPERIENCE_CREATED?: import("./client/Client").ExperienceCreated & string;
+	    GOT_EXPERIENCE?: import("./client/Client").GotExperience & string;
+	    STATUS_UPDATE?: import("./client/Client").StatusUpdate & string;
+	    ERROR?: import("./client/Client").onError & string;
+	    UPLOAD_PROGRESS?: import("./client/Client").UploadProgress & string;
+	}, playerEvents: {
+	    PLAY: string;
+	    PAUSE: string;
+	    COMPLETE: string;
+	    ERROR: string;
+	    SEEK: string;
+	    TIME: string;
+	    VOLUME: string;
+	    MUTE: string;
+	    CONTROLS: string;
+	};
+	export { Client, Player, clientEvents as Events, playerEvents as PlayerEvents };
 
 }
