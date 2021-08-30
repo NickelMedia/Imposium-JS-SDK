@@ -19,7 +19,6 @@ export default class API {
 
     constructor(accessToken: string, env: string, storyId: string, compositionId: string = null) {
 
-        console.log(`API: ${compositionId}`);
         const {version, currentVersion} = settings;
         const retryConfig: any = {
             retryDelay: API.retry.exponentialDelay,
