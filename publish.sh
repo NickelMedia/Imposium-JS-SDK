@@ -36,7 +36,7 @@ if [ "$confirmation" == "y" ]; then
     tslint ./src/**/*.ts
 
     print_checkout_step "Preparing bundled code..."
-    webpack --bail && webpack --bail -p --env=sentry || { exit 1; }
+    npx webpack --bail && npx webpack --bail -p --env=sentry || { exit 1; }
 
     print_checkout_step "Generating type definitions...\n"
     ./generate-types.sh
