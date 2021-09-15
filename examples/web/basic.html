@@ -65,8 +65,9 @@
 				imageInput = document.getElementById('image');
 
 			//Create an instance of the Client and Player
-			var client = new Imposium.Client({
-				accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+			var client = new Imposium.DirectClient({
+				environment:'staging',
+				accessToken:'PhaoTee4pee1ziekae5uch0phe2qui1u',
 				storyId:'75e3ed80-7008-480e-ca39-6a3dab807fe9',
 				compositionId:'473df1b4-d9f5-4648-b08b-e0af03abb86e'
 			});
@@ -91,7 +92,7 @@
 				}
 
 				//Create the Imposium Experience
-				client.createExperience(inventory);
+				client.renderExperience(inventory);
 			}
 
 			//Set the content of the status update field

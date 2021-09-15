@@ -72,6 +72,30 @@ export default class API {
     /*
         create a new experience record and resolve fresh experience data
      */
+    public fetch = (
+        inventory: any,
+        uuid: string,
+        progress: (p: number) => any = null
+    ): Promise<IExperience> => {
+        const route: string = '/experience/fetch';
+        const formData: FormData = inventoryToFormData(this.storyId, inventory, this.compositionId);
+        const config: AxiosRequestConfig = {onUploadProgress: (e) => this.uploadProgress(e, progress)};
+        formData.append('id', uuid);
+
+        return new Promise((resolve, reject) => {
+            this.http.post(route, formData, config)
+            .then((res: AxiosResponse) => {
+                resolve(res.data);
+            })
+            .catch((e: AxiosError) => {
+                reject(e);
+            });
+        });
+    }
+
+    /*
+        create a new experience record and resolve fresh experience data
+     */
     public create = (
         inventory: any,
         render: boolean,
