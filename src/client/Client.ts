@@ -3,8 +3,7 @@ import VideoPlayer from '../video/VideoPlayer';
 import FallbackPlayer from '../video/FallbackPlayer';
 import GoogleAnalytics from '../scaffolding/GoogleAnalytics';
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
-import DeliveryPipe, {DelegateMap, IDeliveryPipeConfig} from './DeliveryPipe';
-import {IEmitData} from './stomp/Consumer';
+import DirectDeliveryPipe, {DelegateMap} from './DirectDeliveryPipe';
 
 import {
     ClientConfigurationError,
@@ -16,21 +15,18 @@ import {
 import {
     prepConfig,
     keyExists,
-    generateUUID,
     cloneWithKeys,
     isFunc
 } from '../scaffolding/Helpers';
 
 export type ExperienceCreated = ((e: IExperience) => any);
 export type GotExperience = ((e: IExperience) => any);
-export type StatusUpdate = ((m: IEmitData) => any);
 export type onError = ((e: Error) => any);
 export type UploadProgress = ((n: number) => any);
 
 export interface IClientEvents {
     EXPERIENCE_CREATED?: ExperienceCreated & string;
     GOT_EXPERIENCE?: GotExperience & string;
-    STATUS_UPDATE?: StatusUpdate & string;
     ERROR?: onError & string;
     UPLOAD_PROGRESS?: UploadProgress & string;
 }
@@ -39,8 +35,6 @@ export interface IClientConfig {
     accessToken: string;
     storyId: string;
     compositionId: string;
-    actId: string;
-    sceneId: string;
     environment: string;
     gaPlacement: string;
     deliveryMode: string;
@@ -105,7 +99,7 @@ export default class Client {
     public static eventNames: IClientEvents = settings.eventNames;
     public clientConfig: IClientConfig = undefined;
     public gaProperty: string = '';
-    private deliveryPipe: DeliveryPipe = undefined;
+    private DirectDeliveryPipe: DirectDeliveryPipe = undefined;
     private player: VideoPlayer = undefined;
     private renderHistory: IRenderHistory = settings.emptyHistory;
     private emits: IClientEmits = settings.clientEmits;
@@ -154,17 +148,13 @@ export default class Client {
 
             clientDelegates.set('experienceCreated', (e: IExperience) => this.experienceCreated(e));
             clientDelegates.set('gotExperience', (e: IExperience) => this.gotExperience(e));
-            clientDelegates.set('gotMessage', (m: IEmitData) => this.gotMessage(m));
             clientDelegates.set('internalError', (e: any) => this.internalError(e));
 
-            this.deliveryPipe = new DeliveryPipe({
+            this.DirectDeliveryPipe = new DirectDeliveryPipe({
                 api,
                 clientDelegates,
                 environment: this.clientConfig.environment,
             });
-
-            this.deliveryPipe.setMode(this.clientConfig.deliveryMode);
-            this.deliveryPipe.setTimeoutInterval(this.clientConfig.pollRate);
 
             api.getGAProperty()
             .then((story: any) => {
@@ -296,7 +286,7 @@ export default class Client {
                     experienceId = experienceId.substring(0, settings.uuidLength);
                 }
 
-                this.deliveryPipe.doGetExperience(experienceId);
+                this.DirectDeliveryPipe.getExperience(experienceId);
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
@@ -304,33 +294,47 @@ export default class Client {
     }
 
     /*
-        Creates exposed to users that creates experiences and handles various render flows
+        Creates experiences and handles various render flows
      */
-    public createExperience = (inventory: any, render: boolean = true): void => {
+    public createExperience = (inventory: any, render : boolean = true): void => {
+        if (this.clientConfig) {
+            const {
+                player, playerIsFallback,
+                clientConfig: {storyId},
+                eventDelegateRefs: {GOT_EXPERIENCE, UPLOAD_PROGRESS, ERROR}
+            } = this;
+
+            try {
+
+                // Ensures config error throws if not using our player / GOT_EXPERIENCE isn't set or set correctly
+                if (((player === null || playerIsFallback) && !isFunc(GOT_EXPERIENCE))) {
+                    throw new ClientConfigurationError('bagConfigOnPostRender', Client.eventNames.GOT_EXPERIENCE);
+                }
+
+                this.DirectDeliveryPipe.createExperience(inventory, render, UPLOAD_PROGRESS);
+            } catch (e) {
+                ExceptionPipe.trapError(e, storyId, ERROR);
+            }
+        }
+    }
+
+    public renderExperience = (inventory:any): void =>{
+        
         if (this.clientConfig) {
             const {
                 player, playerIsFallback,
                 clientConfig: {storyId}, emits: {adding},
-                eventDelegateRefs: {GOT_EXPERIENCE, EXPERIENCE_CREATED, UPLOAD_PROGRESS, ERROR}
+                eventDelegateRefs: {GOT_EXPERIENCE, UPLOAD_PROGRESS, ERROR}
             } = this;
 
             try {
-                // Ensures at least experience created is set if doing two stage render
-                if (!render && !isFunc(EXPERIENCE_CREATED)) {
-                    throw new ClientConfigurationError('badConfigOnPostNoRender', Client.eventNames.EXPERIENCE_CREATED);
-                }
 
                 // Ensures config error throws if not using our player / GOT_EXPERIENCE isn't set or set correctly
-                if (render && ((player === null || playerIsFallback) && !isFunc(GOT_EXPERIENCE))) {
+                if (((player === null || playerIsFallback) && !isFunc(GOT_EXPERIENCE))) {
                     throw new ClientConfigurationError('bagConfigOnPostRender', Client.eventNames.GOT_EXPERIENCE);
                 }
 
-                // If rendering immediately, notify user the input was ingested
-                if (render) {
-                    this.gotMessage({id: undefined, status: adding});
-                }
-
-                this.deliveryPipe.createPrestep(inventory, render, UPLOAD_PROGRESS);
+                this.DirectDeliveryPipe.fetchExperience(inventory, UPLOAD_PROGRESS);
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
@@ -352,17 +356,13 @@ export default class Client {
     private experienceCreated = (experience: IExperience): void => {
         const {
             emits: {adding, added}, renderHistory: {prevMessage},
-            eventDelegateRefs: {EXPERIENCE_CREATED, STATUS_UPDATE}
+            eventDelegateRefs: {EXPERIENCE_CREATED}
         } = this;
 
         const {id} = experience;
 
         if (isFunc(EXPERIENCE_CREATED)) {
             EXPERIENCE_CREATED(experience);
-        }
-
-        if ((prevMessage === adding || !prevMessage)) {
-            this.gotMessage({id, status: added});
         }
 
         this.updateHistory('prevExperienceId', id);
@@ -385,10 +385,6 @@ export default class Client {
                 throw new ModerationError('rejection', id);
             }
 
-            if (prevMessage === added) {
-                this.gotMessage({id, status: finishedPolling});
-            }
-
             if (isFunc(GOT_EXPERIENCE)) {
                 GOT_EXPERIENCE(experience);
             }
@@ -401,18 +397,6 @@ export default class Client {
             this.updateHistory('prevMessage', '');
         } catch (e) {
             ExceptionPipe.trapError(e, storyId, ERROR);
-        }
-    }
-
-    /*
-        Handler for emitting message data
-     */
-    private gotMessage = (message: IEmitData): void => {
-        const {eventDelegateRefs: {STATUS_UPDATE}} = this;
-
-        if (isFunc(STATUS_UPDATE)) {
-            STATUS_UPDATE(message);
-            this.updateHistory('prevMessage', message.status);
         }
     }
 

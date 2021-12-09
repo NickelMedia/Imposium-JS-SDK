@@ -120,24 +120,6 @@ export default class API {
     }
 
     /*
-        triggers a render job for an experience if deferred
-     */
-    public triggerRender = (experienceId: string): Promise<string> => {
-        const {http: {post}} = this;
-
-        return new Promise((resolve, reject) => {
-            post(`/experience/${experienceId}/trigger-event`)
-            .then((res: AxiosResponse) => {
-                const {data: {job_id}} = res;
-                resolve(job_id);
-            })
-            .catch((e: AxiosError) => {
-                reject(e);
-            });
-        });
-    }
-
-    /*
         Attempt to decode JWT format from authToken, fallback to hmac if call fails
      */
     private getAuthHeader = (accessToken: string): any => {
@@ -161,17 +143,5 @@ export default class API {
 
             callback(perc);
         }
-    }
-
-    private shouldRequestBeRetried = (e: AxiosError): boolean => {
-        if (
-            typeof e.config === 'object' &&
-            e.config.hasOwnProperty('url') &&
-            e.config.url === '/experience/render'
-        ) {
-            return false;
-        }
-
-        return axiosRetry.isNetworkOrIdempotentRequestError(e);
     }
 }

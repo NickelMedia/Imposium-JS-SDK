@@ -30,7 +30,6 @@ import 'core-js/features/map/of';
 import 'core-js/features/object/assign';
 
 import Client from './client/Client';
-import DirectClient from './client/DirectClient';
 import Player from './video/Player';
 import {printVersion} from './scaffolding/Version';
 
@@ -40,7 +39,6 @@ const [clientEvents, playerEvents] = [{...Client.eventNames}, {...Player.events}
 
 export {
     Client,
-    DirectClient,
     Player,
     clientEvents as Events,
     playerEvents as PlayerEvents

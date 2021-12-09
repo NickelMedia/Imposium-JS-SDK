@@ -24,10 +24,8 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    getGAProperty: () => Promise<ITrackingResponse>;
 	    get: (experienceId: string) => Promise<any>;
 	    create: (inventory: any, render: boolean, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
-	    triggerRender: (experienceId: string) => Promise<string>;
 	    private getAuthHeader;
 	    private uploadProgress;
-	    private shouldRequestBeRetried;
 	}
 
 }
