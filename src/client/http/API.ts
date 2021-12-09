@@ -1,4 +1,4 @@
-import * as jwt_decode from 'jwt-decode';
+import jwt_decode from 'jwt-decode';
 import axios, {AxiosInstance, AxiosResponse, AxiosRequestConfig, AxiosError} from 'axios';
 import {IExperience} from '../Client';
 import {inventoryToFormData} from '../../scaffolding/Helpers';
