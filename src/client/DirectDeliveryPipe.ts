@@ -125,7 +125,7 @@ export default class DirectDeliveryPipe {
 
         .then((e: IExperience) => {
             this.configCache.delete(uuid);
-            this.clientDelegates.get('gotExperience')(e);
+            this.clientDelegates.get('experienceCreated')(e);
         })
         .catch((e: AxiosError) => {
             
