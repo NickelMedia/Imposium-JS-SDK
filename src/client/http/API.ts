@@ -1,5 +1,4 @@
 import * as jwt_decode from 'jwt-decode';
-import * as axiosRetry from 'axios-retry';
 import axios, {AxiosInstance, AxiosResponse, AxiosRequestConfig, AxiosError} from 'axios';
 import {IExperience} from '../Client';
 import {inventoryToFormData} from '../../scaffolding/Helpers';
@@ -11,7 +10,6 @@ export interface ITrackingResponse {
 }
 
 export default class API {
-    private static readonly retry: any = (axiosRetry as any);
 
     private http: AxiosInstance = null;
     private storyId: string = '';
@@ -20,10 +18,6 @@ export default class API {
     constructor(accessToken: string, env: string, storyId: string, compositionId: string = null) {
 
         const {version, currentVersion} = settings;
-        const retryConfig: any = {
-            retryDelay: API.retry.exponentialDelay,
-            retryCondition: this.shouldRequestBeRetried
-        };
 
         this.storyId = storyId;
         this.compositionId = compositionId;
@@ -34,9 +28,6 @@ export default class API {
                 [version]: currentVersion
             }
         });
-
-        // Adds exponential back off to requests
-        API.retry(this.http, retryConfig);
     }
 
     /*

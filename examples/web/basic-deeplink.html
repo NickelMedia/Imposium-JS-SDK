@@ -50,7 +50,6 @@
         </div>
 
         <section id="player-wrapper">
-            <p id = "status"></p>
             <video id="dynamic-video" />
         </section>
 
@@ -61,7 +60,6 @@
             var btnSubmit = document.getElementById('btn-submit'),
                 videoNode = document.getElementById('dynamic-video'),
                 captionInput = document.getElementById('caption'),
-                statusField = document.getElementById('status'),
                 imageInput = document.getElementById('image');
 
             //Create an instance of the Client and Player
@@ -72,9 +70,6 @@
             });
 
             var player = new Imposium.Player(videoNode, client);
-
-            //Listen to the client STATUS_UPDATE event to populate the status field
-            client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
             //Listen for the EXPERIENCE_CREATED event to pull the experience ID and write it to the URL
             client.on(Imposium.Events.EXPERIENCE_CREATED, gotExperience);
@@ -106,11 +101,6 @@
             //Writes the experience ID to the URL
             function gotExperience(e){
                 window.location.hash = '#' + e.id;
-            }
-
-            //Set the content of the status update field
-            function setStatus(e){
-                statusField.innerHTML = e.status;
             }
 
             //Validate the two inputs in the inputs field, enable the submit button if they are filled out

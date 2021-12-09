@@ -16,7 +16,6 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    gaTrackingId: string;
 	}
 	export default class API {
-	    private static readonly retry;
 	    private http;
 	    private storyId;
 	    private compositionId;
@@ -285,12 +284,8 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    accessToken: string;
 	    storyId: string;
 	    compositionId: string;
-	    actId: string;
-	    sceneId: string;
 	    environment: string;
 	    gaPlacement: string;
-	    deliveryMode: string;
-	    pollRate: number;
 	}
 	export interface IRenderHistory {
 	    prevExperienceId: string;
@@ -434,11 +429,10 @@ declare module 'Imposium-JS-SDK/Entry' {
 	import 'core-js/features/object/assign';
 	import Client from 'Imposium-JS-SDK/client/Client';
 	import Player from 'Imposium-JS-SDK/video/Player'; const clientEvents: {
-	    EXPERIENCE_CREATED?: import("./client/Client").ExperienceCreated & string;
-	    GOT_EXPERIENCE?: import("./client/Client").GotExperience & string;
-	    STATUS_UPDATE?: import("./client/Client").StatusUpdate & string;
-	    ERROR?: import("./client/Client").onError & string;
-	    UPLOAD_PROGRESS?: import("./client/Client").UploadProgress & string;
+	    EXPERIENCE_CREATED?: import("./src/client/Client").ExperienceCreated & string;
+	    GOT_EXPERIENCE?: import("./src/client/Client").GotExperience & string;
+	    ERROR?: import("./src/client/Client").onError & string;
+	    UPLOAD_PROGRESS?: import("./src/client/Client").UploadProgress & string;
 	}, playerEvents: {
 	    PLAY: string;
 	    PAUSE: string;

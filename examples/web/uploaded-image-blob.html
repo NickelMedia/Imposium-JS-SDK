@@ -63,7 +63,6 @@
         </button>   
 
         <section id="player-wrapper">
-            <p id = "status"></p>
             <video id="dynamic-video" />
         </section>
 
@@ -74,7 +73,6 @@
             var btnSubmit = document.getElementById('btn-submit'),
                 videoNode = document.getElementById('dynamic-video'),
                 captionInput = document.getElementById('caption'),
-                statusField = document.getElementById('status'),
                 imageInput = document.getElementById('image'),
                 imgCanvas = document.getElementById('img-canvas'),
                 ctx = imgCanvas.getContext('2d'),
@@ -103,9 +101,6 @@
                 cvsH = 360,
                 offset = 10,
                 imgScale = 1;
-
-            //Listen to the client STATUS_UPDATE event to populate the status field
-            client.on(Imposium.Events.STATUS_UPDATE, setStatus);
 
             //Listen for input event to trigger input validation
             captionInput.addEventListener('change', validateForm);
@@ -228,12 +223,6 @@
                     imgScale -= 0.01;
                     writeImageToCanvas();
                 }
-            }
-
-            //Set the content of the status update field
-            function setStatus(e){
-
-                statusField.innerHTML = e.status;
             }
 
             //Validate the two inputs in the inputs field, enable the submit button if they are filled out

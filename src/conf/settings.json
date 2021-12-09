@@ -5,12 +5,8 @@
 			"accessToken": "",
 			"storyId": "",
 			"compositionId":"",
-			"actId": "",
-			"sceneId": "",
 			"environment": "production",
-            "gaPlacement": "web",
-            "deliveryMode": "ws",
-            "pollRate": 5000
+            "gaPlacement": "web"
 		},
         "emptyHistory": {
             "prevExperienceId": "",
