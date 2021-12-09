@@ -72,7 +72,7 @@
             var player = new Imposium.Player(videoNode, client);
 
             //Listen for the EXPERIENCE_CREATED event to pull the experience ID and write it to the URL
-            client.on(Imposium.Events.EXPERIENCE_CREATED, gotExperience);
+            client.on(Imposium.Events.EXPERIENCE_CREATED, expCreated);
 
             //Listen for input event to trigger input validation
             captionInput.addEventListener('change', validateForm);
@@ -99,8 +99,9 @@
             }
 
             //Writes the experience ID to the URL
-            function gotExperience(e){
+            function expCreated(e){
                 window.location.hash = '#' + e.id;
+                client.getExperiience(e.id);
             }
 
             //Validate the two inputs in the inputs field, enable the submit button if they are filled out
