@@ -64,10 +64,10 @@
 
             //Create an instance of the Client and Player
             var client = new Imposium.Client({
-                accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
-                storyId:'75e3ed80-7008-480e-ca39-6a3dab807fe9',
+				accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+				storyId:'75e3ed80-7008-480e-ca39-6a3dab807fe9',
 				compositionId:'473df1b4-d9f5-4648-b08b-e0af03abb86e'
-            });
+			});
 
             var player = new Imposium.Player(videoNode, client);
 
@@ -101,7 +101,7 @@
             //Writes the experience ID to the URL
             function expCreated(e){
                 window.location.hash = '#' + e.id;
-                client.getExperiience(e.id);
+                client.getExperience(e.id);
             }
 
             //Validate the two inputs in the inputs field, enable the submit button if they are filled out
