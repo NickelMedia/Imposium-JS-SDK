@@ -29,12 +29,10 @@
     "webpack-cli": "^3.3.12"
   },
   "dependencies": {
-    "@sentry/browser": "^5.11.1",
-    "axios": "^0.21.4",
-    "axios-retry": "^3.1.9",
-    "core-js": "^3.17.2",
-    "jwt-decode": "^2.2.0",
-    "webstomp-client": "^1.2.6"
+    "@sentry/browser": "^6.16.0",
+    "axios": "^0.24.0",
+    "core-js": "^3.19.3",
+    "jwt-decode": "^3.1.2"
   },
   "typings": "./index.d.ts"
 }
