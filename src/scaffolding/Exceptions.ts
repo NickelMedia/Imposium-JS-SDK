@@ -6,6 +6,7 @@ const {...errors} = require('../conf/errors.json');
 const types = {
     ENV: 'environment',
     MODERATION: 'moderation',
+    RENDER: 'render',
     CLIENT_CONFIG: 'clientConfiguration',
     PLAYER_CONFIG: 'playerConfiguration',
     NETWORK: 'network',
@@ -32,6 +33,29 @@ export abstract class ImposiumError extends Error {
 
     public setStoryId = (s: string): void => { this.storyId = s; };
 }
+
+export class RenderError extends ImposiumError {
+    private experienceId: string = null;
+
+    constructor(message, experienceId: string) {
+        super(message, types.RENDER);
+
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, RenderError);
+        }
+
+        this.experienceId = experienceId || '<not_set>';
+    }
+
+    public log = (): void => {
+        console.error(`${this.logHeader}
+            \nReason: Error rendering dynamic video
+            \nExperience ID: ${this.experienceId}
+            \nMessage: ${this.message}`
+        );
+    }
+}
+
 
 export class ModerationError extends ImposiumError {
     private experienceId: string = null;

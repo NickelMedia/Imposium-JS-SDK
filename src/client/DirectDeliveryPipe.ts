@@ -1,7 +1,7 @@
 import API from './http/API';
 import {IExperience} from './Client';
 import {generateUUID} from '../scaffolding/Helpers';
-import {HTTPError} from '../scaffolding/Exceptions';
+import {HTTPError, RenderError} from '../scaffolding/Exceptions';
 import {AxiosError} from 'axios';
 
 export type VoidDelegate = (...args) => void;
@@ -73,14 +73,25 @@ export default class DirectDeliveryPipe {
 
         this.api.fetch(inventory, uuid, uploadProgress)
 
-        .then((e: IExperience) => {
-            this.configCache.delete(uuid);
-            this.clientDelegates.get('gotExperience')(e);
+        .then((res: IExperience) => {
+
+            if(res.error){
+                const httpError = new RenderError(res.error, uuid);
+                this.clientDelegates.get('internalError')(httpError);
+            }else{
+                this.configCache.delete(uuid);
+                this.clientDelegates.get('gotExperience')(res);
+            }
         })
         .catch((e: AxiosError) => {
+
+            //error during the render, return a render error
+            if(e?.response?.data?.error){
+                const httpError = new RenderError(e.response.data.error, uuid);
+                this.clientDelegates.get('internalError')(httpError);      
             
             //render took longer than a minute, revert to polling
-            if (e.response && e.response.status === 408) {
+            } else if (e.response && e.response.status === 408) {
 
                 //enter polling GET flow
                 this.getExperience(uuid);
@@ -152,8 +163,16 @@ export default class DirectDeliveryPipe {
 
             //if it's not rendering anymore, it's done
             if(!res.rendering){
-                resolve(res);
+                clearTimeout(this.pollTimeout);
+
+                if(res.error){
+                    const httpError = new RenderError(res.error, id);
+                    this.clientDelegates.get('internalError')(httpError);
+                }else{
+                    resolve(res);
+                }
             }else{
+                clearTimeout(this.pollTimeout);
                 this.pollTimeout = setTimeout(() => {
                     this.pollForExperience(id, resolve, reject, retries);
                 }, POLL_INTERVAL);
@@ -161,6 +180,7 @@ export default class DirectDeliveryPipe {
         })
         .catch((e : AxiosError) => {
 
+            clearTimeout(this.pollTimeout);
             //if there is an error getting the experience, try again if < max retries
             if(e.response && e.response.status >= 500 && retries < MAX_RETRIES){
                 retries = retries +1;

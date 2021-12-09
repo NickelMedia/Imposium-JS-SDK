@@ -46,17 +46,13 @@ export interface IRenderHistory {
     prevMessage: string;
 }
 
-export interface IClientEmits {
-    adding: string;
-    added: string;
-    finishedPolling: string;
-}
-
 export interface IExperience {
     id: string;
     rendering: boolean;
     date_created: number;
     moderation_status: string;
+    error? : string;
+    input : any;
     output: IExperienceOutput;
 }
 
@@ -102,7 +98,6 @@ export default class Client {
     private DirectDeliveryPipe: DirectDeliveryPipe = undefined;
     private player: VideoPlayer = undefined;
     private renderHistory: IRenderHistory = settings.emptyHistory;
-    private emits: IClientEmits = settings.clientEmits;
     private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.eventNames);
     private playerIsFallback: boolean = false;
 
@@ -323,7 +318,7 @@ export default class Client {
         if (this.clientConfig) {
             const {
                 player, playerIsFallback,
-                clientConfig: {storyId}, emits: {adding},
+                clientConfig: {storyId},
                 eventDelegateRefs: {GOT_EXPERIENCE, UPLOAD_PROGRESS, ERROR}
             } = this;
 
@@ -355,7 +350,6 @@ export default class Client {
      */
     private experienceCreated = (experience: IExperience): void => {
         const {
-            emits: {adding, added}, renderHistory: {prevMessage},
             eventDelegateRefs: {EXPERIENCE_CREATED}
         } = this;
 
@@ -374,11 +368,10 @@ export default class Client {
     private gotExperience = (experience: IExperience): void => {
         const {
             player, clientConfig: {storyId},
-            eventDelegateRefs: {GOT_EXPERIENCE, ERROR},
-            emits: {added, finishedPolling}, renderHistory: {prevMessage}
+            eventDelegateRefs: {GOT_EXPERIENCE, ERROR}
         } = this;
 
-        const {id, output, rendering, moderation_status} = experience;
+        const {id, moderation_status} = experience;
 
         try {
             if (moderation_status === 'rejected') {
