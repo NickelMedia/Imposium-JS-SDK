@@ -101,21 +101,22 @@ export class PlayerConfigurationError extends ImposiumError {
 
 export class HTTPError extends ImposiumError {
     private experienceId: string = null;
-    private axiosError: AxiosError = null;
+    private axiosError: any = null;
 
-    constructor(messageKey: string, experienceId: string, e: AxiosError) {
+    constructor(messageKey: string, experienceId: string, e?: AxiosError) {
+
         super(errors[types.NETWORK][messageKey], types.NETWORK);
 
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, HTTPError);
         }
 
-        if (e.hasOwnProperty('message')) {
-            this.message = e.message;
+        if (e?.response?.data?.error) {
+            this.message = e.response.data.error;
         }
 
         this.experienceId = experienceId || '<not_set>';
-        this.axiosError = e;
+        this.axiosError = e || '<not_set>';
     }
 
     public log = (): void => {
@@ -123,36 +124,7 @@ export class HTTPError extends ImposiumError {
             \nReason: HTTP error
             \nMessage: ${this.message}
             \nExperience ID: ${this.experienceId}
-            \nNetwork Error: `,
-            this.axiosError
-        );
-    }
-}
-
-export class SocketError extends ImposiumError {
-    public wasConnected: boolean = false;
-    private experienceId: string = null;
-    private closeEvent: CloseEvent = null;
-
-    constructor(messageKey: string, experienceId: string, evt: CloseEvent, wasConnected: boolean) {
-        super(`${errors[types.NETWORK][messageKey]} Code: ${evt.code}`, types.NETWORK);
-
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, SocketError);
-        }
-
-        this.experienceId = experienceId || '<not_set>';
-        this.closeEvent = evt;
-        this.wasConnected = wasConnected;
-    }
-
-    public log = (): void => {
-        console.error(`${this.logHeader}
-            \nReason: WebSocket error
-            \nMessage: ${this.message}
-            \nExperience ID: ${this.experienceId}
-            \nClose event: `,
-            this.closeEvent
+            \nNetwork Error: ${this.axiosError} `
         );
     }
 }

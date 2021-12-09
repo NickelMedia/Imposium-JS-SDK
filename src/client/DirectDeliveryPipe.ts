@@ -26,8 +26,8 @@ export interface IFetchConfig {
     uploadProgress: (n: number) => any;
 }
 
-const MAX_RETRIES : number = 4;
-const KILL_POLL_AFTER : number = 300000;
+const MAX_RETRIES : number = 3;
+const KILL_POLL_AFTER : number = 180000;
 const POLL_INTERVAL : number = 5000;
 
 export default class DirectDeliveryPipe {
@@ -49,7 +49,7 @@ export default class DirectDeliveryPipe {
     public getExperience = (experienceId: string): void => {
 
         clearTimeout(this.killPollTimeout);
-        this.killPollTimeout = setTimeout(()=>this.killPoll(), KILL_POLL_AFTER);
+        this.killPollTimeout = setTimeout(()=>this.killPoll(experienceId), KILL_POLL_AFTER);
         this.pollForExperience(experienceId, (experience)=>{
 
             this.clientDelegates.get('gotExperience')(experience);
@@ -66,7 +66,7 @@ export default class DirectDeliveryPipe {
     public fetchExperience = (
         inventory: any,
         uploadProgress: (n: number) => any,
-        retries : number = 0
+        retries : number = 1
     ): void => {
 
         const uuid: string = generateUUID();
@@ -85,14 +85,8 @@ export default class DirectDeliveryPipe {
                 //enter polling GET flow
                 this.getExperience(uuid);
 
-            //402 error (usage limit hit), throw an error without retrying
-            }else if(e.response && e.response.status === 402){
-
-                const httpError = new HTTPError('httpFailure', uuid, e);
-                this.clientDelegates.get('internalError')(httpError);
-
-            //retry render if < max retries
-            }else if(retries < MAX_RETRIES){
+            //retry render if < max retries and the status is a 5xx
+            }else if(e.response && e.response.status >= 500 && retries < MAX_RETRIES){
 
                 retries = retries + 1;
                 this.fetchExperience(inventory, uploadProgress, retries);
@@ -124,14 +118,8 @@ export default class DirectDeliveryPipe {
         })
         .catch((e: AxiosError) => {
             
-            //402 error (usage limit hit), throw an error without retrying
-            if(e.response && e.response.status === 402){
-
-                const httpError = new HTTPError('httpFailure', uuid, e);
-                this.clientDelegates.get('internalError')(httpError);
-
-            //retry render if < max retries
-            }else if(retries < MAX_RETRIES){
+            //retry render if < max retries amd the status is 5xx
+            if(e.response && e.response.status >= 500 && retries < MAX_RETRIES){
 
                 retries = retries + 1;
                 this.createExperience(inventory, render, uploadProgress, retries);
@@ -146,19 +134,18 @@ export default class DirectDeliveryPipe {
     /*
         Kill the GET /experience/{id} polling
     */
-    private killPoll(){
+    private killPoll(experienceId : string){
 
         clearTimeout(this.pollTimeout);
 
-        //TODO: throw an error through the error pipe
-        // const httpError = new HTTPError('httpFailure', uuid, e);
-        // this.clientDelegates.get('internalError')(httpError);
+        const httpError = new HTTPError('pollTimeout', experienceId);
+        this.clientDelegates.get('internalError')(httpError);
     }
 
     /*
         Poll on the GET /experience/{id} endpoint until the render is complete, or we time out
     */
-    private pollForExperience(id, resolve, reject, retries:number = 0) {
+    private pollForExperience(id, resolve, reject, retries:number = 1) {
 
         this.api.get(id)
         .then((res) => {
@@ -175,7 +162,7 @@ export default class DirectDeliveryPipe {
         .catch((e : AxiosError) => {
 
             //if there is an error getting the experience, try again if < max retries
-            if(retries < MAX_RETRIES){
+            if(e.response && e.response.status >= 500 && retries < MAX_RETRIES){
                 retries = retries +1;
                 this.pollForExperience(id, resolve, reject, retries);
 

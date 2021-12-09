@@ -22,6 +22,7 @@
     },
     "network": {
         "httpFailure": "Unable to process request to the Imposium API.",
+        "pollTimeout": "Polling timeout exceeded.",
         "tcpFailure": "Socket connection failed while processing the experience.",
         "errorOverTcp": "An error occured on the Imposium web servers while processing the experience.",
         "messageParseFailure": "Message data from Imposium was malformed."
