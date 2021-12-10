@@ -3,7 +3,7 @@ declare module 'Imposium-JS-SDK/scaffolding/Helpers' {
 	export const inRangeNumeric: (n: number, min: number, max: number) => boolean;
 	export const isFunc: (f: any) => boolean;
 	export const keyExists: (o: any, key: string) => number;
-	export const cloneWithKeys: (o: any) => {};
+	export const cloneWithKeys: (o: any) => any;
 	export const calculateMbps: (startTime: number, filesize: number) => number;
 	export const calculateAverageMbps: (speeds: number[]) => number;
 	export const generateUUID: () => string;
@@ -22,6 +22,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    constructor(accessToken: string, env: string, storyId: string, compositionId?: string);
 	    getGAProperty: () => Promise<ITrackingResponse>;
 	    get: (experienceId: string) => Promise<any>;
+	    fetch: (inventory: any, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
 	    create: (inventory: any, render: boolean, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
 	    private getAuthHeader;
 	    private uploadProgress;
@@ -29,7 +30,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 
 }
 declare module 'Imposium-JS-SDK/scaffolding/Version' {
-	export const version = "[AIV]{version}[/AIV]";
+	export const version: any;
 	export const printVersion: () => void;
 
 }
@@ -43,6 +44,11 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	    protected logHeader: string;
 	    constructor(message: string, type: string);
 	    setStoryId: (s: string) => void;
+	}
+	export class RenderError extends ImposiumError {
+	    private experienceId;
+	    constructor(message: any, experienceId: string);
+	    log: () => void;
 	}
 	export class ModerationError extends ImposiumError {
 	    private experienceId;
@@ -62,14 +68,7 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 	export class HTTPError extends ImposiumError {
 	    private experienceId;
 	    private axiosError;
-	    constructor(messageKey: string, experienceId: string, e: AxiosError);
-	    log: () => void;
-	}
-	export class SocketError extends ImposiumError {
-	    wasConnected: boolean;
-	    private experienceId;
-	    private closeEvent;
-	    constructor(messageKey: string, experienceId: string, evt: CloseEvent, wasConnected: boolean);
+	    constructor(messageKey: string, experienceId: string, e?: AxiosError);
 	    log: () => void;
 	}
 	export class UncaughtError extends ImposiumError {
@@ -83,7 +82,7 @@ declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
 	import { ImposiumError } from 'Imposium-JS-SDK/scaffolding/Exceptions';
 	export default class ExceptionPipe {
 	    static logWarning: (type: string, messageKey: string) => void;
-	    static trapError: (e: any, storyId: string, callback?: (e: ImposiumError) => () => any) => void;
+	    static trapError: (e: any, storyId: string, callback?: (evt: ImposiumError) => () => any) => void;
 	    private static sentryClient;
 	    private static hub;
 	    private static cleanDucktype;
@@ -159,77 +158,11 @@ declare module 'Imposium-JS-SDK/video/FallbackPlayer' {
 	}
 
 }
-declare module 'Imposium-JS-SDK/client/stomp/StompWS' {
-	import { DelegateMap } from 'Imposium-JS-SDK/client/DeliveryPipe';
-	export interface IStompConfig {
-	    experienceId: string;
-	    consumerDelegates: DelegateMap;
-	}
-	export default class StompWS {
-	    private static readonly EXCHANGE;
-	    private static readonly USERNAME;
-	    private static readonly PASSWORD;
-	    private static readonly OPEN_STATE;
-	    private static readonly MAX_RETRIES;
-	    private static readonly DEBUG_OFF;
-	    private experienceId;
-	    private consumerDelegates;
-	    private socket;
-	    private client;
-	    private subscription;
-	    private currRetry;
-	    private didConnect;
-	    constructor(c: IStompConfig);
-	    init: (environment: string) => Promise<void>;
-	    forceClose: () => Promise<void>;
-	    private doSubscribe;
-	    private onError;
-	}
-
-}
-declare module 'Imposium-JS-SDK/client/stomp/Consumer' {
-	import { IExperienceOutput } from 'Imposium-JS-SDK/client/Client';
-	import { DelegateMap } from 'Imposium-JS-SDK/client/DeliveryPipe';
-	export interface IConsumerConfig {
-	    experienceId: string;
-	    environment: string;
-	    deliveryDelegates: DelegateMap;
-	}
-	export interface IEmitTypes {
-	    scene: string;
-	    message: string;
-	    complete: string;
-	}
-	export interface IEmitData {
-	    id: string;
-	    event?: string;
-	    status?: string;
-	    rendering?: boolean;
-	    date_created?: number;
-	    moderation_status?: string;
-	    output?: IExperienceOutput;
-	}
-	export default class MessageConsumer {
-	    private static readonly EMITS;
-	    private environment;
-	    private experienceId;
-	    private deliveryDelegates;
-	    private stomp;
-	    constructor(c: IConsumerConfig);
-	    connect: () => Promise<void>;
-	    destroy: () => Promise<void>;
-	    private validateFrameData;
-	    private emitMessageData;
-	    private emitSceneData;
-	    private socketFailure;
-	}
-
-}
-declare module 'Imposium-JS-SDK/client/DeliveryPipe' {
+declare module 'Imposium-JS-SDK/client/DirectDeliveryPipe' {
 	import API from 'Imposium-JS-SDK/client/http/API';
 	export type VoidDelegate = (...args: any[]) => void;
 	export type DelegateMap = Map<string, VoidDelegate>;
-	export interface IDeliveryPipeConfig {
+	export interface IDirectDeliveryPipeConfig {
 	    api: API;
 	    clientDelegates: DelegateMap;
 	    environment: string;
@@ -240,43 +173,35 @@ declare module 'Imposium-JS-SDK/client/DeliveryPipe' {
 	    uuid: string;
 	    uploadProgress: (n: number) => any;
 	}
-	export default class DeliveryPipe {
-	    private static readonly WS_MODE;
-	    private static readonly POLL_MODE;
-	    private mode;
-	    private environment;
-	    private shortPollTimeout;
-	    private pollInterval;
+	export interface IFetchConfig {
+	    inventory: any;
+	    uuid: string;
+	    uploadProgress: (n: number) => any;
+	}
+	export default class DirectDeliveryPipe {
+	    private pollTimeout;
+	    private killPollTimeout;
 	    private api;
-	    private consumer;
 	    private clientDelegates;
 	    private configCache;
-	    constructor(c: IDeliveryPipeConfig);
-	    setMode: (mode: string) => void;
-	    setTimeoutInterval: (interval: number) => void;
-	    doGetExperience: (experienceId: string) => void;
-	    createPrestep: (inventory: any, render: boolean, uploadProgress: (n: number) => any, retryOnCollision?: number) => void;
-	    private startRender;
-	    private consumeOnRefresh;
-	    private doCreate;
-	    private startConsumer;
-	    private killConsumer;
-	    private consumerFailure;
+	    constructor(c: IDirectDeliveryPipeConfig);
+	    getExperience: (experienceId: string) => void;
+	    fetchExperience: (inventory: any, uploadProgress: (n: number) => any, retries?: number) => void;
+	    createExperience: (inventory: any, render: boolean, uploadProgress: (n: number) => any, retries?: number) => void;
+	    private killPoll;
+	    private pollForExperience;
 	}
 
 }
 declare module 'Imposium-JS-SDK/client/Client' {
 	import VideoPlayer from 'Imposium-JS-SDK/video/VideoPlayer';
-	import { IEmitData } from 'Imposium-JS-SDK/client/stomp/Consumer';
 	export type ExperienceCreated = ((e: IExperience) => any);
 	export type GotExperience = ((e: IExperience) => any);
-	export type StatusUpdate = ((m: IEmitData) => any);
 	export type onError = ((e: Error) => any);
 	export type UploadProgress = ((n: number) => any);
 	export interface IClientEvents {
 	    EXPERIENCE_CREATED?: ExperienceCreated & string;
 	    GOT_EXPERIENCE?: GotExperience & string;
-	    STATUS_UPDATE?: StatusUpdate & string;
 	    ERROR?: onError & string;
 	    UPLOAD_PROGRESS?: UploadProgress & string;
 	}
@@ -286,21 +211,20 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    compositionId: string;
 	    environment: string;
 	    gaPlacement: string;
+	    deliveryMode: string;
+	    pollRate: number;
 	}
 	export interface IRenderHistory {
 	    prevExperienceId: string;
 	    prevMessage: string;
-	}
-	export interface IClientEmits {
-	    adding: string;
-	    added: string;
-	    finishedPolling: string;
 	}
 	export interface IExperience {
 	    id: string;
 	    rendering: boolean;
 	    date_created: number;
 	    moderation_status: string;
+	    error?: string;
+	    input: any;
 	    output: IExperienceOutput;
 	}
 	export interface IExperienceOutput {
@@ -334,10 +258,9 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    static eventNames: IClientEvents;
 	    clientConfig: IClientConfig;
 	    gaProperty: string;
-	    private deliveryPipe;
+	    private directDeliveryPipe;
 	    private player;
 	    private renderHistory;
-	    private emits;
 	    private eventDelegateRefs;
 	    private playerIsFallback;
 	    constructor(config: IClientConfig);
@@ -348,10 +271,10 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    captureAnalytics: (playerRef?: HTMLVideoElement) => void;
 	    getExperience: (experienceId: string) => void;
 	    createExperience: (inventory: any, render?: boolean) => void;
+	    renderExperience: (inventory: any) => void;
 	    private updateHistory;
 	    private experienceCreated;
 	    private gotExperience;
-	    private gotMessage;
 	    private internalError;
 	}
 
@@ -390,8 +313,6 @@ declare module 'Imposium-JS-SDK/video/Player' {
 	    private eventDelegateRefs;
 	    private hlsSupport;
 	    private hlsPlayer;
-	    private experienceCache;
-	    private clientRef;
 	    private imposiumPlayerConfig;
 	    constructor(node: HTMLVideoElement, client: Client, config?: IPlayerConfig);
 	    init: (config: IPlayerConfig) => void;
@@ -429,10 +350,10 @@ declare module 'Imposium-JS-SDK/Entry' {
 	import 'core-js/features/object/assign';
 	import Client from 'Imposium-JS-SDK/client/Client';
 	import Player from 'Imposium-JS-SDK/video/Player'; const clientEvents: {
-	    EXPERIENCE_CREATED?: import("./src/client/Client").ExperienceCreated & string;
-	    GOT_EXPERIENCE?: import("./src/client/Client").GotExperience & string;
-	    ERROR?: import("./src/client/Client").onError & string;
-	    UPLOAD_PROGRESS?: import("./src/client/Client").UploadProgress & string;
+	    EXPERIENCE_CREATED?: import("./client/Client").ExperienceCreated & string;
+	    GOT_EXPERIENCE?: import("./client/Client").GotExperience & string;
+	    ERROR?: import("./client/Client").onError & string;
+	    UPLOAD_PROGRESS?: import("./client/Client").UploadProgress & string;
 	}, playerEvents: {
 	    PLAY: string;
 	    PAUSE: string;
