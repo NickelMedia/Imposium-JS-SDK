@@ -22,8 +22,7 @@ var client = new Imposium.Client(config);
 | ----------- | ---------------------------------------------------------------------------------------- | ------ | ---------- |
 | accessToken | An access token provided by your Imposium account manager.                               | String | no         |
 | storyId     | The story id associated with your project.                                               | String | no         |
-| actId       | An id related to a specific act in your project.                                         | String | yes        |
-| sceneId     | An id related to a specific scene in your project.                                       | String | yes        |
+| compositionId | The composition within your project that you want to render.                          | String | no         |
 | environment | Controls the Imposium environment being used. Options: 'production' (default), 'staging' | String | yes        |
 
 
@@ -52,39 +51,6 @@ client.setup(newConfig);
 `Imposium.Client.on(eventName: String, callback: Function): void`
 
 Binds a callback function to an Imposium event.
-##### EXPERIENCE_CREATED
-
-**Callback Signature:** `function experienceCreated(experience: Object)`
-
-Triggered when an experience record is first created. This is helpful in SPA environments for use cases where writing the id for an experience to a url can be used for SEO purposes, sharing, etc. This event can also be useful for updating loading markup (i.e: uploading has finished, moving onto processing...) as it means any dynamic data that was submitted to our web servers by a consumer was effectively transmitted. 
-
-Note: If you are not using [`Imposium.Player`](/player) or [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) to consume data returned by our web servers, this event as a minimum is required to be set in order to call [`createExperience`](#createExperience).
-
-    
-**Sample JSON** 
-
-```json
-{
-    "id": "bdc8ca2e-6c68-4c37-8396-bae2c65964d9",
-    "moderation_status": "approved",
-    "rendering": true,
-    "date_created": 1535465716,
-    "output": {}
-}
-```
-
-**Example**
-
-```javascript
-var client = new Imposium.Client({...});
-
-function experienceCreated(experience) {
-    // Create a deeplink to the experience
-    window.location.hash = '#' + experience.id;
-}
-
-client.on(Imposium.Events.EXPERIENCE_CREATED, experienceCreated);
-```
 
 ##### GOT_EXPERIENCE
 
@@ -127,12 +93,6 @@ Note: If you are not using [`Imposium.Player`](/player) this event is required t
                 "duration": 4.033333,
                 "rate": 30,
                 "url": "https:\/\/d14ffwo9wh5yh2.cloudfront.net\/P-03F3M6s7R9P6K1A723DbB0a3e7Ub91L5u9N1n3WbbaL-qfK55eUaj1T89199\/Q8uexchaP2tbxdL5h6fa95ZdC843Lc027aW-.mp4"
-            },
-            "m3u8": {
-                "format": "m3u8",
-                "duration": 4.033333,
-                "rate": 30,
-                "url": "https:\/\/d14ffwo9wh5yh2.cloudfront.net\/P-03F3M6s7R9P6K1A723DbB0a3e7Ub91L5u9N1n3WbbaL-qfK55eUaj1T89199\/stream_5b8559064f2b09.85753737\/playlist.m3u8"
             }
         }
     }
@@ -149,34 +109,6 @@ function gotExperience(experience) {
 }
 
 client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
-```
-
-##### STATUS_UPDATE
-
-**Callback Signature:** `function gotStatusUpdate(status: Object)`
-
-Triggered each time a processing step has finished, status payloads are delivered as follows:
-
-**Sample JSON** 
-
-```json
-{
-    "id": "bdc8ca2e-6c68-4c37-8396-bae2c65964d9",
-    "status": "Priming assets...",
-    "event": "gotMessage"
-}
-```
-
-**Example**
-
-```javascript
-var client = new Imposium.Client({...});
-
-function gotStatusUpdate(message) {
-    console.log('Got status update: ', message.status);
-}
-
-client.on(Imposium.Events.STATUS_UPDATE, gotStatus);
 ```
 
 ##### UPLOAD_PROGRESS
@@ -214,6 +146,40 @@ function errorHandler(error) {
 
 client.on(Imposium.Events.ERROR, errorHandler);
 ```
+
+##### EXPERIENCE_CREATED
+
+**Callback Signature:** `function experienceCreated(experience: Object)`
+
+Triggered when an experience record is first created. This is helpful in SPA environments for use cases where writing the id for an experience to a url can be used for SEO purposes, sharing, etc. This event can also be useful for updating loading markup (i.e: uploading has finished, moving onto processing...) as it means any dynamic data that was submitted to our web servers by a consumer was effectively transmitted. 
+
+Note: This event is only fired if you're using [`createExperience`](#createExperience) vs. [`renderExperience`](#renderExperience).
+    
+**Sample JSON** 
+
+```json
+{
+    "id": "bdc8ca2e-6c68-4c37-8396-bae2c65964d9",
+    "moderation_status": "approved",
+    "rendering": true,
+    "date_created": 1535465716,
+    "output": {}
+}
+```
+
+**Example**
+
+```javascript
+var client = new Imposium.Client({...});
+
+function experienceCreated(experience) {
+    // Create a deeplink to the experience
+    window.location.hash = '#' + experience.id;
+}
+
+client.on(Imposium.Events.EXPERIENCE_CREATED, experienceCreated);
+```
+
 #### off
 
 `Imposium.Client.off(eventName: String): void`
@@ -231,12 +197,130 @@ function gotExperience(experience) {
 
 client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
 ```
+#### renderExperience
+
+`Imposium.Client.renderExperience(inventory: Object): void`
+
+[`renderExperience`](#renderExperience) Is the easiest way to render a dynamic video and immediatly use the rendered video files. It creates a new instance of an experience, automatically kicks off the render, and will fire [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) once the render is complete. [`renderExperience`](#renderExperience) is essentially a combination of [`createExperience`](#createExperience) and [`getExperience`](#getExperience), in a single easy to use call. 
+
+**Example (with player)**
+
+```javascript
+var client = new Imposium.Client({...});
+var player = new Imposium.Player({...});
+
+var textInput = document.getElementById('my-text-input');
+var fileInput = document.getElementById('ny-file-input');
+
+// Create a map containing inventory
+var inventory = {
+    text: textInput.value,
+    image: fileInput.files[0]
+};
+
+// Pass inventory to createExperience
+client.renderExperience(inventory);
+```
+
+**Example (no player)**
+
+```javascript
+var client = new Imposium.Client({...});
+
+var videoElement = document.getElementById('my-video-element');
+var textInput = document.getElementById('my-text-input');
+var fileInput = document.getElementById('ny-file-input');
+
+// Executes when the experience is retrieved or done processing
+function gotExperience(experience) {
+    videoElement.src = data.output.videos['mp4_720'].url;
+}
+
+// Set up the got experience event
+client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
+
+// Create a map containing inventory
+var inventory = {
+    text: textInput.value,
+    image: fileInput.files[0]
+};
+
+// Pass inventory to createExperience 
+client.renderExperience(inventory);
+```
+
+#### createExperience
+
+`Imposium.Client.createExperience(inventory: Object, render: Boolean [optional]): void`
+
+Creates a new instance of an experience. Rendering will be automatically started but can optionally be turned off by passing in a second parameter of `false` for certain use cases where rendering on demand is preferred.
+
+Note: If you want to immediately get the output of your experince, it may be easier to use the 1 step [`renderExperience`](#renderExperience) call. If not, you'll need to call [`getExperience`](#getExperience) using the experience ID included in the  [`EXPERIENCE_CREATED`](#EXPERIENCE_CREATED) callback. Please refer to the "two-stage-rendering.html" example for more details. 
+
+**Example (with player)**
+
+```javascript
+var client = new Imposium.Client({...});
+var player = new Imposium.Player({...});
+
+var textInput = document.getElementById('my-text-input');
+var fileInput = document.getElementById('ny-file-input');
+
+// Create a map containing inventory
+var inventory = {
+    text: textInput.value,
+    image: fileInput.files[0]
+};
+
+client.on(Imposium.Events.EXPERIENCE_CREATED, experienceCreated);
+
+function experienceCreated(expData){
+
+    client.getExperience(expData.id);
+}
+
+// Pass inventory to createExperience
+client.createExperience(inventory);
+```
+
+**Example (no player)**
+
+```javascript
+var client = new Imposium.Client({...});
+
+var videoElement = document.getElementById('my-video-element');
+var textInput = document.getElementById('my-text-input');
+var fileInput = document.getElementById('ny-file-input');
+
+// Executes when the experience is retrieved or done processing
+function gotExperience(experience) {
+    videoElement.src = data.output.videos['mp4_720'].url;
+}
+
+// Set up the got experience event
+client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
+client.on(Imposium.Events.EXPERIENCE_CREATED, experienceCreated);
+
+function experienceCreated(expData){
+
+    client.getExperience(expData.id);
+}
+
+// Create a map containing inventory
+var inventory = {
+    text: textInput.value,
+    image: fileInput.files[0]
+};
+
+// Pass inventory to createExperience 
+client.createExperience(inventory);
+```
 
 #### getExperience
 
 `Imposium.Client.getExperience(experienceId: String): void`
 
-Gets experiences by id and triggers the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) event on success. If processing an expereince is intentionally deferred until after an experience is created (i.e: rendering is invoked by the first visit to a deeplink) making this call will invoke processing.
+Gets experiences by id and triggers the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) event on success. If processing an experience is intentionally deferred until after an experience is created (i.e: rendering is invoked by the first visit to a deeplink) making this call will invoke processing.
 
 Note: If you are using [`Imposium.Player`](/player) to handle playback then you can skip setting [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) since the player will always consume processed experiences for you. It should be said though that setting this event can still be useful when using the player if you wish to update application state or markup when an experience becomes ready (i.e: hiding a 'loading' or 'now processing' view).
 
@@ -272,60 +356,6 @@ client.on(Imposium.Events.GOT_EXPERIENCE);
 
 // Retrieve the data for 'myExperienceId'
 client.getExperience(experienceId);
-```
-
-#### createExperience
-
-`Imposium.Client.createExperience(inventory: Object, render: Boolean [optional]): void`
-
-Creates a new instance of an experience. Processing will be automatically started but can optionally be turned off by passing in a second parameter of `false` for certain use cases where rendering on demand is preferred.
-
-Note:  If you are using [`Imposium.Player`](/player) you will not need to setup any events to capture experience data. If not, you will need to set either the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) or [`EXPERIENCE_CREATED`](#EXPERIENCE_CREATED) if render was set to `false`.
-
-**Example (with player)**
-
-```javascript
-var client = new Imposium.Client({...});
-var player = new Imposium.Player({...});
-
-var textInput = document.getElementById('my-text-input');
-var fileInput = document.getElementById('ny-file-input');
-
-// Create a map containing inventory
-var inventory = {
-    text: textInput.value,
-    image: fileInput.files[0]
-};
-
-// Pass inventory to createExperience
-client.createExperience(inventory);
-```
-
-**Example (no player)**
-
-```javascript
-var client = new Imposium.Client({...});
-
-var videoElement = document.getElementById('my-video-element');
-var textInput = document.getElementById('my-text-input');
-var fileInput = document.getElementById('ny-file-input');
-
-// Executes when the experience is retrieved or done processing
-function gotExperience(experience) {
-     videoElement.src = data.output.videos['mp4_720'].url;
-}
-
-// Set up the got experience event
-client.on(Imposium.Events.GOT_EXPERIENCE);
-
-// Create a map containing inventory
-var inventory = {
-    text: textInput.value,
-    image: fileInput.files[0]
-};
-
-// Pass inventory to createExperience 
-client.createExperience(inventory);
 ```
 
 #### captureAnalytics

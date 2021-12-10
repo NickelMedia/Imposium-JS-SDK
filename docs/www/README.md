@@ -1,6 +1,6 @@
 #### Features
 
-- Lightweight at 80kb
+- Lightweight at 170kb
 - Easy to set up with a few lines of code
 - Integrates with a wide range of javascript build environments and frameworks
 - Easily handles video playback for you as well as recording playback analytics
