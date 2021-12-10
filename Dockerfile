@@ -1,4 +1,4 @@
-FROM node:15
+FROM node:lts-alpine
 
 WORKDIR /sdk
 COPY . /sdk
