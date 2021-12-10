@@ -68,7 +68,7 @@ Once you have finished writing the markup, you will need to add some glue code t
 
 The next step is to create a new instance of [`Imposium.client`](client.md) using a configuration provided by our team. Then we create a new instance of [`Imposium.player`](player.md) to handle playing back the video automically.
 
-Finally we will add an event handler to the form that will demonstrate how to by generate video by calling [`Imposium.client.createExperience`](/client?id=createexperience) on submits.
+Finally we will add an event handler to the form that will generate the video by calling [`Imposium.client.renderExperience`](/client?id=renderExperience) on submit.
 
 ```javascript
 // References to mark up
@@ -96,8 +96,8 @@ form.addEventListener('submit', function(e) {
     };
 
     // Consumes dynamicData and begins process of listening for video data 
-    client.createExperience(dynamicData);
+    client.renderExperience(dynamicData);
 });
 ```
 
-The above snippet will handle the end to end flow of creating video with Imposium, including playback. When `Imposium.client.createExperience` is called the client beings listening for processed video data. Once the data becomes available the video player will begin streaming it.
+The above snippet will handle the end to end flow of creating video with Imposium, including playback. When `Imposium.client.renderExperience` is called the client beings listening for processed video data. Once the data becomes available the video player will begin streaming it.
