@@ -1,5 +1,5 @@
 // Pull out unneeded keys
-export const prepConfig = (config: any, defaults: any) => {
+export const prepConfig = (config: any, defaults: any) : void => {
     const validKeys = Object.keys(defaults);
 
     for (const key in config) {
@@ -20,12 +20,12 @@ export const isFunc = (f: any): boolean => {
 };
 
 // Check if key exists in an obj
-export const keyExists = (o: any, key: string) => {
+export const keyExists = (o: any, key: string) : number => {
     return (~Object.keys(o).map((i) => o[i]).indexOf(key));
 };
 
 // Return a new object containing the same keys as the ref passed in
-export const cloneWithKeys = (o: any) => {
+export const cloneWithKeys = (o: any) : any => {
     return Object.keys(o).reduce((p, c) => { p[c] = null; return p; }, {});
 };
 

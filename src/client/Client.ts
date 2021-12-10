@@ -51,8 +51,8 @@ export interface IExperience {
     rendering: boolean;
     date_created: number;
     moderation_status: string;
-    error? : string;
-    input : any;
+    error?: string;
+    input: any;
     output: IExperienceOutput;
 }
 
@@ -95,7 +95,7 @@ export default class Client {
     public static eventNames: IClientEvents = settings.eventNames;
     public clientConfig: IClientConfig = undefined;
     public gaProperty: string = '';
-    private DirectDeliveryPipe: DirectDeliveryPipe = undefined;
+    private directDeliveryPipe: DirectDeliveryPipe = undefined;
     private player: VideoPlayer = undefined;
     private renderHistory: IRenderHistory = settings.emptyHistory;
     private eventDelegateRefs: IClientEvents = cloneWithKeys(Client.eventNames);
@@ -145,7 +145,7 @@ export default class Client {
             clientDelegates.set('gotExperience', (e: IExperience) => this.gotExperience(e));
             clientDelegates.set('internalError', (e: any) => this.internalError(e));
 
-            this.DirectDeliveryPipe = new DirectDeliveryPipe({
+            this.directDeliveryPipe = new DirectDeliveryPipe({
                 api,
                 clientDelegates,
                 environment: this.clientConfig.environment,
@@ -281,7 +281,7 @@ export default class Client {
                     experienceId = experienceId.substring(0, settings.uuidLength);
                 }
 
-                this.DirectDeliveryPipe.getExperience(experienceId);
+                this.directDeliveryPipe.getExperience(experienceId);
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
@@ -291,7 +291,7 @@ export default class Client {
     /*
         Creates experiences and handles various render flows
      */
-    public createExperience = (inventory: any, render : boolean = true): void => {
+    public createExperience = (inventory: any, render: boolean = true): void => {
         if (this.clientConfig) {
             const {
                 player, playerIsFallback,
@@ -306,15 +306,15 @@ export default class Client {
                     throw new ClientConfigurationError('bagConfigOnPostRender', Client.eventNames.GOT_EXPERIENCE);
                 }
 
-                this.DirectDeliveryPipe.createExperience(inventory, render, UPLOAD_PROGRESS);
+                this.directDeliveryPipe.createExperience(inventory, render, UPLOAD_PROGRESS);
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }
         }
     }
 
-    public renderExperience = (inventory:any): void =>{
-        
+    public renderExperience = (inventory: any): void => {
+
         if (this.clientConfig) {
             const {
                 player, playerIsFallback,
@@ -329,7 +329,7 @@ export default class Client {
                     throw new ClientConfigurationError('bagConfigOnPostRender', Client.eventNames.GOT_EXPERIENCE);
                 }
 
-                this.DirectDeliveryPipe.fetchExperience(inventory, UPLOAD_PROGRESS);
+                this.directDeliveryPipe.fetchExperience(inventory, UPLOAD_PROGRESS);
             } catch (e) {
                 ExceptionPipe.trapError(e, storyId, ERROR);
             }

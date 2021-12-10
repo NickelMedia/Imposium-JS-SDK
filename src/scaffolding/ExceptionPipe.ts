@@ -16,7 +16,7 @@ export default class ExceptionPipe {
     /*
         Process the exception and trace
      */
-    public static trapError = (e: any, storyId: string, callback: (e: ImposiumError) => () => any = null): void => {
+    public static trapError = (e: any, storyId: string, callback: (evt: ImposiumError) => () => any = null): void => {
         // If the error isn't a duck typed Imposium error, wrap with uncaught type to keep log formatting streamlined
         e = (!e.log) ? new UncaughtError('generic', e) : e;
 

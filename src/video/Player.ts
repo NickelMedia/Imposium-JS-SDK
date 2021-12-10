@@ -78,8 +78,6 @@ export default class ImposiumPlayer extends VideoPlayer {
 
     private hlsSupport: string = '';
     private hlsPlayer: any = null;
-    private experienceCache: IExperience[] = [];
-    private clientRef: Client = null;
     private imposiumPlayerConfig: IPlayerConfig = null;
 
     constructor(node: HTMLVideoElement, client: Client, config: IPlayerConfig = settings.defaultConfig) {
@@ -123,18 +121,12 @@ export default class ImposiumPlayer extends VideoPlayer {
         Set a live stream or fallback to bandwidth checking / auto assigning a file
      */
     public experienceGenerated = (experience: IExperience): void => {
-        const {experienceCache} = this;
         const {qualityOverride} = this.imposiumPlayerConfig;
 
         const {id, output: {videos, images}} = experience;
         let poster = '';
 
         this.setExperienceId(id);
-
-        /*
-            Will be used in upcoming features
-            experienceCache.push(experience);
-         */
 
         if (images && images.hasOwnProperty('poster')) {
             poster = images.poster;
@@ -204,7 +196,9 @@ export default class ImposiumPlayer extends VideoPlayer {
         Play video
      */
     public play = (): void => {
-        this.node.play();
+        this.node.play().catch(()=>{
+            console.error('Error playing video');
+        });
     }
 
     /*
@@ -322,7 +316,7 @@ export default class ImposiumPlayer extends VideoPlayer {
     public replay = (): void => {
         this.pauseIfPlaying();
         this.node.currentTime = 0;
-        this.node.play();
+        this.play();
     }
 
     /*
@@ -430,8 +424,8 @@ export default class ImposiumPlayer extends VideoPlayer {
         Adapt quality manually if HLS cannot be supported
      */
     private checkBandwidth = (videos: any): Promise<string> => {
-        const {bandwidthRatings, compressionLevels, BANDWIDTH_SAMPLES} = ImposiumPlayer;
-        const testPromises: Array<Promise<number>> = [];
+        const {BANDWIDTH_SAMPLES} = ImposiumPlayer;
+        const testPromises: Promise<number>[] = [];
         const mp4FormatList: string[] = Object.keys(videos).filter((f) => f !== 'm3u8');
 
         for (let i = 0; i < BANDWIDTH_SAMPLES; i++) {
@@ -460,7 +454,7 @@ export default class ImposiumPlayer extends VideoPlayer {
 
                 resolve(scaleMap[bestFit]);
             })
-            .catch((e) => {
+            .catch(() => {
                 reject(mp4FormatList.slice(-1).pop());
             });
         });

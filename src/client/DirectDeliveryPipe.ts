@@ -26,14 +26,14 @@ export interface IFetchConfig {
     uploadProgress: (n: number) => any;
 }
 
-const MAX_RETRIES : number = 3;
-const KILL_POLL_AFTER : number = 180000;
-const POLL_INTERVAL : number = 5000;
+const MAX_RETRIES: number = 3;
+const KILL_POLL_AFTER: number = 180000;
+const POLL_INTERVAL: number = 5000;
 
 export default class DirectDeliveryPipe {
 
     private pollTimeout: any;
-    private killPollTimeout:any;
+    private killPollTimeout: any;
     private api: API = null;
     private clientDelegates: DelegateMap = null;
     private configCache: Map<string, ICreateConfig> = new Map();
@@ -49,12 +49,12 @@ export default class DirectDeliveryPipe {
     public getExperience = (experienceId: string): void => {
 
         clearTimeout(this.killPollTimeout);
-        this.killPollTimeout = setTimeout(()=>this.killPoll(experienceId), KILL_POLL_AFTER);
-        this.pollForExperience(experienceId, (experience)=>{
+        this.killPollTimeout = setTimeout(() => this.killPoll(experienceId), KILL_POLL_AFTER);
+        this.pollForExperience(experienceId, (experience) => {
 
             this.clientDelegates.get('gotExperience')(experience);
 
-        }, (e)=>{
+        }, (e) => {
             const httpError = new HTTPError('httpFailure', experienceId, e);
             this.clientDelegates.get('internalError')(httpError);
         });
@@ -66,7 +66,7 @@ export default class DirectDeliveryPipe {
     public fetchExperience = (
         inventory: any,
         uploadProgress: (n: number) => any,
-        retries : number = 1
+        retries: number = 1
     ): void => {
 
         const uuid: string = generateUUID();
@@ -75,34 +75,34 @@ export default class DirectDeliveryPipe {
 
         .then((res: IExperience) => {
 
-            if(res.error){
+            if (res.error) {
                 const httpError = new RenderError(res.error, uuid);
                 this.clientDelegates.get('internalError')(httpError);
-            }else{
+            } else {
                 this.configCache.delete(uuid);
                 this.clientDelegates.get('gotExperience')(res);
             }
         })
         .catch((e: AxiosError) => {
 
-            //error during the render, return a render error
-            if(e?.response?.data?.error){
+            // error during the render, return a render error
+            if (e?.response?.data?.error) {
                 const httpError = new RenderError(e.response.data.error, uuid);
-                this.clientDelegates.get('internalError')(httpError);      
-            
-            //render took longer than a minute, revert to polling
+                this.clientDelegates.get('internalError')(httpError);
+
+            // render took longer than a minute, revert to polling
             } else if (e.response && e.response.status === 408) {
 
-                //enter polling GET flow
+                // enter polling GET flow
                 this.getExperience(uuid);
 
-            //retry render if < max retries and the status is a 5xx
-            }else if(e.response && e.response.status >= 500 && retries < MAX_RETRIES){
+            // retry render if < max retries and the status is a 5xx
+            } else if (e.response && e.response.status >= 500 && retries < MAX_RETRIES) {
 
                 retries = retries + 1;
                 this.fetchExperience(inventory, uploadProgress, retries);
 
-            }else{
+            } else {
                 const httpError = new HTTPError('httpFailure', uuid, e);
                 this.clientDelegates.get('internalError')(httpError);
             }
@@ -114,9 +114,9 @@ export default class DirectDeliveryPipe {
     */
     public createExperience = (
         inventory: any,
-        render : boolean,
+        render: boolean,
         uploadProgress: (n: number) => any,
-        retries : number = 0
+        retries: number = 0
     ): void => {
 
         const uuid: string = generateUUID();
@@ -128,24 +128,24 @@ export default class DirectDeliveryPipe {
             this.clientDelegates.get('experienceCreated')(e);
         })
         .catch((e: AxiosError) => {
-            
-            //retry render if < max retries amd the status is 5xx
-            if(e.response && e.response.status >= 500 && retries < MAX_RETRIES){
+
+            // retry render if < max retries amd the status is 5xx
+            if (e.response && e.response.status >= 500 && retries < MAX_RETRIES) {
 
                 retries = retries + 1;
                 this.createExperience(inventory, render, uploadProgress, retries);
 
-            }else{
+            } else {
                 const httpError = new HTTPError('httpFailure', uuid, e);
                 this.clientDelegates.get('internalError')(httpError);
             }
         });
     }
-    
+
     /*
         Kill the GET /experience/{id} polling
     */
-    private killPoll(experienceId : string){
+    private killPoll(experienceId: string) {
 
         clearTimeout(this.pollTimeout);
 
@@ -156,38 +156,38 @@ export default class DirectDeliveryPipe {
     /*
         Poll on the GET /experience/{id} endpoint until the render is complete, or we time out
     */
-    private pollForExperience(id, resolve, reject, retries:number = 1) {
+    private pollForExperience(id, resolve, reject, retries: number = 1) {
 
         this.api.get(id)
         .then((res) => {
 
-            //if it's not rendering anymore, it's done
-            if(!res.rendering){
+            // if it's not rendering anymore, it's done
+            if (!res.rendering) {
                 clearTimeout(this.pollTimeout);
 
-                if(res.error){
+                if (res.error) {
                     const httpError = new RenderError(res.error, id);
                     this.clientDelegates.get('internalError')(httpError);
-                }else{
+                } else {
                     resolve(res);
                 }
-            }else{
+            } else {
                 clearTimeout(this.pollTimeout);
                 this.pollTimeout = setTimeout(() => {
                     this.pollForExperience(id, resolve, reject, retries);
                 }, POLL_INTERVAL);
             }
         })
-        .catch((e : AxiosError) => {
+        .catch((e: AxiosError) => {
 
             clearTimeout(this.pollTimeout);
-            //if there is an error getting the experience, try again if < max retries
-            if(e.response && e.response.status >= 500 && retries < MAX_RETRIES){
-                retries = retries +1;
+            // if there is an error getting the experience, try again if < max retries
+            if (e.response && e.response.status >= 500 && retries < MAX_RETRIES) {
+                retries = retries + 1;
                 this.pollForExperience(id, resolve, reject, retries);
 
-            //else throw an error
-            }else{
+            // else throw an error
+            } else {
                 reject(e);
             }
         });

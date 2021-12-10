@@ -33,7 +33,7 @@ if [ "$confirmation" == "y" ]; then
     jq ".version = \"$fresh_npm_version\"" ./package.json > "$tmpFile" && mv "$tmpFile" ./package.json
 
     print_checkout_step "Linting the project..."
-    tslint ./src/**/*.ts
+    eslint -c .eslintrc.js  ./src/**/*.ts
 
     print_checkout_step "Preparing bundled code..."
     npx webpack --bail && npx webpack --bail -p --env=sentry || { exit 1; }

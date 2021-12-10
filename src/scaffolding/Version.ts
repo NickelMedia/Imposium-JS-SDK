@@ -1,4 +1,4 @@
-declare var VERSION;
+declare const VERSION;
 export const version = VERSION;
 export const printVersion = () => {
     console.log(

@@ -1,5 +1,5 @@
 import ExceptionPipe from '../scaffolding/ExceptionPipe';
-import axios, {AxiosError} from 'axios';
+import axios from 'axios';
 import {generateUUID} from '../scaffolding/Helpers';
 
 const {...settings} = require('../conf/settings.json').analytics;
@@ -100,7 +100,7 @@ export default class GoogleAnalytics {
         }
 
         axios.get(pixelUrl)
-        .catch((e: AxiosError) => {
+        .catch(() => {
             ExceptionPipe.logWarning('analytics', 'requestFailed');
         });
     }
