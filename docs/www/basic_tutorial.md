@@ -100,4 +100,4 @@ form.addEventListener('submit', function(e) {
 });
 ```
 
-The above snippet will handle the end to end flow of creating video with Imposium, including playback. When `Imposium.client.renderExperience` is called the client beings listening for processed video data. Once the data becomes available the video player will begin streaming it.
+The above snippet will handle the end to end flow of creating a video with Imposium, including playback. When `Imposium.client.renderExperience` is called the client begins listening for processed video data. Once the data becomes available, the video player will begin streaming it.

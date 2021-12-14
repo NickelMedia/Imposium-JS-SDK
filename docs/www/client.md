@@ -151,7 +151,7 @@ client.on(Imposium.Events.ERROR, errorHandler);
 
 **Callback Signature:** `function experienceCreated(experience: Object)`
 
-Triggered when an experience record is first created. This is helpful in SPA environments for use cases where writing the id for an experience to a url can be used for SEO purposes, sharing, etc. This event can also be useful for updating loading markup (i.e: uploading has finished, moving onto processing...) as it means any dynamic data that was submitted to our web servers by a consumer was effectively transmitted. 
+Triggered when an experience record is first created. This is helpful in SPA environments for use cases where writing the id for an experience to a url can be used for SEO purposes, sharing, etc. This event can also be useful for updating loading markup (i.e: uploading has finished, moving on to processing...) since it means any dynamic data that was submitted to our web servers by a consumer was effectively transmitted. 
 
 Note: This event is only fired if you're using [`createExperience`](#createExperience) vs. [`renderExperience`](#renderExperience).
     
@@ -201,7 +201,7 @@ client.on(Imposium.Events.GOT_EXPERIENCE, gotExperience);
 
 `Imposium.Client.renderExperience(inventory: Object): void`
 
-[`renderExperience`](#renderExperience) Is the easiest way to render a dynamic video and immediatly use the rendered video files. It creates a new instance of an experience, automatically kicks off the render, and will fire [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) once the render is complete. [`renderExperience`](#renderExperience) is essentially a combination of [`createExperience`](#createExperience) and [`getExperience`](#getExperience), in a single easy to use call. 
+[`renderExperience`](#renderExperience) Is the easiest way to render a dynamic video and immediately use the rendered video files. It creates a new instance of an experience, automatically kicks off the render, and will fire [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) once the render is complete. [`renderExperience`](#renderExperience) is essentially a combination of [`createExperience`](#createExperience) and [`getExperience`](#getExperience), in a single easy to use call. 
 
 **Example (with player)**
 
@@ -233,7 +233,7 @@ var fileInput = document.getElementById('ny-file-input');
 
 // Executes when the experience is retrieved or done processing
 function gotExperience(experience) {
-    videoElement.src = data.output.videos['mp4_720'].url;
+    videoElement.src = data.output.videos[0].url;
 }
 
 // Set up the got experience event
@@ -320,7 +320,7 @@ client.createExperience(inventory);
 
 `Imposium.Client.getExperience(experienceId: String): void`
 
-Gets experiences by id and triggers the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) event on success. If processing an experience is intentionally deferred until after an experience is created (i.e: rendering is invoked by the first visit to a deeplink) making this call will invoke processing.
+Returns an experience via its unique experience ID, and triggers the [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) event on success. If processing an experience is intentionally deferred until after an experience is created (i.e. rendering is invoked by the first visit to a deeplink) making this call will invoke processing.
 
 Note: If you are using [`Imposium.Player`](/player) to handle playback then you can skip setting [`GOT_EXPERIENCE`](#GOT_EXPERIENCE) since the player will always consume processed experiences for you. It should be said though that setting this event can still be useful when using the player if you wish to update application state or markup when an experience becomes ready (i.e: hiding a 'loading' or 'now processing' view).
 
