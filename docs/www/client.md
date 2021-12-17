@@ -69,24 +69,21 @@ Note: If you are not using [`Imposium.Player`](/player) this event is required t
     "rendering": false,
     "date_created": 1535465716,
     "output": {
-        "videos": {
-            "mp4_1080": {
+        "videos": [{
                 "format": "mp4",
                 "width": "1920",
                 "height": "1080",
                 "duration": 4.033333,
                 "rate": 30,
                 "url": "https:\/\/d14ffwo9wh5yh2.cloudfront.net\/P-03F3M6s7R9P6K1A723DbB0a3e7Ub91L5u9N1n3WbbaL-qfK55eUaj1T89199\/m9s21-weB7b6p648k-p4tfo5vak078G2YaX5.mp4"
-            },
-            "mp4_720": {
+            },{
                 "format": "mp4",
                 "width": "1280",
                 "height": "720",
                 "duration": 4.033333,
                 "rate": 30,
                 "url": "https:\/\/d14ffwo9wh5yh2.cloudfront.net\/P-03F3M6s7R9P6K1A723DbB0a3e7Ub91L5u9N1n3WbbaL-qfK55eUaj1T89199\/x1I8MeI3Y-N8y8ycm2E043y9hbIancT84eI1.mp4"
-            },
-            "mp4_480": {
+            },{
                 "format": "mp4",
                 "width": "854",
                 "height": "480",
@@ -94,7 +91,7 @@ Note: If you are not using [`Imposium.Player`](/player) this event is required t
                 "rate": 30,
                 "url": "https:\/\/d14ffwo9wh5yh2.cloudfront.net\/P-03F3M6s7R9P6K1A723DbB0a3e7Ub91L5u9N1n3WbbaL-qfK55eUaj1T89199\/Q8uexchaP2tbxdL5h6fa95ZdC843Lc027aW-.mp4"
             }
-        }
+        ]
     }
 }
 ```
@@ -294,7 +291,7 @@ var fileInput = document.getElementById('ny-file-input');
 
 // Executes when the experience is retrieved or done processing
 function gotExperience(experience) {
-    videoElement.src = data.output.videos['mp4_720'].url;
+    videoElement.src = data.output.videos[0].url;
 }
 
 // Set up the got experience event
@@ -348,7 +345,7 @@ var videoElement = document.getElementById('my-video-element');
 
 // Executes when the experience is retrieved or done processing
 function gotExperience(experience) {
-     videoElement.src = data.output.videos['mp4_720'].url;
+     videoElement.src = data.output.videos[0].url;
 }
 
 // Set up the got experience event

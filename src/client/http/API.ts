@@ -50,7 +50,7 @@ export default class API {
      */
     public get = (experienceId: string): Promise<any> => {
         return new Promise((resolve, reject) => {
-            this.http.get(`/experience/${experienceId}?r=${Math.random()}`)
+            this.http.get(`/story/${this.storyId}/experience/${experienceId}?r=${Math.random()}`)
             .then((res) => {
                 resolve(res.data);
             })
