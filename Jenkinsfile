@@ -1,4 +1,4 @@
-runPipeline {
+k8sPipeline {
     projectName = "imposium-js-sdk-docs"
     useECR = true
     images = [
