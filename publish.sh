@@ -46,7 +46,7 @@ print_checkout_step "Generating type definitions...\n"
 ./generate-types.sh
 
 print_checkout_step "Creating GitHub release"
-gh release create $1 -t "v$1" 
+gh release create $1 --generate-notes
 
 print_checkout_step "Publishing to NPM"
 npm publish
