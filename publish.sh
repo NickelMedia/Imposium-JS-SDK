@@ -31,7 +31,7 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-echo "Publishing a $1 release of the Imposium component library..."
+echo "Publishing a $1 release of the Imposium JS SDK..."
 
 print_checkout_step "Linting the project..."
 eslint -c .eslintrc.js  ./src/**/*.ts
