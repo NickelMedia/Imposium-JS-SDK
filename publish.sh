@@ -36,14 +36,14 @@ echo "Publishing a $1 release of the Imposium JS SDK..."
 print_checkout_step "Linting the project..."
 eslint -c .eslintrc.js  ./src/**/*.ts
 
+print_checkout_step "Updating NPM version"
+npm version $1
+
 print_checkout_step "Preparing bundled code..."
 npx webpack --bail && npx webpack --bail --mode=production --env=sentry || { exit 1; }
 
 print_checkout_step "Generating type definitions...\n"
 ./generate-types.sh
-
-print_checkout_step "Updating NPM version"
-npm version $1
 
 print_checkout_step "Creating GitHub release"
 gh release create $1
