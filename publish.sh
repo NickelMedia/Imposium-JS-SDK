@@ -19,6 +19,12 @@ if [ $? == 1 ]; then
     npm login
 fi
 
+gh auth status
+if [ $? === 0 ]; then
+    echo 'Please login to GitHub...'
+    gh auth login
+fi
+
 if [ -z "$1" ]; then
     echo "Please specifiy a release type..."
     npm version --help
@@ -38,6 +44,9 @@ print_checkout_step "Generating type definitions...\n"
 
 print_checkout_step "Updating NPM version"
 npm version $1
+
+print_checkout_step "Creating GitHub release"
+gh release create $1
 
 print_checkout_step "Publishing to NPM"
 npm publish
