@@ -13,40 +13,34 @@ if [ $current_git_branch != "master" ]; then
     exit 1 
 fi
 
-npm whoami > /dev/null 2>&1
-if [ $? == 1 ]; then
-    echo "Please login to NPM..."
-    npm login
+current_npm_version=$(cat ./package.json | jq -r ".version")
+
+echo -e "Preparing for publication on NPM...\n"
+
+read -e -p "Please enter a new version number: "  fresh_npm_version
+read -e -p "Version $fresh_npm_version will replace version $current_npm_version, are you sure this is correct? [y / n]: " confirmation
+
+if [ "$confirmation" == "y" ]; then
+    echo "Process will exit on errors."
+
+    npm whoami > /dev/null 2>&1
+    if [ $? == 1 ]; then
+        echo "Please login to NPM..."
+        npm login
+    fi
+
+    tmpFile=$(mktemp)
+    jq ".version = \"$fresh_npm_version\"" ./package.json > "$tmpFile" && mv "$tmpFile" ./package.json
+
+    print_checkout_step "Linting the project..."
+    eslint -c .eslintrc.js  ./src/**/*.ts
+
+    print_checkout_step "Preparing bundled code..."
+    npx webpack --bail && npx webpack --bail --mode=production --env=sentry || { exit 1; }
+
+    print_checkout_step "Generating type definitions...\n"
+    ./generate-types.sh
+
+    print_checkout_step "Publishing Imposium JS SDK"
+    npm publish --access=public
 fi
-
-gh auth status
-if [ $? === 0 ]; then
-    echo 'Please login to GitHub...'
-    gh auth login
-fi
-
-if [ -z "$1" ]; then
-    echo "Please specifiy a release type..."
-    npm version --help
-    exit 1
-fi
-
-echo "Publishing a $1 release of the Imposium JS SDK..."
-
-print_checkout_step "Linting the project..."
-eslint -c .eslintrc.js  ./src/**/*.ts
-
-print_checkout_step "Updating NPM version"
-npm version $1
-
-print_checkout_step "Preparing bundled code..."
-npx webpack --bail && npx webpack --bail --mode=production --env=sentry || { exit 1; }
-
-print_checkout_step "Generating type definitions...\n"
-./generate-types.sh
-
-print_checkout_step "Creating GitHub release"
-gh release create $1 --generate-notes
-
-print_checkout_step "Publishing to NPM"
-npm publish
