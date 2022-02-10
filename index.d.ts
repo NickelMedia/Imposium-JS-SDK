@@ -22,7 +22,7 @@ declare module 'Imposium-JS-SDK/client/http/API' {
 	    constructor(accessToken: string, env: string, storyId: string, compositionId?: string);
 	    getGAProperty: () => Promise<ITrackingResponse>;
 	    get: (experienceId: string) => Promise<any>;
-	    fetch: (inventory: any, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
+	    fetch: (inventory: any, uuid: string, progress?: (p: number) => any, experienceId?: string) => Promise<IExperience>;
 	    create: (inventory: any, render: boolean, uuid: string, progress?: (p: number) => any) => Promise<IExperience>;
 	    private getAuthHeader;
 	    private uploadProgress;
@@ -186,7 +186,7 @@ declare module 'Imposium-JS-SDK/client/DirectDeliveryPipe' {
 	    private configCache;
 	    constructor(c: IDirectDeliveryPipeConfig);
 	    getExperience: (experienceId: string) => void;
-	    fetchExperience: (inventory: any, uploadProgress: (n: number) => any, retries?: number) => void;
+	    fetchExperience: (inventory: any, uploadProgress: (n: number) => any, retries?: number, experienceId?: string) => void;
 	    createExperience: (inventory: any, render: boolean, uploadProgress: (n: number) => any, retries?: number) => void;
 	    private killPoll;
 	    private pollForExperience;
@@ -272,6 +272,7 @@ declare module 'Imposium-JS-SDK/client/Client' {
 	    getExperience: (experienceId: string) => void;
 	    createExperience: (inventory: any, render?: boolean) => void;
 	    renderExperience: (inventory: any) => void;
+	    renderExperienceFromId: (experienceId: any) => void;
 	    private updateHistory;
 	    private experienceCreated;
 	    private gotExperience;
