@@ -336,6 +336,29 @@ export default class Client {
         }
     }
 
+    public renderExperienceFromId = (experienceId): void => {
+
+        if (this.clientConfig) {
+            const {
+                player, playerIsFallback,
+                clientConfig: {storyId},
+                eventDelegateRefs: {GOT_EXPERIENCE, UPLOAD_PROGRESS, ERROR}
+            } = this;
+
+            try {
+
+                // Ensures config error throws if not using our player / GOT_EXPERIENCE isn't set or set correctly
+                if (((player === null || playerIsFallback) && !isFunc(GOT_EXPERIENCE))) {
+                    throw new ClientConfigurationError('bagConfigOnPostRender', Client.eventNames.GOT_EXPERIENCE);
+                }
+
+                this.directDeliveryPipe.fetchExperience(null, UPLOAD_PROGRESS, 1, experienceId);
+            } catch (e) {
+                ExceptionPipe.trapError(e, storyId, ERROR);
+            }
+        }
+    }
+
     /*
         Update render history state, prevents storing duplicates
      */

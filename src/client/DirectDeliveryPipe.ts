@@ -66,10 +66,11 @@ export default class DirectDeliveryPipe {
     public fetchExperience = (
         inventory: any,
         uploadProgress: (n: number) => any,
-        retries: number = 1
+        retries: number = 1,
+        experienceId : string = null
     ): void => {
 
-        const uuid: string = generateUUID();
+        const uuid = (experienceId) ? experienceId : generateUUID();
 
         this.api.fetch(inventory, uuid, uploadProgress)
 
@@ -100,7 +101,7 @@ export default class DirectDeliveryPipe {
             } else if (e.response && e.response.status >= 500 && retries < MAX_RETRIES) {
 
                 retries = retries + 1;
-                this.fetchExperience(inventory, uploadProgress, retries);
+                this.fetchExperience(inventory, uploadProgress, retries, experienceId);
 
             } else {
                 const httpError = new HTTPError('httpFailure', uuid, e);
