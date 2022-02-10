@@ -66,7 +66,8 @@ export default class API {
     public fetch = (
         inventory: any,
         uuid: string,
-        progress: (p: number) => any = null
+        progress: (p: number) => any = null,
+        experienceId : string = null,
     ): Promise<IExperience> => {
         const route: string = '/experience/fetch';
         const formData: FormData = inventoryToFormData(this.storyId, inventory, this.compositionId);
