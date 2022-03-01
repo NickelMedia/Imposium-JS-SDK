@@ -25,15 +25,6 @@ read -e -p "Version $fresh_npm_version will replace version $current_npm_version
 
 if [ "$confirmation" == "y" ]; then
     echo "Process will exit on errors."
-    
-    if [[ "$gitReleaseVersion" == '' ]] || [[ "$gitReleaseNote" == '' ]];
-    then
-        [ -z "$gitReleaseVersion" ] && echo "Git Release Version CANNOT be Empty"
-        [ -z "$gitReleaseNote" ] && echo "Git Release Note CANNOT be Empty"
-    else
-        echo "Creating GitHub Release..."
-        gh release create v"$gitReleaseVersion" --notes "$gitReleaseNote"
-    fi
 
     npm whoami > /dev/null 2>&1
     if [ $? == 1 ]; then
@@ -55,4 +46,7 @@ if [ "$confirmation" == "y" ]; then
 
     print_checkout_step "Publishing Imposium JS SDK"
     npm publish --access=public
+
+    echo "Creating GitHub Release Version $gitReleaseVersion"
+    gh release create v"$gitReleaseVersion" --notes "$gitReleaseNote"
 fi
