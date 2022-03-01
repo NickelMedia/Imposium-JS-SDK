@@ -15,13 +15,25 @@ fi
 
 current_npm_version=$(cat ./package.json | jq -r ".version")
 
-echo -e "Preparing for publication on NPM...\n"
+echo -e "Preparing for publication on NPM and GitHub...\n"
 
 read -e -p "Please enter a new version number: "  fresh_npm_version
+read -e -p "Please enter a new Git Relese Version number: "  gitReleaseVersion
+read -e -p "Please enter a new Git Relese Version note: "  gitReleaseNote
 read -e -p "Version $fresh_npm_version will replace version $current_npm_version, are you sure this is correct? [y / n]: " confirmation
+
 
 if [ "$confirmation" == "y" ]; then
     echo "Process will exit on errors."
+    
+    if [[ "$gitReleaseVersion" == '' ]] || [[ "$gitReleaseNote" == '' ]];
+    then
+        [ -z "$gitReleaseVersion" ] && echo "Git Release Version CANNOT be Empty"
+        [ -z "$gitReleaseNote" ] && echo "Git Release Note CANNOT be Empty"
+    else
+        echo "Creating GitHub Release..."
+        gh release create v"$gitReleaseVersion" --notes "$gitReleaseNote"
+    fi
 
     npm whoami > /dev/null 2>&1
     if [ $? == 1 ]; then
