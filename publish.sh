@@ -18,7 +18,6 @@ current_npm_version=$(cat ./package.json | jq -r ".version")
 echo -e "Preparing for publication on NPM and GitHub...\n"
 
 read -e -p "Please enter a new version number: "  fresh_npm_version
-read -e -p "Please enter a new Git Relese Version number: "  gitReleaseVersion
 read -e -p "Please enter a new Git Relese Version note: "  gitReleaseNote
 read -e -p "Version $fresh_npm_version will replace version $current_npm_version, are you sure this is correct? [y / n]: " confirmation
 
@@ -47,6 +46,6 @@ if [ "$confirmation" == "y" ]; then
     print_checkout_step "Publishing Imposium JS SDK"
     npm publish --access=public
 
-    echo "Creating GitHub Release Version $gitReleaseVersion"
+    echo "Creating GitHub Release Version $fresh_npm_version"
     gh release create v"$gitReleaseVersion" --notes "$gitReleaseNote"
 fi
