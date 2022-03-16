@@ -47,5 +47,5 @@ if [ "$confirmation" == "y" ]; then
     npm publish --access=public
 
     echo "Creating GitHub Release Version $fresh_npm_version"
-    gh release create v"$gitReleaseVersion" --notes "$gitReleaseNote"
+    gh release create v"$fresh_npm_version" --notes "$gitReleaseNote"
 fi
