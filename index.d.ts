@@ -35,7 +35,7 @@ declare module 'Imposium-JS-SDK/scaffolding/Version' {
 
 }
 declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
-	import { AxiosError } from 'axios';
+	import { AxiosError } from 'Imposium-JS-SDK/axios';
 	export abstract class ImposiumError extends Error {
 	    log: () => void;
 	    protected type: string;
@@ -345,10 +345,10 @@ declare module 'Imposium-JS-SDK/video/Player' {
 
 }
 declare module 'Imposium-JS-SDK/Entry' {
-	import 'core-js/es/promise';
-	import 'core-js/features/symbol/key-for';
-	import 'core-js/features/map/of';
-	import 'core-js/features/object/assign';
+	import 'Imposium-JS-SDK/core-js/es/promise';
+	import 'Imposium-JS-SDK/core-js/features/symbol/key-for';
+	import 'Imposium-JS-SDK/core-js/features/map/of';
+	import 'Imposium-JS-SDK/core-js/features/object/assign';
 	import Client from 'Imposium-JS-SDK/client/Client';
 	import Player from 'Imposium-JS-SDK/video/Player'; const clientEvents: {
 	    EXPERIENCE_CREATED?: import("./client/Client").ExperienceCreated & string;
