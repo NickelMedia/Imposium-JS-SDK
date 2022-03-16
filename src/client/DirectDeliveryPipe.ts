@@ -51,10 +51,11 @@ export default class DirectDeliveryPipe {
         clearTimeout(this.killPollTimeout);
         this.killPollTimeout = setTimeout(() => this.killPoll(experienceId), KILL_POLL_AFTER);
         this.pollForExperience(experienceId, (experience) => {
-
+            clearTimeout(this.killPollTimeout);
             this.clientDelegates.get('gotExperience')(experience);
 
         }, (e) => {
+            clearTimeout(this.killPollTimeout);
             const httpError = new HTTPError('httpFailure', experienceId, e);
             this.clientDelegates.get('internalError')(httpError);
         });
