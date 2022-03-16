@@ -2,7 +2,7 @@
 
 if npm list -s -g | grep dts-generator > /dev/null 2>&1; then
     # See https://github.com/SitePen/dts-generator for list of paramaters
-    dts-generator --main Imposium-JS-SDK \
+    dts-generator --prefix Imposium-JS-SDK \
         --project ./ \
         --out ./index.d.ts
 else 
