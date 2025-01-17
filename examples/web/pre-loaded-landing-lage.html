@@ -12,8 +12,8 @@
 
         <header>
             <img class="logo" src="./img/imposium_logo@2x.png"/>
-            <h1>Landing Page Example</h1>
-            <p>This example demonstrates how Imposium.js can be used to pull in a pre-rendered video using the Experience ID. This flow is generally used for email marketing campaigns.</p>
+            <h1>Pre-Loaded Landing Page Example</h1>
+            <p>This example demonstrates how Imposium.js can be used to pull in a pre-loaded video using the Experience ID. This flow is generally used for email marketing campaigns. The difference between this and the pre-rendered landing page is that these videos aren't pre-rendered, but the data for the videos has been pre-loaded into Imposium and assigned an Experience ID.</p>
         </header>
 
         <section id="player-wrapper">
@@ -37,8 +37,8 @@
             });
             var player = new Imposium.Player(videoNode, client);
 
-            //Pull in the already created experience
-            client.getExperience(experienceID);
+            //Pass in the experience ID to render the video. If it has already rendered - it will pull it in immediately.
+            client.renderExperienceFromId(experienceID);
 
         </script>
     </body>
