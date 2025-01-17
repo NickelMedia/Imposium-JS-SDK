@@ -1,0 +1,45 @@
+<!doctype html>
+
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Imposium JS Landing Page Example</title>
+        <link rel="stylesheet" href="./css/styles.css">
+        <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed" rel="stylesheet">
+    </head>
+
+    <body>
+
+        <header>
+            <img class="logo" src="./img/imposium_logo@2x.png"/>
+            <h1>Pre-Rendered Landing Page Example</h1>
+            <p>This example demonstrates how Imposium.js can be used to pull in a pre-rendered video using the Experience ID. This flow is generally used for email marketing campaigns.</p>
+        </header>
+
+        <section id="player-wrapper">
+            <video id="dynamic-video" />
+        </section>
+
+        <script type = "text/javascript" src = "../../lib/imposium.js"></script>
+        <script type = "text/javascript">
+            
+            //NOTE: PULL THIS EXPERIENCE ID FROM THE URL, this is hardcoded for sample purposes only
+            var experienceID = 'b8144874-ecc4-443d-f66e-00de89a19272';
+
+            //Store all required HTML refs
+            var videoNode = document.getElementById('dynamic-video');
+
+            //Create an instance of the Client and Player
+            var client = new Imposium.Client({
+                accessToken:'zooch5ja8fiejoojoo6AeQuahmex1wes',
+                storyId:'75e3ed80-7008-480e-ca39-6a3dab807fe9',
+				compositionId:'473df1b4-d9f5-4648-b08b-e0af03abb86e'
+            });
+            var player = new Imposium.Player(videoNode, client);
+
+            //Pull in the already created experience
+            client.getExperience(experienceID);
+
+        </script>
+    </body>
+</html>

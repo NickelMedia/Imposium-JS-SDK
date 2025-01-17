@@ -245,6 +245,24 @@ var inventory = {
 // Pass inventory to createExperience 
 client.renderExperience(inventory);
 ```
+#### renderExperienceFromId
+
+`Imposium.Client.renderExperienceFromId(experienceId: string): void`
+
+[`renderExperienceFromId`](#renderExperienceFromId) Is essentially the same as [`renderExperience`](#renderExperience) except it allows you to pass in an Experience ID, instead of inventory data. This is used when the inventory data has been pre-loaded into the Imposium database via a CSV import, and each row assigned an Experience ID. If the Experience has already been rendered, it will just immediately return the rendered video.
+
+**Example (with player)**
+
+```javascript
+var client = new Imposium.Client({...});
+var player = new Imposium.Player({...});
+
+// Experience ID generally pulled in from the page URL
+var experienceId = 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
+
+// Pass inventory to createExperience
+client.renderExperienceFromId(experienceId);
+```
 
 #### createExperience
 
