@@ -32,7 +32,7 @@
     "webpack-cli": "^4.9.1"
   },
   "dependencies": {
-    "@sentry/browser": "^6.16.0",
+    "@sentry/browser": "^7.119.1",
     "axios": "^0.24.0",
     "core-js": "^3.19.3",
     "jwt-decode": "^3.1.2"
