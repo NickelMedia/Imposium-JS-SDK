@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@sentry/browser": "^6.16.0",
-    "axios": "^0.24.0",
+    "axios": "^1.8.2",
     "core-js": "^3.19.3",
     "jwt-decode": "^3.1.2"
   },
