@@ -1,6 +1,6 @@
 {
   "name": "imposium-js-sdk",
-  "version": "3.5.4",
+  "version": "3.5.5",
   "license": "MIT",
   "author": [
     "Greg Webber",
@@ -16,7 +16,9 @@
   "main": "lib/imposium.min.js",
   "devDependencies": {
     "@types/node": "^10.14.15",
-    "@typescript-eslint/eslint-plugin": "^5.6.0",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "dts-generator": "^3.0.0",
     "ecstatic": "^4.1.4",
     "eslint": "^8.4.1",
     "eslint-plugin-html": "^4.0.6",
