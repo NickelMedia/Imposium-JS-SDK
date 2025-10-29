@@ -88,8 +88,8 @@ export default class DirectDeliveryPipe {
         .catch((e: AxiosError) => {
 
             // error during the render, return a render error
-            if (e?.response?.data?.error) {
-                const httpError = new RenderError(e.response.data.error, uuid);
+            if (e?.response?.data && typeof e.response.data === 'object' && 'error' in e.response.data) {
+                const httpError = new RenderError((e.response.data as any).error, uuid);
                 this.clientDelegates.get('internalError')(httpError);
 
             // render took longer than a minute, revert to polling

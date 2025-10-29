@@ -81,10 +81,10 @@ declare module 'Imposium-JS-SDK/scaffolding/Exceptions' {
 declare module 'Imposium-JS-SDK/scaffolding/ExceptionPipe' {
 	import { ImposiumError } from 'Imposium-JS-SDK/scaffolding/Exceptions';
 	export default class ExceptionPipe {
+	    private static isInitialized;
+	    private static initializeSentry;
 	    static logWarning: (type: string, messageKey: string) => void;
 	    static trapError: (e: any, storyId: string, callback?: (evt: ImposiumError) => () => any) => void;
-	    private static sentryClient;
-	    private static hub;
 	    private static cleanDucktype;
 	}
 
